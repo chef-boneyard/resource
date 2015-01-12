@@ -7,7 +7,7 @@ module Crazytown
       include Resource
 
       class Attribute
-        def initialize(name, type=nil, identity: nil, required: nil, default: NOT_PASSED, &default_block)
+        def initialize(name, type=nil, identity: nil, required: true, default: NOT_PASSED, &default_block)
           @name = name
           @type = type
           @identity = identity
@@ -22,7 +22,7 @@ module Crazytown
           @identity
         end
         def required?
-          @required.nil? ? identity? : @required
+          @required
         end
         attr_reader :default
         attr_reader :default_block
@@ -73,11 +73,16 @@ module Crazytown
       #
       # @param name [String] The name of the attribute.
       # @param type [Class] The type of the attribute.  If passed, the attribute
-      #        will use `type.open()`
-      # @param identity [Boolean] :identity `true` if this is an identity
-      #      attribute.  Default: `false`
+      #   will use `type.open()`
+      # @param identity [Boolean] `true` if this is an identity
+      #   attribute.  Default: `false`
+      # @param required [Boolean] `true` if this is a required parameter.
+      #   Defaults to `true`.  Non-identity attributes do not support `required`
+      #   and will ignore it.  Non-required identity attributes will not be
+      #   available as positioned arguments in ResourceClass.open(); they can
+      #   only be specified by name (ResourceClass.open(x: 1))
       # @param default [Object] The value to return if the user asks for the attribute
-      #      when it has not been set.  `nil` is a valid value for this.
+      #   when it has not been set.  `nil` is a valid value for this.
       # @param default_block [Proc] An optional block that will be called when
       #   the user asks for a value that has not been set.  Called in the
       #   context of the struct (instance_eval), so you can access other
@@ -137,6 +142,15 @@ module Crazytown
       #   puts x.a # 1
       #   puts x.b # nil
       #
+      # @example Attribute with non-required identity
+      #   class MyResource < StructResource
+      #     attribute :a, identity: true, required: false
+      #     attribute :b, identity: true
+      #   end
+      #   x = MyResource.open(1)
+      #   x.a # nil
+      #   x.b # 1
+      #
       # @example Attribute with struct typed attribute
       #   class Address < StructResource
       #     attribute :street
@@ -151,9 +165,9 @@ module Crazytown
       #   p = Person.open
       #   p.home_address = Address.open
       #
-      def self.attribute(name, type=nil, identity: nil, default: NOT_PASSED, &default_block)
+      def self.attribute(name, type=nil, identity: nil, required: true, default: NOT_PASSED, &default_block)
         name = name.to_sym
-        attribute = attributes[name] = Attribute.new(name, type, identity: identity, default: default, &default_block)
+        attribute = attributes[name] = Attribute.new(name, type, identity: identity, required: required, default: default, &default_block)
 
         if attribute.type
           emit_attribute_with_type(attribute)
@@ -200,13 +214,16 @@ module Crazytown
       #   puts s.y # 4
       #
       def self.emit_constructor
-        named_identity_args = identity_attributes.map { |attr| ", #{attr.name}: NOT_PASSED" }.join("")
+        named_identity_args = identity_attributes.
+          map { |attr| ", #{attr.name}: NOT_PASSED" }.
+          join("")
+        required_attributes = identity_attributes.select { |attr| attr.required? }
         # TODO this method generation method doesn't generate correct line numbers due to the each
         class_eval <<-EOM, __FILE__, __LINE__+1
           def self.open(*args#{named_identity_args})
-            raise ArgumentError, "Too many arguments (\#{args.size} > \#{identity_attributes.size}).  Perhaps some of your attributes need to have 'identity: true' on them?" if args.size > identity_attributes.size
+            raise ArgumentError, "Too many arguments (\#{args.size} > #{required_attributes.size}).  Perhaps some of your attributes need to have 'identity: true' on them?" if args.size > #{required_attributes.size}
             # Translate positional arguments to named arguments
-            #{identity_attributes.each_with_index.map { |attr, index|
+            #{required_attributes.each_with_index.map { |attr, index|
               "if args.size > #{index}
                  if #{attr.name} == NOT_PASSED
                    #{attr.name} = args[#{index}]
