@@ -1,0 +1,52 @@
+      # NEXT: polishing the struct
+      # name(*args, path: NOT_PASSED, name: NOT_PASSED)
+      # name(..., &override_block) - override stuff
+      # required (for identity at least)
+      # allow initialization of struct from hash?
+      #
+      # NEXT 2: structs as changesets
+      # Store "changes" as hash
+      # "if_changed" in "update" method
+      #
+      # NEXT 3: nested struct changesets
+      # Make override block work at class level, not just block level
+      # Struct attributes modify the parent "changes" hash on update
+      # StructAttribute
+      # This should make defaults writeable as well; StructAttribute is created
+      # *on top of* the default.
+      #
+      # NEXT 4: lazy reality (GET+PUT)
+      # "actual_value" instance method for struct and for attributes, called
+      # instead of default
+      # StructAttribute initializes "actual_value" to "parent_struct.actual_value.name"
+      #
+      # NEXT 5: primitive attributes
+      # Symbol
+      # String/Fixnum (non-modified types)
+      #
+      # NEXT 6: proper inheritance
+      # Make inheritance bring over parent identity attributes
+      # Make "attribute :x" specialize parent attribute :x if there is one
+      # address(Address.open) create another layer of address vs. ref (value vs. ref)
+      #
+      # NEXT 6: events, logging
+      #
+      # NEXT 4: struct hierarchy
+      # RecipeDSL
+      # Crazytown::Chef.global_dsl
+      #
+      # NEXT 5: useful primitives
+      # ruby_block
+      # execute
+      # file
+      #
+      # NEXT 6: hash
+      #
+      # NEXT 7: set
+      #
+      # NEXT 8: array
+      #
+      # NEXT 9: path, symbol
+      #
+      # TODO generic events; content/path; super validation; logfile output; super cool curses output; GUI output
+      #
