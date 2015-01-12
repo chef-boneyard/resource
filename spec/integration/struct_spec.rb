@@ -94,18 +94,16 @@ describe Crazytown::Chef::StructResource do
       attribute :x, identity: true
       attribute :y
     end
-    it "open() creates a MyResource" do
-      expect(r = MyResource.open()).to be_kind_of MyResource
-      expect(r.x).to be_nil
-      expect(r.y).to be_nil
+    it "open() fails with 'x is required'" do
+      expect { MyResource.open() }.to raise_error "x is required"
     end
     it "open(1) creates a MyResource where x = 1" do
       expect(r = MyResource.open(1)).to be_kind_of(MyResource)
       expect(r.x).to eq 1
       expect(r.y).to be_nil
     end
-    it "open(1, 2) fails" do
-      expect { MyResource.open(1, 2) }.to raise_error
+    it "open(1, 2) fails with too many arguments" do
+      expect { MyResource.open(1, 2) }.to raise_error /Too many arguments/
     end
   end
 
@@ -115,17 +113,14 @@ describe Crazytown::Chef::StructResource do
       attribute :y, identity: true
       attribute :z
     end
-    it "open() creates a MyResource" do
-      expect(r = MyResource.open()).to be_kind_of MyResource
-      expect(r.x).to be_nil
-      expect(r.y).to be_nil
-      expect(r.z).to be_nil
+    it "open() fails with 'x is required'" do
+      expect { MyResource.open() }.to raise_error "x is required"
     end
-    it "open(1) creates a MyResource where x = 1 and y = nil" do
-      expect(r = MyResource.open(1)).to be_kind_of(MyResource)
-      expect(r.x).to eq 1
-      expect(r.y).to be_nil
-      expect(r.z).to be_nil
+    it "open(1) fails with 'y is required'" do
+      expect { MyResource.open(1) }.to raise_error "y is required"
+    end
+    it "open(y: 1) fails with 'x is required'" do
+      expect { MyResource.open(y: 1) }.to raise_error "x is required"
     end
     it "open(1, 2) creates a MyResource where x = 1 and y = 2" do
       expect(r = MyResource.open(1, 2)).to be_kind_of(MyResource)
@@ -133,8 +128,8 @@ describe Crazytown::Chef::StructResource do
       expect(r.y).to eq 2
       expect(r.z).to be_nil
     end
-    it "open(1, 2, 3) fails" do
-      expect { MyResource.open(1, 2, 3) }.to raise_error
+    it "open(1, 2, 3) fails with too many arguments" do
+      expect { MyResource.open(1, 2, 3) }.to raise_error /Too many arguments/
     end
     it "open(x: 1, y: 2) creates MyResource.x = 1, y = 2" do
       expect(r = MyResource.open(x: 1, y: 2)).to be_kind_of(MyResource)

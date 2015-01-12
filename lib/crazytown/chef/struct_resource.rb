@@ -7,17 +7,23 @@ module Crazytown
       include Resource
 
       class Attribute
-        def initialize(name, type=nil, identity: nil, default: NOT_PASSED, &default_block)
+        def initialize(name, type=nil, identity: nil, required: nil, default: NOT_PASSED, &default_block)
           @name = name
           @type = type
           @identity = identity
+          @required = required
           @default = default if default != NOT_PASSED
           @default_block = default_block
         end
 
         attr_reader :name
         attr_reader :type
-        attr_reader :identity
+        def identity?
+          @identity
+        end
+        def required?
+          @required.nil? ? identity? : @required
+        end
         attr_reader :default
         attr_reader :default_block
         def has_default?
@@ -29,8 +35,11 @@ module Crazytown
       # Open this StructResource.
       #
       # The default open() supports no arguments.  You must create attributes
-      # with "identity: true" to make open() support more
-      # arguments.
+      # with "identity: true" or override to make open() support more arguments.
+      #
+      # Generally this method is intended only to take the information necessary
+      # to actually identify and reach the remote object (enough for "get").
+      # Anything more should happen as updates *after* the struct is initialized.
       #
       def self.open
         new(self)
@@ -47,7 +56,7 @@ module Crazytown
       # The list of identity attributes (attributes with identity=true), in order.
       #
       def self.identity_attributes
-        attributes.values.select { |attr| attr.identity }
+        attributes.values.select { |attr| attr.identity? }
       end
 
       #
@@ -55,6 +64,8 @@ module Crazytown
       #
       # Makes three method calls available to the struct:
       # - `struct.name` - Get the value of `name`.
+      # - `struct.name <value...>` - Set `name`.
+      # - `struct.name = <value>` - Set `name`.
       #
       # If the attribute is marked as an identity attribute, it also modifies
       # `Struct.open()` to take it as a named parameter.  Multiple identity
@@ -190,6 +201,7 @@ module Crazytown
       #
       def self.emit_constructor
         named_identity_args = identity_attributes.map { |attr| ", #{attr.name}: NOT_PASSED" }.join("")
+        # TODO this method generation method doesn't generate correct line numbers due to the each
         class_eval <<-EOM, __FILE__, __LINE__+1
           def self.open(*args#{named_identity_args})
             raise ArgumentError, "Too many arguments (\#{args.size} > \#{identity_attributes.size}).  Perhaps some of your attributes need to have 'identity: true' on them?" if args.size > identity_attributes.size
@@ -206,10 +218,19 @@ module Crazytown
             }.join("")}
             new(self#{identity_attributes.map { |attr| ", #{attr.name}: #{attr.name}" }.join("")})
           end
+
           def initialize(resource_parent#{named_identity_args})
             super(resource_parent)
             #{identity_attributes.map { |attr|
-              "self.#{attr.name} = #{attr.name} unless #{attr.name} == NOT_PASSED\n"
+              if attr.required?
+                "if #{attr.name} == NOT_PASSED
+                  raise ArgumentError, \"#{attr.name} is required\"
+                else
+                  self.#{attr.name} = #{attr.name}
+                end\n"
+              else
+                "self.#{attr.name} = #{attr.name} unless #{attr.name} == NOT_PASSED\n"
+              end
             }.join("")}
           end
         EOM

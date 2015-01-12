@@ -1,6 +1,4 @@
       # NEXT: polishing the struct
-      # name(*args, path: NOT_PASSED, name: NOT_PASSED)
-      # name(..., &override_block) - override stuff
       # required (for identity at least)
       # allow initialization of struct from hash?
       #
@@ -14,6 +12,7 @@
       # StructAttribute
       # This should make defaults writeable as well; StructAttribute is created
       # *on top of* the default.
+      # name(..., &override_block) - update idiom
       #
       # NEXT 4: lazy reality (GET+PUT)
       # "actual_value" instance method for struct and for attributes, called
