@@ -1,7 +1,3 @@
-      # NEXT: polishing the struct
-      # required (for identity at least)
-      # allow initialization of struct from hash?
-      #
       # NEXT 2: structs as changesets
       # Store "changes" as hash
       # "if_changed" in "update" method

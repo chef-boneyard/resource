@@ -6,28 +6,21 @@ module Crazytown
     class StructResource
       include Resource
 
-      class Attribute
-        def initialize(name, type=nil, identity: nil, required: true, default: NOT_PASSED, &default_block)
-          @name = name
-          @type = type
-          @identity = identity
-          @required = required
-          @default = default if default != NOT_PASSED
-          @default_block = default_block
-        end
+      #
+      # A hash of the changes the user has made to keys
+      #
+      def resource_changes
+        @resource_changes ||= {}
+      end
 
-        attr_reader :name
-        attr_reader :type
-        def identity?
-          @identity
-        end
-        def required?
-          @required
-        end
-        attr_reader :default
-        attr_reader :default_block
-        def has_default?
-          defined?(@default)
+      #
+      # Reset changes to this struct (or to an attribute)
+      #
+      def reset(attr=nil)
+        if attr
+          resource_changes.delete(attr)
+        else
+          resource_changes.clear
         end
       end
 
@@ -266,17 +259,16 @@ module Crazytown
         class_eval <<-EOM, __FILE__, __LINE__+1
           def #{name}(value=NOT_PASSED)
             if value != NOT_PASSED
-              @#{name} = value
+              resource_changes[#{name.inspect}] = value
             else
-              @#{name}
+              resource_changes[#{name.inspect}]
             end
           end
           def #{name}=(value)
-            @#{name} = value
+            resource_changes[#{name.inspect}] = value
           end
         EOM
       end
-
 
       #
       # Emit an attribute with defaults but no type.
@@ -288,12 +280,11 @@ module Crazytown
       #
       def self.emit_attribute_with_default(attribute)
         name = attribute.name
-        var_name = :"@#{name}"
         define_method(name) do |value=NOT_PASSED|
           if value != NOT_PASSED
-            instance_variable_set(var_name, value)
-          elsif instance_variable_defined?(var_name)
-            instance_variable_get(var_name)
+            resource_changes[name] = value
+          elsif resource_changes.has_key?(name)
+            resource_changes[name]
           elsif attribute.default_block
             instance_eval(&attribute.default_block)
           else
@@ -302,7 +293,7 @@ module Crazytown
         end
         class_eval <<-EOM, __FILE__, __LINE__+1
           def #{name}=(value)
-            @#{name} = value
+            resource_changes[#{name.inspect}] = value
           end
         EOM
       end
@@ -317,32 +308,53 @@ module Crazytown
       #
       def self.emit_attribute_with_type(attribute)
         name = attribute.name
-        var_name = :"@#{name}"
 
         # Define name(*value, &block) (getter-setter)
         define_method(name) do |*identity, &update_block|
           if identity.size > 0 || update_block
             resource = type.open(*identity)
             resource.define(&update_block)
-            instance_variable_set(var_name, resource)
+            resource_changes[name] = resource
 
-          elsif (attribute.default_block || attribute.has_default?) && !instance_variable_defined?(var_name)
+          elsif (attribute.default_block || attribute.has_default?) && !resource_changes.has_key?(name)
             resource = attribute.default_block ? instance_eval(&attribute.default_block) : attribute.default
             resource = type.open(resource) if !resource.is_a?(type)
-            # We set the variable the first time we get it; this sucks, but until we get true
-            # nesting it's a good approximation.
-            instance_variable_set(var_name, resource)
             resource
 
           else
-            instance_variable_get(var_name)
+            resource_changes[name]
           end
         end
 
         # Define attr = value (setter)
         define_method("#{name}=") do |value|
           value = attribute.type.open(value) if !value.is_a?(attribute.type)
-          instance_variable_set(var_name, value)
+          resource_changes[name] = value
+        end
+      end
+
+      class Attribute
+        def initialize(name, type=nil, identity: nil, required: true, default: NOT_PASSED, &default_block)
+          @name = name
+          @type = type
+          @identity = identity
+          @required = required
+          @default = default if default != NOT_PASSED
+          @default_block = default_block
+        end
+
+        attr_reader :name
+        attr_reader :type
+        def identity?
+          @identity
+        end
+        def required?
+          @required
+        end
+        attr_reader :default
+        attr_reader :default_block
+        def has_default?
+          defined?(@default)
         end
       end
     end
