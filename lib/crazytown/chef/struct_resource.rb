@@ -1,55 +1,119 @@
 require 'crazytown/chef/resource'
 require 'crazytown/constants'
+require 'crazytown/chef/resource/struct_attribute'
+require 'crazytown/chef/resource/struct_attribute_type'
+require 'crazytown/chef/resource/primitive_resource'
+require 'crazytown/chef/camel_case'
 
 module Crazytown
   module Chef
+    #
+    # A Resource with attribute_types and named getter/setters.
+    #
+    # @example
+    # class Address < StructResource
+    #   attribute :street
+    #   attribute :city
+    #   attribute :state
+    # end
+    # class Person < StructResource
+    #   attribute :name
+    #   attribute :home_address, Address
+    # end
+    #
+    # p = Person.open
+    # a = Address.open
+    # p.home_address = a # Sets p.updates[:home_address] = P::HomeAddress.open(p.address)
+    # p.home_address.city = 'Malarky' # p.address.updates[:city] = 'Malarky'
+    # p.update
+    # # first does p.home_address.update
+    # # -> sets p.home_address.actual_value.city -> a.city = 'Malarky'
+    # # sets p.actual_value.home_address = p.home_address.actual_value
+    #
+    # TODO attribute_types by value (a transaction) or reference (identity only)
     class StructResource
       include Resource
+      extend ResourceType
+
+      #
+      # The actual value of the Resource (can be set to a normal struct).
+      #
+      attr_accessor :actual_value
 
       #
       # A hash of the changes the user has made to keys
       #
-      def resource_changes
-        @resource_changes ||= {}
+      def open_attributes
+        @open_attributes ||= {}
       end
 
       #
-      # Reset changes to this struct (or to an attribute)
+      # Reset changes to this struct (or to an attribute).
       #
-      def reset(attr=nil)
-        if attr
-          resource_changes.delete(attr)
+      # @param name Reset the attribute named `name`.  If not passed, resets
+      #    all attributes.
+      #
+      def reset(name=nil)
+        if name
+          open_attributes.delete(name)
         else
-          resource_changes.clear
+          open_attributes.clear
         end
       end
 
       #
-      # Open this StructResource.
+      # The attribute type for each attribute.
       #
-      # The default open() supports no arguments.  You must create attributes
-      # with "identity: true" or override to make open() support more arguments.
-      #
-      # Generally this method is intended only to take the information necessary
-      # to actually identify and reach the remote object (enough for "get").
-      # Anything more should happen as updates *after* the struct is initialized.
-      #
-      def self.open
-        new(self)
+      # TODO make this an attribute so it's introspectible.
+      def self.attribute_types
+        @attribute_types ||= {}
       end
 
       #
-      # The list of attributes.
+      # The list of identity attribute_types (attribute_types with identity=true), in order.
       #
-      def self.attributes
-        @attributes ||= {}
+      def self.identity_attribute_types
+        attribute_types.values.select { |attr| attr.identity? }
       end
 
-      #
-      # The list of identity attributes (attributes with identity=true), in order.
-      #
-      def self.identity_attributes
-        attributes.values.select { |attr| attr.identity? }
+      def self.coerce(*args, **named_args)
+        if args.size == 1 && named_args.empty?
+          value = args[0]
+          # If we were passed one argument, of the right type, we just take its value.
+          case value
+          when Hash
+            # TODO this is subtly wrong ... we need to call open() with the right
+            # subset of arguments, so that we can work with things that subclass
+            # open().
+            return new() do
+              value.each do |name, value|
+                public_send(name.to_sym, value)
+              end
+            end
+          when self
+            return value
+          when nil
+            return nil
+          else
+            # TODO if we are passed one argument, allow it to be a struct and coerce to our type ...
+            # right now we pass through because it's also possible it could be an
+            # argument get('value').
+            #
+            # new() do
+            #   attribute_types.keys.each do |name|
+            #     public_send(name, value.public_send(name)) if value.respond_to?(name)
+            #   end
+            # end
+          end
+        end
+
+        # TODO support all attributes as named args, not just index attributes.
+        # i.e. use new() with the named_args as well as required args.
+        if named_args.empty?
+          open(*args)
+        else
+          open(*args, **named_args)
+        end
       end
 
       #
@@ -62,7 +126,7 @@ module Crazytown
       #
       # If the attribute is marked as an identity attribute, it also modifies
       # `Struct.open()` to take it as a named parameter.  Multiple identity
-      # attributes means multiple parameters to `open()`.
+      # attribute_types means multiple parameters to `open()`.
       #
       # @param name [String] The name of the attribute.
       # @param type [Class] The type of the attribute.  If passed, the attribute
@@ -70,8 +134,8 @@ module Crazytown
       # @param identity [Boolean] `true` if this is an identity
       #   attribute.  Default: `false`
       # @param required [Boolean] `true` if this is a required parameter.
-      #   Defaults to `true`.  Non-identity attributes do not support `required`
-      #   and will ignore it.  Non-required identity attributes will not be
+      #   Defaults to `true`.  Non-identity attribute_types do not support `required`
+      #   and will ignore it.  Non-required identity attribute_types will not be
       #   available as positioned arguments in ResourceClass.open(); they can
       #   only be specified by name (ResourceClass.open(x: 1))
       # @param default [Object] The value to return if the user asks for the attribute
@@ -160,15 +224,19 @@ module Crazytown
       #
       def self.attribute(name, type=nil, identity: nil, required: true, default: NOT_PASSED, &default_block)
         name = name.to_sym
-        attribute = attributes[name] = Attribute.new(name, type, identity: identity, required: required, default: default, &default_block)
 
-        if attribute.type
-          emit_attribute_with_type(attribute)
-        elsif attribute.default_block || attribute.has_default?
-          emit_attribute_with_default(attribute)
-        else
-          emit_attribute(attribute)
-        end
+        attribute_type = emit_attribute_type(name, type)
+        attribute_type.attribute_parent_type = self
+        attribute_type.attribute_name = name
+        attribute_type.attribute_type = type
+        attribute_type.identity = identity
+        attribute_type.required = required
+        attribute_type.default = default   unless default == NOT_PASSED
+        attribute_type.default_block = default_block if default_block
+
+        attribute_types[name] = attribute_type
+
+        attribute_type.emit_attribute_methods
 
         if identity
           emit_constructor
@@ -177,8 +245,60 @@ module Crazytown
 
       protected
 
+      def initialize(&block)
+        super()
+        instance_eval(&block) if block
+      end
+
       #
-      # Creates the constructor from any identity attributes.
+      # Creates a class named YourClass::AttributeName that corresponds to the
+      # attribute type.
+      #
+      def self.emit_attribute_type(name, type)
+        class_name = CamelCase.from_snake_case(name)
+        # If the passed-in type is instantiable, make the attribute instantiable
+        if type.is_a?(Class)
+          attribute_type = class_eval <<-EOM, __FILE__, __LINE__+1
+            class #{class_name} < type
+              include ::Crazytown::Chef::Resource::StructAttribute
+              extend ::Crazytown::Chef::Resource::StructAttributeType
+              self
+            end
+          EOM
+        else
+          # Otherwise, make a module and just include the class-level methods
+          attribute_type = class_eval <<-EOM, __FILE__, __LINE__+1
+            module #{class_name}
+              extend ::Crazytown::Chef::Resource::StructAttributeType
+              self
+            end
+          EOM
+          attribute_type.send :include, type if type
+        end
+        attribute_type
+      end
+
+      #
+      # Arguments to "open", for a struct, allow the identity arguments to be
+      # passed either as named values or as positional arguments:
+      # - open('a', 'b', optional: 'c')
+      # - open(required: 'a', required2: 'b', optional: 'c')
+      #
+      def self.open_arguments
+        args = identity_attribute_types.select { |attr| attr.required? }.
+                                           map { |attr| "#{attr.attribute_name}_positional=NOT_PASSED" } +
+                  identity_attribute_types.map { |attr| "#{attr.attribute_name}: NOT_PASSED" }
+        args.join(", ")
+      end
+
+      def self.open_argument_names
+        args = identity_attribute_types.select { |attr| attr.required? }.
+                                           map { |attr| "#{attr.attribute_name}_positional" } +
+               identity_attribute_types.map { |attr| attr.attribute_name }
+      end
+
+      #
+      # Creates the constructor from any identity attribute_types.
       #
       # @example
       #   class MyStruct < StructResource
@@ -186,16 +306,16 @@ module Crazytown
       #     attribute :y, identity: true
       #
       #     # Creates these methods:
-      #     def initialize(resource_parent, x: NOT_PASSED, y: NOT_PASSED)
-      #       super(resource_parent)
+      #     def initialize(parent_struct, x: NOT_PASSED, y: NOT_PASSED)
+      #       super(parent_struct)
       #       self.x = x unless x == NOT_PASSED
       #       self.y = y unless y == NOT_PASSED
       #     end
       #
-      #     def self.open(*args, x: NOT_PASSED, y: NOT_PASSED)
+      #     def self.open(parent_struct, *args, x: NOT_PASSED, y: NOT_PASSED)
       #       x = args[0] if args.size > 0
       #       y = args[1] if args.size > 1
-      #       new(self, x: x, y: y)
+      #       new(parent_struct: self, x: x, y: y)
       #     end
       #   end
       #   # Which allows these statements to work:
@@ -207,155 +327,44 @@ module Crazytown
       #   puts s.y # 4
       #
       def self.emit_constructor
-        named_identity_args = identity_attributes.
-          map { |attr| ", #{attr.name}: NOT_PASSED" }.
-          join("")
-        required_attributes = identity_attributes.select { |attr| attr.required? }
-        # TODO this method generation method doesn't generate correct line numbers due to the each
+        required_attribute_types = identity_attribute_types.select { |attr| attr.required? }
+        # TODO this method generation method doesn't generate correct line numbers due to the each_with_index
         class_eval <<-EOM, __FILE__, __LINE__+1
-          def self.open(*args#{named_identity_args})
-            raise ArgumentError, "Too many arguments (\#{args.size} > #{required_attributes.size}).  Perhaps some of your attributes need to have 'identity: true' on them?" if args.size > #{required_attributes.size}
-            # Translate positional arguments to named arguments
-            #{required_attributes.each_with_index.map { |attr, index|
-              "if args.size > #{index}
-                 if #{attr.name} == NOT_PASSED
-                   #{attr.name} = args[#{index}]
-                 else
-                   raise ArgumentError, \"#{attr.name} passed both as argument ##{index} (\#{args[#{index}]}) and #{attr.name}: \#{#{attr.name}}!  Choose one or the other.\"
-                 end
-               end
-               "
-            }.join("")}
-            new(self#{identity_attributes.map { |attr| ", #{attr.name}: #{attr.name}" }.join("")})
-          end
-
-          def initialize(resource_parent#{named_identity_args})
-            super(resource_parent)
-            #{identity_attributes.map { |attr|
-              if attr.required?
-                "if #{attr.name} == NOT_PASSED
-                  raise ArgumentError, \"#{attr.name} is required\"
-                else
-                  self.#{attr.name} = #{attr.name}
-                end\n"
-              else
-                "self.#{attr.name} = #{attr.name} unless #{attr.name} == NOT_PASSED\n"
-              end
-            }.join("")}
-          end
-        EOM
-      end
-
-      #
-      # Emit a simple attribute with no type or defaults.
-      #
-      # Supports:
-      # struct.name         # get name
-      # struct.name value   # set name = value
-      # struct.name = value # set name = value
-      #
-      def self.emit_attribute(attribute)
-        name = attribute.name
-        class_eval <<-EOM, __FILE__, __LINE__+1
-          def #{name}(value=NOT_PASSED)
-            if value != NOT_PASSED
-              resource_changes[#{name.inspect}] = value
-            else
-              resource_changes[#{name.inspect}]
+          def self.open(#{open_arguments})
+            new() do
+              #{identity_attribute_types.each_with_index.map do |attr|
+                  name = attr.attribute_name
+                  if attr.required?
+                   "if #{name} != NOT_PASSED
+                      if #{name}_positional != NOT_PASSED
+                        raise ArgumentError, \"#{name} passed both as positional argument (\#{#{name}_positional}) and #{name}: \#{#{name}}!  Choose one or the other.\"
+                      end
+                      self.#{name} = #{name}
+                    elsif #{name}_positional != NOT_PASSED
+                      self.#{name} = #{name}_positional
+                    else
+                      raise ArgumentError, \"#{name} is required\"
+                    end
+                   "
+                  else
+                    "self.#{name} = #{name} unless #{name} == NOT_PASSED\n"
+                  end
+                end.join("")
+              }
             end
           end
-          def #{name}=(value)
-            resource_changes[#{name.inspect}] = value
+
+          def self.get(#{open_arguments})
+            # TODO make a readonly version instead!  With no update or anything
+            open(#{open_argument_names.join(", ")})
+          end
+
+          def self.update(#{open_arguments}, &define_block)
+            resource = open(#{open_argument_names.join(", ")})
+            resource.instance_eval(&define_block)
+            resource.update
           end
         EOM
-      end
-
-      #
-      # Emit an attribute with defaults but no type.
-      #
-      # Supports:
-      # struct.name         # get name (or default/default_block if not set)
-      # struct.name value   # set name = value
-      # struct.name = value # set name = value
-      #
-      def self.emit_attribute_with_default(attribute)
-        name = attribute.name
-        define_method(name) do |value=NOT_PASSED|
-          if value != NOT_PASSED
-            resource_changes[name] = value
-          elsif resource_changes.has_key?(name)
-            resource_changes[name]
-          elsif attribute.default_block
-            instance_eval(&attribute.default_block)
-          else
-            attribute.default
-          end
-        end
-        class_eval <<-EOM, __FILE__, __LINE__+1
-          def #{name}=(value)
-            resource_changes[#{name.inspect}] = value
-          end
-        EOM
-      end
-
-      #
-      # Emit an attribute with a type and possible defaults.
-      #
-      # Supports:
-      # struct.name         # get name (or default/default_block if not set)
-      # struct.name value   # set name = value
-      # struct.name = value # set name = value
-      #
-      def self.emit_attribute_with_type(attribute)
-        name = attribute.name
-
-        # Define name(*value, &block) (getter-setter)
-        define_method(name) do |*identity, &update_block|
-          if identity.size > 0 || update_block
-            resource = type.open(*identity)
-            resource.define(&update_block)
-            resource_changes[name] = resource
-
-          elsif (attribute.default_block || attribute.has_default?) && !resource_changes.has_key?(name)
-            resource = attribute.default_block ? instance_eval(&attribute.default_block) : attribute.default
-            resource = type.open(resource) if !resource.is_a?(type)
-            resource
-
-          else
-            resource_changes[name]
-          end
-        end
-
-        # Define attr = value (setter)
-        define_method("#{name}=") do |value|
-          value = attribute.type.open(value) if !value.is_a?(attribute.type)
-          resource_changes[name] = value
-        end
-      end
-
-      class Attribute
-        def initialize(name, type=nil, identity: nil, required: true, default: NOT_PASSED, &default_block)
-          @name = name
-          @type = type
-          @identity = identity
-          @required = required
-          @default = default if default != NOT_PASSED
-          @default_block = default_block
-        end
-
-        attr_reader :name
-        attr_reader :type
-        def identity?
-          @identity
-        end
-        def required?
-          @required
-        end
-        attr_reader :default
-        attr_reader :default_block
-        def has_default?
-          defined?(@default)
-        end
       end
     end
   end

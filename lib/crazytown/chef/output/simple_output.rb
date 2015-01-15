@@ -72,7 +72,7 @@ module Crazytown
         def indent_for(resource)
           indent = 0
           find_parent = resource
-          while find_parent && find_parent = find_parent.resource_parent
+          while find_parent && find_parent = find_parent.parent_resource
             indent += 2
           end
           indent

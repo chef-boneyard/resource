@@ -129,7 +129,7 @@ module Crazytown
 
       #
       # Prints lines like
-      # [x.txt] Committing ...
+      # [x.txt] updating ...
       #
       #
       class ParallelRegionStream < RegionStream

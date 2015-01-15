@@ -53,5 +53,5 @@ foo # X::Foo,   parent=x
 bar # Foo::Bar, parent=foo
 
 # x is a transaction.  x.foo and x.bar are transaction children, which simply
-# commit changes to their parent as they are made.  A method (like sort) may
+# update changes to their parent as they are made.  A method (like sort) may
 # create a temporary transaction on foo or bar, however.

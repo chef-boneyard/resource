@@ -41,20 +41,17 @@ module Crazytown
               print_line("Opened", output.style.opened)
             when :defined
               print_line("Defined", output.style.defined)
-            when :committing
-              print_line("Committing ...", output.style.committing)
+            when :updating
+              print_line("updating ...", output.style.updating)
             when :updated
               print_line(resource.description, output.style.updated)
               print_line(resource.change_description, output.style.updated)
               close
-            when :commit_failed
-              print_line("Failed", output.style.commit_failed)
+            when :update_failed
+              print_line("Failed", output.style.update_failed)
               close
             when :unchanged
               print_line("Unchanged", output.style.unchanged)
-              close
-            when :abandoned
-              print_line("Abandoned", output.style.abandoned)
               close
             when :debug, :info, :warn, :error, :fatal
               print_line(args[0], output.style.public_send(event))
@@ -82,7 +79,7 @@ module Crazytown
             end
             if output.current_resource != parent
               parent.print_header
-              parent.print_line("", output.style.committing)
+              parent.print_line("", output.style.updating)
             end
             output.print_line("#{line_prefix}#{line}", style)
             output.current_resource = self

@@ -22,11 +22,11 @@ module Crazytown
           attribute :default
           attribute :opened         { default }
           attribute :defined        { default }
-          attribute :committing     { default }
+          attribute :updating     { default }
           attribute :updated        { default }
           attribute :not_updated    { default }
-          attribute :committed      { default }
-          attribute :commit_failed  { default }
+          attribute :updated      { default }
+          attribute :update_failed  { default }
           attribute :debug          { default }
           attribute :info           { default }
           attribute :warn           { default }

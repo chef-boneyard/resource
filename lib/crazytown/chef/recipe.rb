@@ -13,8 +13,8 @@ module Crazytown
         resources << child if event == :opened
       end
 
-      def commit
-        resources.each { |resource| resource.commit }
+      def update
+        resources.each { |resource| resource.update }
       end
 
       attr_accessor :concurrency
@@ -24,7 +24,7 @@ module Crazytown
 
       attr_accessor :thread_group
       def thread_group
-        @thread_group || resource_parent.thread_group
+        @thread_group || parent_resource.thread_group
       end
     end
   end
