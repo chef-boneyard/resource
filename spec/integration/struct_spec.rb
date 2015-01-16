@@ -96,7 +96,7 @@ describe Crazytown::Chef::StructResource do
       attribute :y
     end
     it "open() fails with 'x is required'" do
-      expect { MyResource.open() }.to raise_error "x is required"
+      expect { MyResource.open() }.to raise_error ArgumentError
     end
     it "open(1) creates a MyResource where x = 1" do
       expect(r = MyResource.open(1)).to be_kind_of(MyResource)
@@ -140,13 +140,13 @@ describe Crazytown::Chef::StructResource do
       attribute :z
     end
     it "open() fails with 'x is required'" do
-      expect { MyResource.open() }.to raise_error "x is required"
+      expect { MyResource.open() }.to raise_error ArgumentError
     end
     it "open(1) fails with 'y is required'" do
-      expect { MyResource.open(1) }.to raise_error "y is required"
+      expect { MyResource.open(1) }.to raise_error ArgumentError
     end
     it "open(y: 1) fails with 'x is required'" do
-      expect { MyResource.open(y: 1) }.to raise_error "x is required"
+      expect { MyResource.open(y: 1) }.to raise_error ArgumentError
     end
     it "open(1, 2) creates a MyResource where x = 1 and y = 2" do
       expect(r = MyResource.open(1, 2)).to be_kind_of(MyResource)
@@ -174,7 +174,7 @@ describe Crazytown::Chef::StructResource do
       attribute :y, identity: true
     end
     it "open() fails with y is required" do
-      expect { MyResource.open() }.to raise_error "y is required"
+      expect { MyResource.open() }.to raise_error ArgumentError
     end
     it "open(1) creates a MyResource where x = nil and y = 1" do
       expect(r = MyResource.open(1)).to be_kind_of(MyResource)
@@ -188,6 +188,26 @@ describe Crazytown::Chef::StructResource do
       expect(r = MyResource.open(y: 1)).to be_kind_of(MyResource)
       expect(r.x).to be_nil
       expect(r.y).to eq 1
+    end
+  end
+
+  describe :actual_value do
+    context "With an actual_value for the struct that sets y to x*2 and z to x*3" do
+      with_struct(:MyResource) do
+        attribute :x, identity: true
+        attribute :y
+        attribute :z
+        def actual_value
+          MyResource.coerce({ x: x, y: x*2, z: x*3 })
+        end
+      end
+
+      it "MyResource.open(1).y == 2 and .z == 3" do
+        r = MyResource.open(1)
+        expect(r.x).to eq 1
+        expect(r.y).to eq 2
+        expect(r.z).to eq 3
+      end
     end
   end
 end

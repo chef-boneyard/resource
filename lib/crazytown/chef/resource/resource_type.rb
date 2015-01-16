@@ -47,8 +47,8 @@ module Crazytown
         # - May be readonly
         # - Is *not* an open Resource, even if it is a Resource
         #
-        def get
-          open
+        def get(*args)
+          open(*args)
         end
 
         #
@@ -56,7 +56,6 @@ module Crazytown
         # block, and calls update().
         #
         # @param open_args Arguments to pass to open()
-        # @param open_named_args Named arguments to pass to open()
         # @param update_block The block to run instance_eval on.
         #
         # @example
@@ -64,18 +63,10 @@ module Crazytown
         #     mode 0777
         #   end
         #
-        def update(*open_args, **open_named_args, &update_block)
-          resource = open(*open_args, **open_named_args)
+        def update(*open_args, &update_block)
+          resource = open(*args)
           resource.instance_eval(&update_block)
           resource.update
-        end
-
-        def open_arguments
-          ""
-        end
-
-        def open_argument_names
-          []
         end
       end
     end
