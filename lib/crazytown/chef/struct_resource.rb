@@ -37,12 +37,13 @@ module Crazytown
       extend ResourceType
 
       #
+      # Resource read/modify interface: reopen, identity, desired_values
+      #
+
+      #
       # Reopen the struct based on its identity args.
       #
       # *Only* copy over things that the user modified (desired_changes).
-      #
-      # TODO when you nest structs and such, make sure you test for deeper
-      # changes in the identity.
       #
       def reopen
         original = self
@@ -50,40 +51,6 @@ module Crazytown
           original.desired_values.each do |name, value|
             public_send(name, value) if self.class.attribute_types[name].identity?
           end
-        end
-      end
-
-      #
-      # Returns this struct as a hash, including modified attributes and actual_value.
-      #
-      # TODO when we have a HashResource, return that instead.  Need deep merge
-      # and need to avoid wastefully pulling on values we don't need to pull on
-      #
-      def to_h
-        if actual_value
-          actual_value.to_h.merge(desired_values)
-        else
-          desired_values
-        end
-      end
-
-      #
-      # Returns true if these are the same type and their values are the same.
-      # Avoids comparing things that aren't modified in either struct.
-      #
-      def ==(other)
-        return false if !self.class.implemented_by?(other)
-        # Try to rule out differences via desired_values first (this should
-        # handle any identity keys and prevent us from accidentally pulling on
-        # actual_value).
-        (desired_values.keys & other.desired_values.keys).each do |name|
-          return false if desired_values[name] != other.desired_values[name]
-        end
-        (desired_values.keys - other.desired_values.keys).each do |name|
-          return false if public_send(name) != other.public_send(name)
-        end
-        (other.desired_values.keys - desired_values.keys).each do |attr|
-          return false if public_send(name) != other.public_send(name)
         end
       end
 
@@ -123,6 +90,15 @@ module Crazytown
       end
 
       #
+      # Resource update interface: handle_changed, handle_create, test_update, try_update
+      #
+
+
+      #
+      # ResourceType interface: MyStruct.coerce, open, get, update
+      #
+
+      #
       # Coerce the input into a struct of this type.
       #
       # Constructor form: required identity parameters first, and then non-required attributes in a hash.
@@ -146,7 +122,7 @@ module Crazytown
       # - MyStruct.coerce(struct_value) -> copy attributes off the struct
       #
       def self.coerce(*args)
-        if args[-1].is_a?(Hash)
+        result = if args[-1].is_a?(Hash)
           #
           # Constructor form: required identity parameters first, and then non-required attributes in a hash.
           # - MyStruct.coerce(identity_attr, identity_attr2, ..., { attr1: value, attr2: value, ... }) -> open(identity1, identity2, ... { identity attributes }), and set non-identity attributes afterwards
@@ -175,7 +151,7 @@ module Crazytown
 
           resource
 
-        elsif args.size == 1 && (args[0].nil? || implemented_by?(args[0]))
+        elsif args.size == 1 && is_valid?(args[0])
           # nil:
           # - MyStruct.coerce(nil) -> nil
           #
@@ -190,6 +166,8 @@ module Crazytown
           # - MyStruct.coerce() -> open()
           open(*args)
         end
+
+        result
       end
 
       #
@@ -216,7 +194,7 @@ module Crazytown
       #   puts s.y # 4
       #
       def self.open(*args)
-        new() do
+        result = new() do
           #
           # Process named arguments open(..., a: 1, b: 2, c: 3, d: 4)
           #
@@ -246,7 +224,14 @@ module Crazytown
             end
           end
         end
+
+        validate(result)
+        result
       end
+
+      #
+      # Struct definition: MyStruct.attribute
+      #
 
       #
       # Create an attribute on this struct.
@@ -354,7 +339,7 @@ module Crazytown
       #   p = Person.open
       #   p.home_address = Address.open
       #
-      def self.attribute(name, type=nil, identity: nil, required: true, default: NOT_PASSED, load_value: NOT_PASSED)
+      def self.attribute(name, type=nil, identity: nil, required: true, default: NOT_PASSED, load_value: NOT_PASSED, value_must: NOT_PASSED, &override_block)
         name = name.to_sym
 
         attribute_type = emit_attribute_type(name, type)
@@ -362,13 +347,63 @@ module Crazytown
         attribute_type.attribute_name = name
         attribute_type.attribute_type = type
         attribute_type.identity = identity
-        attribute_type.required = required
         attribute_type.default = default unless default == NOT_PASSED
+        attribute_type.required = required unless required == NOT_PASSED
         attribute_type.load_value = load_value unless load_value == NOT_PASSED
+        attribute_type.must_be_kind_of type if type
+        if override_block
+          if attribute_type.is_a?(Module)
+            attribute_type.class_eval(&override_block)
+          else
+            attribute_type.instance_eval(&override_block)
+          end
+        end
 
+        # Add the attribute type to the class and emit the getters / setters
         attribute_types[name] = attribute_type
-
         attribute_type.emit_attribute_methods
+      end
+
+      #
+      # Hash-like interface: to_h, ==, [], []=
+      #
+
+      #
+      # Returns this struct as a hash, including modified attributes and actual_value.
+      #
+      # TODO when we have a HashResource, return that instead.  Need deep merge
+      # and need to avoid wastefully pulling on values we don't need to pull on
+      #
+      def to_h
+        if actual_value
+          actual_value.to_h.merge(desired_values)
+        else
+          desired_values
+        end
+      end
+
+      #
+      # Returns true if these are the same type and their values are the same.
+      # Avoids comparing things that aren't modified in either struct.
+      #
+      def ==(other)
+        # TODO this might be wrong--what about attribute type subclasses?
+        return false if !other.is_a?(self.class)
+
+        # Try to rule out differences via desired_values first (this should
+        # handle any identity keys and prevent us from accidentally pulling on
+        # actual_value).
+        (desired_values.keys & other.desired_values.keys).each do |name|
+          return false if desired_values[name] != other.desired_values[name]
+        end
+
+        # If one struct has more desired (set) values than the other,
+        (desired_values.keys - other.desired_values.keys).each do |name|
+          return false if public_send(name) != other.public_send(name)
+        end
+        (other.desired_values.keys - desired_values.keys).each do |attr|
+          return false if public_send(name) != other.public_send(name)
+        end
       end
 
       #
@@ -401,7 +436,6 @@ module Crazytown
         super()
         instance_eval(&block) if block
       end
-
 
       #
       # The attribute type for each attribute.

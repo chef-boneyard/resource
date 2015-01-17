@@ -44,17 +44,23 @@ module Crazytown
               if args.empty?
                 #{class_name}.get_attribute(self)
               else
-                # If we have arguments, grab the new desired value and set it
-                desired_values[#{name.inspect}] = #{class_name}.coerce(*args)
+                #{class_name}.set_attribute(self, *args)
               end
             end
           EOM
 
           attribute_parent_type.class_eval <<-EOM, __FILE__, __LINE__+1
             def #{name}=(value)
-              desired_values[#{name.inspect}] = #{class_name}.coerce(value)
+              #{class_name}.set_attribute(self, value)
             end
           EOM
+        end
+
+        #
+        # Set the attribute value.
+        #
+        def set_attribute(struct, *args)
+          struct.desired_values[attribute_name] = coerce(*args)
         end
 
         #
@@ -117,20 +123,27 @@ module Crazytown
         # Set to false if this attribute is not required (defaults to true).
         #
         def required=(value)
-          @attribute = value
+          @required = value
         end
 
         #
-        # True if this attribute is required (defaults to true).
+        # True if this attribute is required.
         #
         # Required identity attributes can be specified positionally in `open`,
         # like so: `FileResource.open('/x/y.txt')` is equivalent to
         # `FileResource.open(path: '/x/y.txt')`
         #
-        # This has no meaning for non-identity attributes.
+        # By default, this is false for most attributes, but true for identity
+        # attributes that have no default set.
         #
         def required?
-          defined?(@attribute) ? @attribute : true
+          if defined?(@required)
+            @required
+          elsif identity? && !defined?(@default)
+            true
+          else
+            false
+          end
         end
 
         #

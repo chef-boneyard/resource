@@ -21,13 +21,17 @@ module Crazytown
         # values in some cases without incurring the cost of a read.
         #
         # @return An open Resource which:
-        # - `self.implemented_by?(resource)` is true
         # - Is a Resource
         # - Is a Resource even if the actual value does not exist
         # - Can be modified for update
+        # - `self.is_valid?(resource)` is true
+        #
+        # @raise ValidationError If the constructed value does not match.
         #
         def open
-          new
+          result = new
+          validate(result)
+          result
         end
 
         #

@@ -1,11 +1,31 @@
+Basic Resource (Modifying A Real Thing) Support
+
 - Add `changes` API, distinguish between explicit user desired changes and
   "loaded values" that may or may not have changed / drifted
-
 - Make API to change things: if_changed, if_create, if_change_desired (which is probably where try_change lands)
-
 - Create the resource tree and resource :name object
-
 - Add events and printing
+- Add "recipe" (might be handled automatically by resource tree)
+- Type specialization: tests, and merging of "attributes".  Probably best to wait until after resource tree is built.
+
+Nesting
+- Add nested structs
+- Add hashes
+- Add sets
+- Add indexed sets
+- Add arrays
+
+Specifics
+- Provisioning: provisioning.machine, aws.sdk, aws.instance, docker.image, docker.container, docker.image
+- Chef API: net.rest, chef.authentication, chef.server, formats.json, chef.node
+- Local Mode: entry, file, directory, chef.repository, chef.ruby_format, chef.defaults
+- Zero: net.http_server, chef.authentication, core.authorization
+- Chef::Config
+- Command Line tying it all together
+- Server that serves resources
+
+Future
+- Race condition protection?  etcd-content id, by date, by checksum ...
 
 ...
 
