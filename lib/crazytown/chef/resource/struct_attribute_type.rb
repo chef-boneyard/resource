@@ -44,30 +44,24 @@ module Crazytown
           attribute_parent_type.class_eval <<-EOM, __FILE__, __LINE__+1
             def #{name}(*args)
               if args.empty?
-                if open_attributes.has_key?(#{name.inspect})
-                  open_attributes[#{name.inspect}]
+                if changed_attributes.has_key?(#{name.inspect})
+                  changed_attributes[#{name.inspect}]
                 else
                   # Default the attribute to actual_value
                   actual_value = self.actual_value
                   actual_value = actual_value.#{name} if actual_value
-                  if actual_value.frozen?
-                    actual_value
-                  else
-                    open_attributes[#{name.inspect}] = #{class_name}.coerce(actual_value)
-                  end
+                  #{class_name}.coerce(actual_value)
                 end
               else
                 # If we have arguments, grab the new desired value and set it
-                open_attributes[#{name.inspect}] = #{class_name}.coerce(*args)
-                explicitly_set_attributes << #{name.inspect}
+                changed_attributes[#{name.inspect}] = #{class_name}.coerce(*args)
               end
             end
           EOM
 
           attribute_parent_type.class_eval <<-EOM, __FILE__, __LINE__+1
             def #{name}=(value)
-              open_attributes[#{name.inspect}] = #{class_name}.coerce(value)
-              explicitly_set_attributes << #{name.inspect}
+              changed_attributes[#{name.inspect}] = #{class_name}.coerce(value)
             end
           EOM
         end

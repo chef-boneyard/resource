@@ -46,9 +46,43 @@ module Crazytown
       def reopen
         original = self
         self.class.new() do
-          original.explicitly_set_attributes.each do |name|
-            public_send(name, original.public_send(name)) if self.class.attribute_types[name].identity?
+          original.changed_attributes.each do |name, value|
+            public_send(name, value) if self.class.attribute_types[name].identity?
           end
+        end
+      end
+
+      #
+      # Returns this struct as a hash, including modified attributes and actual_value.
+      #
+      # TODO when we have a HashResource, return that instead.  Need deep merge
+      # and need to avoid wastefully pulling on values we don't need to pull on
+      #
+      def to_h
+        if actual_value
+          actual_value.to_h.merge(changed_attributes)
+        else
+          changed_attributes
+        end
+      end
+
+      #
+      # Returns true if these are the same type and their values are the same.
+      # Avoids comparing things that aren't modified in either struct.
+      #
+      def ==(other)
+        return false if !self.class.implemented_by?(other)
+        # Try to rule out differences via changed_attributes first (this should
+        # handle any identity keys and prevent us from accidentally pulling on
+        # actual_value).
+        (changed_attributes.keys & other.changed_attributes.keys).each do |name|
+          return false if changed_attributes[name] != other.changed_attributes[name]
+        end
+        (changed_attributes.keys - other.changed_attributes.keys).each do |name|
+          return false if public_send(name) != other.public_send(name)
+        end
+        (other.changed_attributes.keys - changed_attributes.keys).each do |attr|
+          return false if public_send(name) != other.public_send(name)
         end
       end
 
@@ -74,27 +108,17 @@ module Crazytown
       #
       def reset(name=nil)
         if name
-          open_attributes.delete(name)
-          explicitly_set_attributes.delete(name)
+          changed_attributes.delete(name)
         else
-          open_attributes.clear
-          explicitly_set_attributes.clear
+          changed_attributes.clear
         end
       end
 
       #
       # A hash of the changes the user has made to keys
       #
-      def open_attributes
-        @open_attributes ||= {}
-      end
-
-      #
-      # A list of attributes whose values were explicitly set (as opposed to
-      # being opened and *potentially* changed).
-      #
-      def explicitly_set_attributes
-        @explicitly_set_attributes ||= Set.new
+      def changed_attributes
+        @changed_attributes ||= {}
       end
 
       #

@@ -191,8 +191,41 @@ describe Crazytown::Chef::StructResource do
     end
   end
 
-  describe :coercion do
+  describe :coerce do
     context "With a struct with x, y and z" do
+      with_struct(:MyResource) do
+        attribute :a, identity: true
+        attribute :b, identity: true
+        attribute :c
+        attribute :d
+      end
+
+      context "multi-arg form" do
+        it "coerce(1, 2) yields a=1,b=2" do
+          expect(MyResource.coerce(1, 2).to_h).to eq({ a: 1, b: 2 })
+        end
+        it "coerce(1, 2, c: 3, d: 4) yields a=1, b=2, c=3, d=4" do
+          expect(MyResource.coerce(1, 2, c: 3, d: 4).to_h).to eq({ a: 1, b: 2, c: 3, d: 4 })
+        end
+      end
+      context "hash form" do
+        it "coerce(a: 1, b: 2) yields a=1, b=2" do
+          expect(MyResource.coerce(a: 1, b: 2).to_h).to eq({ a: 1, b: 2 })
+        end
+        it "coerce(a: 1, b: 2, c: 3, d: 4) yields a=1, b=2, c=3, d=4" do
+          expect(MyResource.coerce(a: 1, b: 2, c: 3, d: 4).to_h).to eq({ a: 1, b: 2, c: 3, d: 4 })
+        end
+        it "coerce(c: 3, d: 4) fails" do
+          expect { MyResource.coerce(c: 3, d: 4) }.to raise_error(ArgumentError)
+        end
+      end
+      it "coerce(another resource) yields that resource" do
+        x = MyResource.open(1,2)
+        expect(MyResource.coerce(x).object_id).to eq x.object_id
+      end
+      it "coerce(nil) yields nil" do
+        expect(MyResource.coerce(nil)).to be_nil
+      end
     end
   end
 
