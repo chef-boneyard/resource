@@ -263,14 +263,33 @@ describe Crazytown::Chef::StructResource do
       end
     end
 
-    context "With an actual_value for the struct that sets y to x*2 and z to x*3" do
-      with_struct(:MyResource) do
-        attribute :x, identity: true
-        attribute :y, default_value: proc { @actual_value }
-        attribute :z
-        def get
+    context "Primitive values" do
+      context "With a struct with Fixnums and Strings" do
+        with_struct(:MyResource) do
+          attribute :s1, String, identity: true
+          attribute :n1, Fixnum, identity: true
+          attribute :s2, String
+          attribute :n2, Fixnum
+        end
 
+        it "coerce(s1: 'hi', n1: 1, s2: 'lo', n2: 2) succeeds" do
+          expect(MyResource.coerce(s1: 'hi', n1: 1, s2: 'lo', n2: 2).to_h).to eq(s1: 'hi', n1: 1, s2: 'lo', n2: 2)
+        end
 
+        it "coerce(s1: nil, n1: nil, s2: nil, n2: nil) succeeds" do
+          expect(MyResource.coerce(s1: nil, n1: nil, s2: nil, n2: nil).to_h).to eq(s1: nil, n1: nil, s2: nil, n2: nil)
+        end
+
+        it "coerce(s1: 'hi', n1: 1) succeeds" do
+          expect(MyResource.coerce(s1: 'hi', n1: 1).to_h).to eq(s1: 'hi', n1: 1)
+        end
+
+        it "coerce(s1: 'hi', n1: 'lo') fails" do
+          expect { MyResource.coerce(s1: 'hi', n1: 'lo') }.to raise_error(Crazytown::ValidationError)
+        end
+
+        it "coerce(s1: 'hi', n1: 'lo') fails" do
+          expect { MyResource.coerce(s1: 'hi', n1: 'lo') }.to raise_error(Crazytown::ValidationError)
         end
       end
     end

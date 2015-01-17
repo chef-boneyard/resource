@@ -1,8 +1,9 @@
+require 'crazytown/errors'
 require 'crazytown/chef/resource'
+require 'crazytown/chef/resource_type'
 require 'crazytown/constants'
 require 'crazytown/chef/resource/struct_attribute'
 require 'crazytown/chef/resource/struct_attribute_type'
-require 'crazytown/chef/resource/primitive_resource'
 require 'crazytown/chef/camel_case'
 require 'set'
 
@@ -160,7 +161,7 @@ module Crazytown
           identity_values = {}
           attribute_values.each_key do |name|
             type = attribute_types[name]
-            raise ArgumentError, "#{self.class}.coerce was passed attribute #{name}, but #{name} is not an attribute on #{self.class}." if !type
+            raise ValidationError, "#{self.class}.coerce was passed attribute #{name}, but #{name} is not an attribute on #{self.class}." if !type
             identity_values[name] = attribute_values.delete(name) if type.identity?
           end
 
@@ -405,7 +406,7 @@ module Crazytown
       def self.emit_attribute_type(name, type)
         class_name = CamelCase.from_snake_case(name)
         # If the passed-in type is instantiable, make the attribute instantiable
-        if type.is_a?(Class)
+        if type.is_a?(Class) && type <= Resource
           attribute_type = class_eval <<-EOM, __FILE__, __LINE__+1
             class #{class_name} < type
               include ::Crazytown::Chef::Resource::StructAttribute
@@ -421,7 +422,6 @@ module Crazytown
               self
             end
           EOM
-          attribute_type.send :include, type if type
         end
         attribute_type
       end

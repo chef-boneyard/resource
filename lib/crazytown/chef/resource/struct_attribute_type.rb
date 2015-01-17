@@ -1,4 +1,4 @@
-require 'crazytown/chef/resource_type'
+require 'crazytown/chef/type'
 
 module Crazytown
   module Chef
@@ -8,7 +8,7 @@ module Crazytown
       # included in that class, and StructAttributeType is extended in that class.
       #
       module StructAttributeType
-        include ResourceType
+        include Type
 
         #
         # The name of this attribute
@@ -28,11 +28,9 @@ module Crazytown
         #
         # Tell whether a value is already of this type.
         #
-        # (Attributes can't use `self` because they can accept any value of the
-        # given )
-        #
         def implemented_by?(instance)
-          attribute_type ? instance.is_a?(attribute_type) : true
+          return true if !attribute_type
+          instance.nil? || instance.is_a?(attribute_type)
         end
 
         #
