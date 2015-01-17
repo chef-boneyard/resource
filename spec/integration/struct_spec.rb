@@ -33,7 +33,7 @@ describe Crazytown::Chef::StructResource do
 
   context "When MyResource is a ResourceStruct with attribute :x, default: 15" do
     with_struct(:MyResource) do
-      attribute :x, default_value: 15
+      attribute :x, default: 15
     end
     it "x returns the default if not set" do
       r = MyResource.open
@@ -49,8 +49,8 @@ describe Crazytown::Chef::StructResource do
 
   context "When MyResource is a ResourceStruct with attribute :x, 15 and attribute :y { x*2 }" do
     with_struct(:MyResource) do
-      attribute :x, default_value: 15
-      attribute :y, default_block: proc { x*2 }
+      attribute :x, default: 15
+      attribute :y, default: proc { x*2 }
     end
     it "x and y return the default if not set" do
       r = MyResource.open
@@ -258,6 +258,38 @@ describe Crazytown::Chef::StructResource do
         expect(r.y).to eq 2
         expect(r.z).to eq 3
         expect(r.num_loads).to eq 1
+      end
+    end
+
+    context "When load sets y to x*2 and z has its own load that does x*3" do
+      with_struct(:MyResource) do
+        attribute :x, identity: true
+        attribute :y
+        attribute :z, load: proc { self.num_loads += 1; x*3 }
+        attribute :num_loads
+        def load
+          y x*2
+          self.num_loads ||= 0
+          self.num_loads += 1
+        end
+      end
+
+      it "MyResource.open(1).y == 2 and .z == 3" do
+        r = MyResource.open(1)
+        expect(r.x).to eq 1
+        expect(r.y).to eq 2
+        expect(r.z).to eq 3
+      end
+
+      it "load is only called twice" do
+        r = MyResource.open(1)
+        expect(r.x).to eq 1
+        expect(r.y).to eq 2
+        expect(r.z).to eq 3
+        expect(r.x).to eq 1
+        expect(r.y).to eq 2
+        expect(r.z).to eq 3
+        expect(r.num_loads).to eq 2
       end
     end
 

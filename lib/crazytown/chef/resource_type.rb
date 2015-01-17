@@ -5,7 +5,7 @@ module Crazytown
     module Resource
       #
       # The methods on a Resource class.  Generally extended into the class, and
-      # become class-level methods (Class.default_value(x))
+      # become class-level methods (Class.default(x))
       #
       module ResourceType
         include Type

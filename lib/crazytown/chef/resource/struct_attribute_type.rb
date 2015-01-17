@@ -42,19 +42,7 @@ module Crazytown
           attribute_parent_type.class_eval <<-EOM, __FILE__, __LINE__+1
             def #{name}(*args)
               if args.empty?
-                if changed_attributes.has_key?(#{name.inspect})
-                  changed_attributes[#{name.inspect}]
-                else
-                  value = actual_value
-                  if value && value.changed_attributes.has_key?(#{name.inspect})
-                    value = value.changed_attributes[#{name.inspect}]
-                  elsif #{class_name}.default_block
-                    value = instance_exec(#{class_name}, &#{class_name}.default_block)
-                  else
-                    value = #{class_name}.default_value
-                  end
-                  #{class_name}.coerce(value)
-                end
+                #{class_name}.get_attribute(self)
               else
                 # If we have arguments, grab the new desired value and set it
                 changed_attributes[#{name.inspect}] = #{class_name}.coerce(*args)
@@ -67,6 +55,42 @@ module Crazytown
               changed_attributes[#{name.inspect}] = #{class_name}.coerce(value)
             end
           EOM
+        end
+
+        #
+        # Calculate the default for this attribute given the struct.
+        #
+        # First tries the actual value, then the default.
+        #
+        def get_attribute(struct)
+          if struct.changed_attributes.has_key?(attribute_name)
+            return struct.changed_attributes[attribute_name]
+          end
+
+          # Get the actual value first.  If we have a "load" value, call that.
+          # Otherwise, call struct.actual_value
+          if load
+            value = struct.instance_exec(self, &load)
+            if value
+              struct.changed_attributes[attribute_name] = value
+            end
+          else
+            actual_struct = struct.actual_value
+            if actual_struct && actual_struct.changed_attributes.has_key?(attribute_name)
+              value = actual_struct.changed_attributes[attribute_name]
+            end
+          end
+
+          # If that didn't work, pull the default.
+          if !value
+            if default.is_a?(Proc)
+              value = struct.instance_exec(self, &default)
+            else
+              value = default
+            end
+          end
+
+          coerce(value)
         end
 
         #
@@ -104,17 +128,41 @@ module Crazytown
         end
 
         #
-        # The default value for values of this type
-        #
-        attr_accessor :default_value
-
-        #
         # A block which calculates the default for a value of this type.
         #
         # Run in context of the parent struct, and is passed the Type as a
-        # parameter (t)
+        # parameter.
         #
-        attr_accessor :default_block
+        # NOTE: the way it's implemented, you can't have the default for a
+        #
+        def default(value=NOT_PASSED, &block)
+          if block
+            @default = block
+          elsif value == NOT_PASSED
+            @default
+          else
+            @default = value
+          end
+        end
+        def default=(value)
+          @default = value
+        end
+
+        #
+        # A block which loads the attribute
+        #
+        def load(value=NOT_PASSED, &block)
+          if block
+            @load = block
+          elsif value == NOT_PASSED
+            @load
+          else
+            @load = value
+          end
+        end
+        def load=(value)
+          @load = value
+        end
       end
     end
   end

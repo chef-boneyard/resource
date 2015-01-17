@@ -272,7 +272,7 @@ module Crazytown
       #   only be specified by name (ResourceClass.open(x: 1))
       # @param default [Object] The value to return if the user asks for the attribute
       #   when it has not been set.  `nil` is a valid value for this.
-      # @param default_block [Proc] An optional block that will be called when
+      # @param default [Proc] An optional block that will be called when
       #   the user asks for a value that has not been set.  Called in the
       #   context of the struct (instance_eval), so you can access other
       #   properties of the struct to compute the value.  Value is *not* cached,
@@ -354,7 +354,7 @@ module Crazytown
       #   p = Person.open
       #   p.home_address = Address.open
       #
-      def self.attribute(name, type=nil, identity: nil, required: true, default_value: NOT_PASSED, default_block: NOT_PASSED)
+      def self.attribute(name, type=nil, identity: nil, required: true, default: NOT_PASSED, load: NOT_PASSED)
         name = name.to_sym
 
         attribute_type = emit_attribute_type(name, type)
@@ -363,8 +363,8 @@ module Crazytown
         attribute_type.attribute_type = type
         attribute_type.identity = identity
         attribute_type.required = required
-        attribute_type.default_value = default_value unless default_value == NOT_PASSED
-        attribute_type.default_block = default_block unless default_block == NOT_PASSED
+        attribute_type.default = default unless default == NOT_PASSED
+        attribute_type.load = load unless load == NOT_PASSED
 
         attribute_types[name] = attribute_type
 
