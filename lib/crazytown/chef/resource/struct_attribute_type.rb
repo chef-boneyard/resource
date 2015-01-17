@@ -46,8 +46,10 @@ module Crazytown
                   changed_attributes[#{name.inspect}]
                 else
                   value = actual_value
-                  if value
-                    value = value.#{name}
+                  if value && value.changed_attributes.has_key?(#{name.inspect})
+                    value = value.changed_attributes[#{name.inspect}]
+                  elsif #{class_name}.default_block
+                    value = instance_exec(#{class_name}, &#{class_name}.default_block)
                   else
                     value = #{class_name}.default_value
                   end
@@ -100,6 +102,19 @@ module Crazytown
         def required?
           defined?(@attribute) ? @attribute : true
         end
+
+        #
+        # The default value for values of this type
+        #
+        attr_accessor :default_value
+
+        #
+        # A block which calculates the default for a value of this type.
+        #
+        # Run in context of the parent struct, and is passed the Type as a
+        # parameter (t)
+        #
+        attr_accessor :default_block
       end
     end
   end

@@ -354,7 +354,7 @@ module Crazytown
       #   p = Person.open
       #   p.home_address = Address.open
       #
-      def self.attribute(name, type=nil, identity: nil, required: true, default_value: NOT_PASSED)
+      def self.attribute(name, type=nil, identity: nil, required: true, default_value: NOT_PASSED, default_block: NOT_PASSED)
         name = name.to_sym
 
         attribute_type = emit_attribute_type(name, type)
@@ -364,6 +364,7 @@ module Crazytown
         attribute_type.identity = identity
         attribute_type.required = required
         attribute_type.default_value = default_value unless default_value == NOT_PASSED
+        attribute_type.default_block = default_block unless default_block == NOT_PASSED
 
         attribute_types[name] = attribute_type
 

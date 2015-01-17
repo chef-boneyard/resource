@@ -47,31 +47,29 @@ describe Crazytown::Chef::StructResource do
     end
   end
 
-  # context "When MyResource is a ResourceStruct with attribute :x, 15 and attribute :y { x*2 }" do
-  #   with_struct(:MyResource) do
-  #     attribute :x, default: 15
-  #     attribute :y do
-  #       x*2
-  #     end
-  #   end
-  #   it "x and y return the default if not set" do
-  #     r = MyResource.open
-  #     expect(r.x).to eq 15
-  #     expect(r.y).to eq 30
-  #   end
-  #   it "y returns the new value if it is set" do
-  #     r = MyResource.open
-  #     expect(r.y).to eq 30
-  #     expect(r.y = 20).to eq 20
-  #     expect(r.y).to eq 20
-  #   end
-  #   it "y returns a value based on x if x is set" do
-  #     r = MyResource.open
-  #     expect(r.y).to eq 30
-  #     expect(r.x = 20).to eq 20
-  #     expect(r.y).to eq 40
-  #   end
-  # end
+  context "When MyResource is a ResourceStruct with attribute :x, 15 and attribute :y { x*2 }" do
+    with_struct(:MyResource) do
+      attribute :x, default_value: 15
+      attribute :y, default_block: proc { x*2 }
+    end
+    it "x and y return the default if not set" do
+      r = MyResource.open
+      expect(r.x).to eq 15
+      expect(r.y).to eq 30
+    end
+    it "y returns the new value if it is set" do
+      r = MyResource.open
+      expect(r.y).to eq 30
+      expect(r.y = 20).to eq 20
+      expect(r.y).to eq 20
+    end
+    it "y returns a value based on x if x is set" do
+      r = MyResource.open
+      expect(r.y).to eq 30
+      expect(r.x = 20).to eq 20
+      expect(r.y).to eq 40
+    end
+  end
 
   context "When MyResource is a ResourceStruct with attribute :x, ResourceStruct" do
     with_struct(:MyResource) do

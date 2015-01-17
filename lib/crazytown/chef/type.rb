@@ -26,16 +26,9 @@ module Crazytown
       # Returns whether the given value could have been returned by a call to
       # `coerce`, `open` or `get`.
       #
-      # TODO this could be a validation thing too, perhaps
-      #
       def implemented_by?(instance)
         instance.is_a?(self) || instance.nil?
       end
-
-      #
-      # The default value for instances of this type
-      #
-      attr_accessor :default_value
     end
   end
 end
