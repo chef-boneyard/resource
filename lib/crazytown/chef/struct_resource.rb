@@ -354,7 +354,7 @@ module Crazytown
       #   p = Person.open
       #   p.home_address = Address.open
       #
-      def self.attribute(name, type=nil, identity: nil, required: true, default: NOT_PASSED, &default_block)
+      def self.attribute(name, type=nil, identity: nil, required: true, default_value: NOT_PASSED)
         name = name.to_sym
 
         attribute_type = emit_attribute_type(name, type)
@@ -363,12 +363,30 @@ module Crazytown
         attribute_type.attribute_type = type
         attribute_type.identity = identity
         attribute_type.required = required
-        attribute_type.default = default unless default == NOT_PASSED
-        attribute_type.default_block = default_block if default_block
+        attribute_type.default_value = default_value unless default_value == NOT_PASSED
 
         attribute_types[name] = attribute_type
 
         attribute_type.emit_attribute_methods
+      end
+
+      #
+      # Get the value of the given attribute from the struct
+      #
+      def [](name)
+        name = name.to_sym
+        if attribute_types.has_key?(name)
+          public_send(name)
+        else
+          raise ArgumentError, "#{self.class}.#{name}"
+        end
+      end
+
+      #
+      # Set the value of the given attribute in the struct
+      #
+      def []=(name, value)
+        public_send(name.to_sym, value)
       end
 
       protected

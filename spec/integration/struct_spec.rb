@@ -31,21 +31,21 @@ describe Crazytown::Chef::StructResource do
     end
   end
 
-  # context "When MyResource is a ResourceStruct with attribute :x, default: 15" do
-  #   with_struct(:MyResource) do
-  #     attribute :x, default: 15
-  #   end
-  #   it "x returns the default if not set" do
-  #     r = MyResource.open
-  #     expect(r.x).to eq 15
-  #   end
-  #   it "x returns the new value if it is set" do
-  #     r = MyResource.open
-  #     expect(r.x).to eq 15
-  #     expect(r.x = 20).to eq 20
-  #     expect(r.x).to eq 20
-  #   end
-  # end
+  context "When MyResource is a ResourceStruct with attribute :x, default: 15" do
+    with_struct(:MyResource) do
+      attribute :x, default_value: 15
+    end
+    it "x returns the default if not set" do
+      r = MyResource.open
+      expect(r.x).to eq 15
+    end
+    it "x returns the new value if it is set" do
+      r = MyResource.open
+      expect(r.x).to eq 15
+      expect(r.x = 20).to eq 20
+      expect(r.x).to eq 20
+    end
+  end
 
   # context "When MyResource is a ResourceStruct with attribute :x, 15 and attribute :y { x*2 }" do
   #   with_struct(:MyResource) do

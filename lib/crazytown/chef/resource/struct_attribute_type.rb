@@ -45,10 +45,13 @@ module Crazytown
                 if changed_attributes.has_key?(#{name.inspect})
                   changed_attributes[#{name.inspect}]
                 else
-                  # Default the attribute to actual_value
-                  actual_value = self.actual_value
-                  actual_value = actual_value.#{name} if actual_value
-                  #{class_name}.coerce(actual_value)
+                  value = actual_value
+                  if value
+                    value = value.#{name}
+                  else
+                    value = #{class_name}.default_value
+                  end
+                  #{class_name}.coerce(value)
                 end
               else
                 # If we have arguments, grab the new desired value and set it
