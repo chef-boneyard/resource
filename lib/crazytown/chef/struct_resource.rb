@@ -4,6 +4,7 @@ require 'crazytown/chef/resource/struct_attribute'
 require 'crazytown/chef/resource/struct_attribute_type'
 require 'crazytown/chef/resource/primitive_resource'
 require 'crazytown/chef/camel_case'
+require 'set'
 
 module Crazytown
   module Chef
@@ -30,21 +31,39 @@ module Crazytown
     # # -> sets p.home_address.actual_value.city -> a.city = 'Malarky'
     # # sets p.actual_value.home_address = p.home_address.actual_value
     #
-    # TODO attribute_types by value (a transaction) or reference (identity only)
     class StructResource
       include Resource
       extend ResourceType
 
       #
-      # The actual value of the Resource (can be set to a normal struct).
+      # Reopen the struct based on its identity args.
       #
-      attr_accessor :actual_value
+      # *Only* copy over things that the user modified (desired_changes).
+      #
+      # TODO when you nest structs and such, make sure you test for deeper
+      # changes in the identity.
+      #
+      def reopen
+        original = self
+        self.class.new() do
+          original.explicitly_set_attributes.each do |name|
+            public_send(name, original.public_send(name)) if self.class.attribute_types[name].identity?
+          end
+        end
+      end
 
       #
-      # A hash of the changes the user has made to keys
+      # The identity of the struct.  A hash of the identity attributes.
+      # Should be possible to pass this into `open`, `update` or `get`.
       #
-      def open_attributes
-        @open_attributes ||= {}
+      # Will not include values that are just set to their defaults.
+      #
+      def identity
+        result = {}
+        self.class.attribute_types.each do |name, type|
+          result[name] = public_send(name) if type.identity?
+        end
+        result
       end
 
       #
@@ -56,31 +75,26 @@ module Crazytown
       def reset(name=nil)
         if name
           open_attributes.delete(name)
+          explicitly_set_attributes.delete(name)
         else
           open_attributes.clear
+          explicitly_set_attributes.clear
         end
       end
 
       #
-      # The attribute type for each attribute.
+      # A hash of the changes the user has made to keys
       #
-      # TODO make this an attribute so it's introspectible.
-      def self.attribute_types
-        @attribute_types ||= {}
+      def open_attributes
+        @open_attributes ||= {}
       end
 
       #
-      # The list of identity attribute_types (attribute_types with identity=true), in order.
+      # A list of attributes whose values were explicitly set (as opposed to
+      # being opened and *potentially* changed).
       #
-      def self.identity_attribute_types
-        attribute_types.values.select { |attr| attr.identity? }
-      end
-
-      #
-      # The base type values of this type will always implement
-      #
-      def self.implements_type?(instance)
-        instance.is_a?(self)
+      def explicitly_set_attributes
+        @explicitly_set_attributes ||= Set.new
       end
 
       #
@@ -136,7 +150,7 @@ module Crazytown
 
           resource
 
-        elsif args.size == 1 && (args[0].nil? || implements_type?(args[0]))
+        elsif args.size == 1 && (args[0].nil? || implemented_by?(args[0]))
           # nil:
           # - MyStruct.coerce(nil) -> nil
           #
@@ -342,6 +356,22 @@ module Crazytown
       def initialize(&block)
         super()
         instance_eval(&block) if block
+      end
+
+
+      #
+      # The attribute type for each attribute.
+      #
+      # TODO make this an attribute so it's introspectible.
+      def self.attribute_types
+        @attribute_types ||= {}
+      end
+
+      #
+      # The list of identity attribute_types (attribute_types with identity=true), in order.
+      #
+      def self.identity_attribute_types
+        attribute_types.values.select { |attr| attr.identity? }
       end
 
       #

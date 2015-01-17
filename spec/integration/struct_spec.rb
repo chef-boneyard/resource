@@ -191,14 +191,23 @@ describe Crazytown::Chef::StructResource do
     end
   end
 
-  describe :actual_value do
-    context "With an actual_value for the struct that sets y to x*2 and z to x*3" do
+  describe :coercion do
+    context "With a struct with x, y and z" do
+    end
+  end
+
+  describe :load do
+    context "When load sets y to x*2 and z to x*3" do
       with_struct(:MyResource) do
         attribute :x, identity: true
         attribute :y
         attribute :z
-        def actual_value
-          MyResource.coerce({ x: x, y: x*2, z: x*3 })
+        attribute :num_loads
+        def load
+          y x*2
+          z x*3
+          self.num_loads ||= 0
+          self.num_loads += 1
         end
       end
 
@@ -207,6 +216,29 @@ describe Crazytown::Chef::StructResource do
         expect(r.x).to eq 1
         expect(r.y).to eq 2
         expect(r.z).to eq 3
+      end
+
+      it "load is only called once" do
+        r = MyResource.open(1)
+        expect(r.x).to eq 1
+        expect(r.y).to eq 2
+        expect(r.z).to eq 3
+        expect(r.x).to eq 1
+        expect(r.y).to eq 2
+        expect(r.z).to eq 3
+        expect(r.num_loads).to eq 1
+      end
+    end
+
+    context "With an actual_value for the struct that sets y to x*2 and z to x*3" do
+      with_struct(:MyResource) do
+        attribute :x, identity: true
+        attribute :y, default_value: proc { @actual_value }
+        attribute :z
+        def get
+
+
+        end
       end
     end
   end

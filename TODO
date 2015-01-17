@@ -1,4 +1,35 @@
-      # NEXT 2: structs as changesets
+- Fix identity / reopen recursion bug
+- Add coercion tests for structs
+- Implement default_value and untangle from actual_value
+- Implement primitive types
+- Allow individual attributes to be lazily loaded separate from other things:
+  Implement load_value that loads an attribute, but runs in the parent context so
+  you have access to its attributes.
+
+  Perhaps:
+
+  ```ruby
+  class MyStruct < StructResource
+    attribute :path, String
+    attribute :content, String
+    load :content do
+      content = IO.read(path)
+    end
+  end
+  ```
+- Add `changes` API, distinguish between explicit user desired changes and
+  "loaded values" that may or may not have changed / drifted
+- Make API to change things: if_changed, if_create, if_change_desired (which is probably where try_change lands)
+- Create the resource tree and resource :name object
+- Add events and printing
+
+...
+
+- Think about race condition protection / content id / etc.
+
+
+
+                        # NEXT 2: structs as changesets
       # Store "changes" as hash
       # "if_changed" in "update" method
       #

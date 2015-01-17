@@ -1,4 +1,4 @@
-require 'crazytown/chef/resource/resource_type'
+require 'crazytown/chef/resource_type'
 
 module Crazytown
   module Chef
@@ -9,6 +9,12 @@ module Crazytown
       class PrimitiveResource
         include Resource
         extend ResourceType
+
+        def self.coerce(value)
+          if value.is_a?(Resource)
+
+          end
+        end
       end
     end
   end

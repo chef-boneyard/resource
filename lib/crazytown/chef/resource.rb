@@ -3,7 +3,13 @@ require 'crazytown/chef/resource/resource_log'
 module Crazytown
   module Chef
     #
-    # An open resource.
+    # Represents a real thing which can be read and updated.
+    #
+    # When you call YourResource.open(...), it gives you back the Resource's
+    # current value.  This value will often be lazy-loaded, to avoid the often
+    # high performance penalty of accessing real things over network or disk).
+    # You may make modifications to this value (append to it, set properties,
+    # etc.), and then call `update` at the end to save your changes.
     #
     # Resources are initialized with `YourResource.open(<identity attributes>)`.
     # After this, the Resource object will have methods and attributes that get
@@ -26,6 +32,75 @@ module Crazytown
     #   the parent resource is committed.  While this is ideal for many reasons,
     #   many Resources don't do it because of the difficulty of implementing it.
     #
+    # ## Defining a Resource Type
+    #
+    # ### Struct
+    #
+    # The simplest way to create a new Resource is with Struct:
+    #
+    # class MyFile < Crazytown::Chef::StructResource
+    #   attribute :path,    Path,   identity: true
+    #   attribute :content, String
+    #   def load
+    #     File.exist?(path) ? IO.read(content) : nil
+    #   end
+    #   def update
+    #     if_changed :content do
+    #       IO.write(path.to_s, content)
+    #     end
+    #   end
+    # end
+    #
+    # ### Self-Defined Resource class
+    #
+    # If you did all of this yourself, it would look like this:
+    #
+    # ```ruby
+    # class MyFile
+    #   def initialize(path)
+    #     @path = path
+    #   end
+    #
+    #   attr_reader :path
+    #   attr_writer :content
+    #   def content
+    #     if !defined?(@content)
+    #       begin
+    #         @content = IO.read(path)
+    #       rescue
+    #         @content = nil
+    #       end
+    #       @original_content = @content
+    #     end
+    #   end
+    #   def exists?
+    #     content.nil?
+    #   end
+    #
+    #   def update
+    #     if @content != @original_content
+    #       if !exists?
+    #         puts "#{path} does not exist.  Creating content ..."
+    #       else
+    #         puts "#{path}.content modified.  Updating ..."
+    #       end
+    #       IO.write(path, content)
+    #     end
+    #   end
+    # end
+    # ```
+    #
+    # Resources provide change detection (for idempotence), events, validation,
+    # coercion, lazy loading, resource nesting and compatibility, and automatic
+    # Chef compatibility along with a consistent interface, all wrapped up in a
+    # simple class definition.
+    #
+    # A Resource generally goes through these phases:
+    # 1. resource = MyResource.open(<enough information to retrieve resource>)
+    #    This calls MyResource.new() with no arguments, and sets identity values
+    #    on the resource.
+    # 2. resource = MyResource.open(<enough information to retrieve resource)
+    #
     module Resource
       #
       # Updates the real resource with desired changes
@@ -35,45 +110,116 @@ module Crazytown
       end
 
       #
-      # Resets the Resource so that `update` will make no changes and its value
-      # will be the same as the actual value.
+      # Load this resource with actual values.  Must set exists = false if the
+      # resource does not exist.
       #
-      def reset
-        raise NotImplementedError, "#{self.class}.reset"
+      # @raise Various errors if the resource could not be loaded and it is not
+      #   known whether the resource actually exists.
+      #
+      def load
       end
 
       #
-      # The actual value of this resource.  (Defaults to nil.)
+      # The remaining methods you don't generally have to explicitly override.
       #
-      def actual_value
-        nil
-      end
 
       #
-      # The desired value of this Resource.  Some Resources will have
-      # desired_value == self.
+      # Makes a new, blank copy of this Resource, pointed at the same thing
+      # (generally copies the identity values).
       #
-      # Writes to this value should affect the desired value of the resource
-      # (but not the actual value).
+      # This is used by actual_value.
       #
-      def desired_value
-        defined?(@desired_value) ? @desired_value : actual_value
-      end
-
-      #
-      # Set the desired value of this resource.
-      #
-      # Subclasses will take different arguments.
-      #
-      def set_desired_value(value)
-        @desired_value = value
+      def reopen
+        raise NotImplementedError, "#{self.class}.reopen"
       end
 
       #
       # The actual value of this resource.
       #
-      def actual_value
-        raise NotImplementedError, "#{self.class}.actual_value"
+      # The first time this is called, this calls reopen() and then load() on
+      # the new resource.  If resource.exists was set to false, or if an error
+      # is raised, the new resource will be thrown away and @actual_value set to
+      # nil.
+      #
+      # This is cached and will only ever call reopen() and load() once.
+      #
+      def actual_value(value=NOT_PASSED)
+        if value != NOT_PASSED
+          @actual_value = value
+        elsif defined?(@actual_value)
+          @actual_value
+        else
+          # This is *just* like ResourceType.get(), except it does a reopen instead
+          # of an open at the beginning.
+          resource = reopen
+
+          begin
+            # The resource we use for our actual_value, *shall not have its own*
+            # actual_value.  That way lies madness.  We do not truck with madness.
+            resource.actual_value = nil
+
+            resource.load
+
+            # Foolproofing: if the user does not set exists, assume a successful
+            # `load` means it *does* exist.  Principle of Least Surprise.
+            resource.exists = true if !resource.exists_is_set?
+            @actual_value = resource.exists? ? resource : nil
+          rescue
+            @actual_value = nil
+            raise
+          end
+        end
+      end
+
+      #
+      # Set the actual value.
+      #
+      def actual_value=(value)
+        @actual_value = value
+      end
+
+      #
+      # Set whether this resource exists or not.
+      #
+      def exists=(value)
+        @exists = value
+      end
+
+      #
+      # Get/set whether this resource exists.
+      #
+      def exists(value=NOT_PASSED)
+        if value == NOT_PASSED
+          exists?
+        else
+          @exists = value
+        end
+      end
+
+      #
+      # Tells whether exists? was explicitly set or just defaulted to nil.
+      #
+      def exists_is_set?
+        defined?(@exists)
+      end
+
+      #
+      # Whether this resource exists or not.
+      #
+      def exists?
+        if !defined?(@exists)
+          # Pull on actual_value, causing @exists to get set too
+          actual_value
+        end
+        @exists
+      end
+
+      #
+      # Resets the Resource so that `update` will make no changes and its value
+      # will be the same as the actual value.
+      #
+      def reset
+        raise NotImplementedError, "#{self.class}.reset"
       end
 
       #

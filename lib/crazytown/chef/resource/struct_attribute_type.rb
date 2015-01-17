@@ -1,4 +1,4 @@
-require 'crazytown/chef/resource/resource_type'
+require 'crazytown/chef/resource_type'
 
 module Crazytown
   module Chef
@@ -31,8 +31,8 @@ module Crazytown
         # (Attributes can't use `self` because they can accept any value of the
         # given )
         #
-        def implements_type?(instance)
-          attribute_type ? instance.is_a?(attribute_type) : super
+        def implemented_by?(instance)
+          attribute_type ? instance.is_a?(attribute_type) : true
         end
 
         #
@@ -50,11 +50,16 @@ module Crazytown
                   # Default the attribute to actual_value
                   actual_value = self.actual_value
                   actual_value = actual_value.#{name} if actual_value
-                  open_attributes[#{name.inspect}] = #{class_name}.coerce(actual_value)
+                  if actual_value.frozen?
+                    actual_value
+                  else
+                    open_attributes[#{name.inspect}] = #{class_name}.coerce(actual_value)
+                  end
                 end
               else
                 # If we have arguments, grab the new desired value and set it
                 open_attributes[#{name.inspect}] = #{class_name}.coerce(*args)
+                explicitly_set_attributes << #{name.inspect}
               end
             end
           EOM
@@ -62,6 +67,7 @@ module Crazytown
           attribute_parent_type.class_eval <<-EOM, __FILE__, __LINE__+1
             def #{name}=(value)
               open_attributes[#{name.inspect}] = #{class_name}.coerce(value)
+              explicitly_set_attributes << #{name.inspect}
             end
           EOM
         end
