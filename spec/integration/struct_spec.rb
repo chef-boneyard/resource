@@ -265,7 +265,7 @@ describe Crazytown::Chef::StructResource do
       with_struct(:MyResource) do
         attribute :x, identity: true
         attribute :y
-        attribute :z, load: proc { self.num_loads += 1; x*3 }
+        attribute :z, load_value: proc { self.num_loads += 1; x*3 }
         attribute :num_loads
         def load
           y x*2

@@ -45,39 +45,45 @@ module Crazytown
                 #{class_name}.get_attribute(self)
               else
                 # If we have arguments, grab the new desired value and set it
-                changed_attributes[#{name.inspect}] = #{class_name}.coerce(*args)
+                desired_values[#{name.inspect}] = #{class_name}.coerce(*args)
               end
             end
           EOM
 
           attribute_parent_type.class_eval <<-EOM, __FILE__, __LINE__+1
             def #{name}=(value)
-              changed_attributes[#{name.inspect}] = #{class_name}.coerce(value)
+              desired_values[#{name.inspect}] = #{class_name}.coerce(value)
             end
           EOM
         end
 
         #
-        # Calculate the default for this attribute given the struct.
+        # Get the attribute value from the struct.
         #
-        # First tries the actual value, then the default.
+        # First tries to get the desired value.  If there is none, tries to get
+        # the actual value from the struct.  If the actual value doesn't have
+        # the value, it looks for a load_value method.  Finally, if that isn't
+        # there, it runs default_value.
+        #
+        # TODO can load_value and default_value be the same thing?
         #
         def get_attribute(struct)
-          if struct.changed_attributes.has_key?(attribute_name)
-            return struct.changed_attributes[attribute_name]
+          if struct.desired_values.has_key?(attribute_name)
+            return struct.desired_values[attribute_name]
           end
 
           # Get the actual value first.  If we have a "load" value, call that.
           # Otherwise, call struct.actual_value
-          if load
-            value = struct.instance_exec(self, &load)
-            if value
-              struct.changed_attributes[attribute_name] = value
-            end
-          else
-            actual_struct = struct.actual_value
-            if actual_struct && actual_struct.changed_attributes.has_key?(attribute_name)
-              value = actual_struct.changed_attributes[attribute_name]
+          actual_struct = struct.actual_value
+          if actual_struct
+            if actual_struct.desired_values.has_key?(attribute_name)
+              return actual_struct.desired_values[attribute_name]
+            elsif load_value
+              value = coerce(struct.instance_exec(self, &load_value))
+              if value
+                actual_struct.desired_values[attribute_name] = value
+                return value
+              end
             end
           end
 
@@ -133,7 +139,9 @@ module Crazytown
         # Run in context of the parent struct, and is passed the Type as a
         # parameter.
         #
-        # NOTE: the way it's implemented, you can't have the default for a
+        # NOTE: the way it's implemented, you can't have the default actually
+        # *be* a proc.  Well, I suppose you could have a proc that returns a
+        # proc ...
         #
         def default(value=NOT_PASSED, &block)
           if block
@@ -149,19 +157,19 @@ module Crazytown
         end
 
         #
-        # A block which loads the attribute
+        # A block which loads the attribute from reality.
         #
-        def load(value=NOT_PASSED, &block)
+        def load_value(value=NOT_PASSED, &block)
           if block
-            @load = block
+            @load_value = block
           elsif value == NOT_PASSED
-            @load
+            @load_value
           else
-            @load = value
+            @load_value = value
           end
         end
-        def load=(value)
-          @load = value
+        def load_value=(value)
+          @load_value = value
         end
       end
     end

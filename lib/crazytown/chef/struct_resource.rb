@@ -47,7 +47,7 @@ module Crazytown
       def reopen
         original = self
         self.class.new() do
-          original.changed_attributes.each do |name, value|
+          original.desired_values.each do |name, value|
             public_send(name, value) if self.class.attribute_types[name].identity?
           end
         end
@@ -61,9 +61,9 @@ module Crazytown
       #
       def to_h
         if actual_value
-          actual_value.to_h.merge(changed_attributes)
+          actual_value.to_h.merge(desired_values)
         else
-          changed_attributes
+          desired_values
         end
       end
 
@@ -73,16 +73,16 @@ module Crazytown
       #
       def ==(other)
         return false if !self.class.implemented_by?(other)
-        # Try to rule out differences via changed_attributes first (this should
+        # Try to rule out differences via desired_values first (this should
         # handle any identity keys and prevent us from accidentally pulling on
         # actual_value).
-        (changed_attributes.keys & other.changed_attributes.keys).each do |name|
-          return false if changed_attributes[name] != other.changed_attributes[name]
+        (desired_values.keys & other.desired_values.keys).each do |name|
+          return false if desired_values[name] != other.desired_values[name]
         end
-        (changed_attributes.keys - other.changed_attributes.keys).each do |name|
+        (desired_values.keys - other.desired_values.keys).each do |name|
           return false if public_send(name) != other.public_send(name)
         end
-        (other.changed_attributes.keys - changed_attributes.keys).each do |attr|
+        (other.desired_values.keys - desired_values.keys).each do |attr|
           return false if public_send(name) != other.public_send(name)
         end
       end
@@ -109,17 +109,17 @@ module Crazytown
       #
       def reset(name=nil)
         if name
-          changed_attributes.delete(name)
+          desired_values.delete(name)
         else
-          changed_attributes.clear
+          desired_values.clear
         end
       end
 
       #
       # A hash of the changes the user has made to keys
       #
-      def changed_attributes
-        @changed_attributes ||= {}
+      def desired_values
+        @desired_values ||= {}
       end
 
       #
@@ -354,7 +354,7 @@ module Crazytown
       #   p = Person.open
       #   p.home_address = Address.open
       #
-      def self.attribute(name, type=nil, identity: nil, required: true, default: NOT_PASSED, load: NOT_PASSED)
+      def self.attribute(name, type=nil, identity: nil, required: true, default: NOT_PASSED, load_value: NOT_PASSED)
         name = name.to_sym
 
         attribute_type = emit_attribute_type(name, type)
@@ -364,7 +364,7 @@ module Crazytown
         attribute_type.identity = identity
         attribute_type.required = required
         attribute_type.default = default unless default == NOT_PASSED
-        attribute_type.load = load unless load == NOT_PASSED
+        attribute_type.load_value = load_value unless load_value == NOT_PASSED
 
         attribute_types[name] = attribute_type
 
@@ -376,11 +376,11 @@ module Crazytown
       #
       def [](name)
         name = name.to_sym
-        if attribute_types.has_key?(name)
-          public_send(name)
-        else
-          raise ArgumentError, "#{self.class}.#{name}"
+        if !attribute_types.has_key?(name)
+          raise ArgumentError, "#{name} is not an attribute of #{self.class}."
         end
+
+        public_send(name)
       end
 
       #

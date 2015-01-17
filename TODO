@@ -1,20 +1,3 @@
-
-- Allow individual attributes to be lazily loaded separate from other things:
-  Implement load_value that loads an attribute, but runs in the parent context so
-  you have access to its attributes.
-
-  Perhaps:
-
-  ```ruby
-  class MyStruct < StructResource
-    attribute :path, String
-    attribute :content, String
-    load :content do
-      content = IO.read(path)
-    end
-  end
-  ```
-
 - Add `changes` API, distinguish between explicit user desired changes and
   "loaded values" that may or may not have changed / drifted
 
