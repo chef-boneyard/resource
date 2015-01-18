@@ -20,7 +20,7 @@ module Crazytown
 
         class Styles < StructResource
           attribute :default
-          attribute :opened         { default }
+          attribute :declared         { default }
           attribute :defined        { default }
           attribute :updating     { default }
           attribute :updated        { default }

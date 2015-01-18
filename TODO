@@ -7,6 +7,10 @@ Basic Resource (Modifying A Real Thing) Support
 - Add events and printing
 - Add "recipe" (might be handled automatically by resource tree)
 - Type specialization: tests, and merging of "attributes".  Probably best to wait until after resource tree is built.
+- Prevent "attribute" from overwriting non-attribute methods (even on base classes
+  or modules)
+- Can we prevent people from screwing up and writing both "load" and "load_value"?
+  Or at least tell them when they do it?  It can cause inconsistent results.
 
 Nesting
 - Add nested structs

@@ -50,32 +50,12 @@ module Crazytown
           raise ResourceStateError.new("Resource cannot be reopened until resource is open", self)
         end
 
-        original = self
-        resource = self.class.new() do
-          original.desired_values.each do |name, value|
-            public_send(name, value) if self.class.attribute_types[name].identity?
-          end
+        resource = self.class.new()
+        desired_values.each do |name, value|
+          resource.public_send(name, value) if resource.class.attribute_types[name].identity?
         end
         resource.resource_opened
         resource
-      end
-
-      #
-      # The identity of the struct.  A hash of the identity attributes.
-      # Should be possible to pass this into `open`, `update` or `get`.
-      #
-      # Will not include values that are just set to their defaults.
-      #
-      def identity
-        if resource_state == :new
-          raise ResourceStateError.new("Identity cannot be retrieved until resource is open", self)
-        end
-
-        result = {}
-        self.class.attribute_types.each do |name, type|
-          result[name] = public_send(name) if type.identity?
-        end
-        result
       end
 
       #
@@ -86,23 +66,27 @@ module Crazytown
       #
       def reset(name=nil)
         if name
-          if attribute_types[name].identity?
-            if resource_state != :open
-              raise ReadonlyAttributeError.new("#{self.class}.#{name} cannot be reset after resource is defined", self, attribute_types[name])
+          attribute_type = self.class.attribute_types[name]
+          if !attribute_type
+            raise ArgumentError, "#{self.class} does not have attribute #{name}, cannot reset!"
+          end
+          if attribute_type.identity?
+            if resource_state != :new
+              raise ReadonlyAttributeError.new("#{self.class}.#{name} cannot be reset after resource is defined", self, attribute_type)
             end
           else
-            if resource_state != :new
-              raise ReadonlyAttributeError.new("#{self.class}.#{name} cannot be reset after resource is opened", self, attribute_types[name])
+            if resource_state != :declared
+              raise ReadonlyAttributeError.new("#{self.class}.#{name} cannot be reset after resource is opened", self, attribute_type)
             end
           end
 
           desired_values.delete(name)
         else
           # We only ever reset non-identity values
-          if ![:open].include?(resource_state)
+          if ![:declared].include?(resource_state)
             raise ResourceStateError.new("#{self.class}", self)
           end
-          desired_values.keep_if { |name,value| attribute_types[name].identity? }
+          desired_values.keep_if { |name,value| self.class.attribute_types[name].identity? }
         end
       end
 
@@ -218,33 +202,39 @@ module Crazytown
       #   puts s.y # 4
       #
       def self.open(*args)
-        resource = new() do
-          #
-          # Process named arguments open(..., a: 1, b: 2, c: 3, d: 4)
-          #
-          if args[-1].is_a?(Hash)
-            named_args = args.pop
-            named_args.each do |name, value|
-              type = self.class.attribute_types[name]
-              raise ArgumentError, "Attribute #{name} was passed to #{self.class}.open, but does not exist on #{self.class}!" if !type
-              raise ArgumentError, "#{self.class}.open only takes identity attributes, and #{name} is not an identity attribute on #{self.class}!" if !type.identity?
-              self.public_send(name, value)
-            end
+        resource = new()
+        #
+        # Process named arguments open(..., a: 1, b: 2, c: 3, d: 4)
+        #
+        if args[-1].is_a?(Hash)
+          named_args = args.pop
+          named_args.each do |name, value|
+            type = attribute_types[name]
+            raise ArgumentError, "Attribute #{name} was passed to #{self}.open, but does not exist on #{self}!" if !type
+            raise ArgumentError, "#{self}.open only takes identity attributes, and #{name} is not an identity attribute on #{self}!" if !type.identity?
+            resource.public_send(name, value)
           end
+        end
 
-          # Process positional arguments - open(1, 2, 3, ...)
-          required_attributes = self.class.required_attributes
-          if args.size > required_attributes.size
-            raise ArgumentError, "Too many arguments to #{self.class}.open! (#{args.size} for #{required_attributes.size})!  #{self.class} has #{required_attributes.size}"
-          end
-          required_attributes.each_with_index do |name, index|
-            if args.size > index
-              # If the argument was passed positionally (open(a, b, c ...)) set it from that.
-              raise ArgumentError, "Attribute #{name} specified twice in #{self.class}.open!  Both as argument ##{index} and as a named argument." if named_args && named_args.has_key?(name)
-              self.public_send(name, args[index])
-            else
-              # If the argument wasn't passed positionally, check whether it was passed in the hash.  If not, error.
-              raise ArgumentError, "Required attribute #{name} not passed to #{self.class}.open!" if !named_args || !named_args.has_key?(name)
+        # Process positional arguments - open(1, 2, 3, ...)
+        required_identity_attributes = attribute_types.values.
+          select { |attr| attr.identity? && attr.required? }.
+          map { |attr| attr.attribute_name }
+
+        if args.size > required_identity_attributes.size
+          raise ArgumentError, "Too many arguments to #{self}.open! (#{args.size} for #{required_identity_attributes.size})!  #{self} has #{required_identity_attributes.size}"
+        end
+        required_identity_attributes.each_with_index do |name, index|
+          if args.size > index
+            # If the argument was passed positionally (open(a, b, c ...)) set it from that.
+            if named_args && named_args.has_key?(name)
+              raise ArgumentError, "Attribute #{name} specified twice in #{self}.open!  Both as argument ##{index} and as a named argument."
+            end
+            resource.public_send(name, args[index])
+          else
+            # If the argument wasn't passed positionally, check whether it was passed in the hash.  If not, error.
+            if !named_args || !named_args.has_key?(name)
+              raise ArgumentError, "Required attribute #{name} not passed to #{self}.open!"
             end
           end
         end
@@ -363,7 +353,7 @@ module Crazytown
       #   p = Person.open
       #   p.home_address = Address.open
       #
-      def self.attribute(name, type=nil, identity: nil, required: true, default: NOT_PASSED, load_value: NOT_PASSED, value_must: NOT_PASSED, &override_block)
+      def self.attribute(name, type=nil, identity: nil, required: NOT_PASSED, default: NOT_PASSED, load_value: NOT_PASSED, value_must: NOT_PASSED, &override_block)
         name = name.to_sym
 
         attribute_type = emit_attribute_type(name, type)
@@ -452,16 +442,6 @@ module Crazytown
       protected
 
       #
-      # Initialize takes a block so we can set the necessary identity values
-      # before initialize finishes (so that subclasses will have it all filled
-      # in after super() in initialize and be able to take actions).
-      #
-      def initialize(&block)
-        super()
-        instance_eval(&block) if block
-      end
-
-      #
       # The attribute type for each attribute.
       #
       # TODO make this an attribute so it's introspectible.
@@ -501,25 +481,6 @@ module Crazytown
             self
           end
         EOM
-      end
-
-      #
-      # Arguments to "open", for a struct, allow the identity arguments to be
-      # passed either as named values or as positional arguments:
-      # - open('a', 'b', optional: 'c')
-      # - open(required: 'a', required2: 'b', optional: 'c')
-      #
-      def self.required_attributes
-        attribute_types.values.select { |attr| attr.identity? && attr.required? }.
-                                  map { |attr| attr.attribute_name }
-      end
-      def self.identity_attributes
-        attribute_types.values.select { |attr| attr.identity? && !attr.required? }.
-                                  map { |attr| attr.attribute_name }
-      end
-      def self.optional_normal_attributes
-        attribute_types.values.select { |attr| !attr.identity? }.
-                                  map { |attr| attr.attribute_name }
       end
     end
   end

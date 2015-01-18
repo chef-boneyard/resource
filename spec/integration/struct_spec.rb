@@ -12,6 +12,56 @@ describe Crazytown::Chef::StructResource do
     end
   end
 
+  describe :reset do
+    context "When MyResource has both a set and not-set attribute" do
+      with_struct(:MyResource) do
+        attribute :identity_set, identity: true
+        attribute :normal_set, default: 20
+        attribute :normal_not_set, default: 30
+      end
+      let(:r) { r = MyResource.open(1); r.normal_set = 2; r }
+      it "desired_values is missing values" do
+        expect(r.to_h).to eq({ identity_set: 1, normal_set: 2 })
+        expect(r.normal_set).to eq 2
+        expect(r.normal_not_set).to eq 30
+      end
+      it "reset(:normal_set) succeeds" do
+        r.reset(:normal_set)
+        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.normal_set).to eq 20
+        expect(r.normal_not_set).to eq 30
+      end
+      it "reset(:normal_not_set) succeeds" do
+        r.reset(:normal_not_set)
+        expect(r.to_h).to eq({ identity_set: 1, normal_set: 2 })
+        expect(r.normal_set).to eq 2
+        expect(r.normal_not_set).to eq 30
+      end
+      it "reset(:normal_set) succeeds" do
+        r.reset(:normal_set)
+        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.normal_set).to eq 20
+        expect(r.normal_not_set).to eq 30
+      end
+      it "reset() resets normal but not identity attributes" do
+        r.reset
+        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.normal_set).to eq 20
+        expect(r.normal_not_set).to eq 30
+      end
+      it "reset() twice in a row succeeds (but second reset does nothing)" do
+        r.reset
+        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.normal_set).to eq 20
+        expect(r.normal_not_set).to eq 30
+        r.reset
+        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.normal_set).to eq 20
+        expect(r.normal_not_set).to eq 30
+      end
+    end
+  end
+
   describe :attribute do
     context "When MyResource is a ResourceStruct with two attributes" do
       with_struct(:MyResource) do
@@ -64,6 +114,29 @@ describe Crazytown::Chef::StructResource do
           expect(r = MyResource.open(1)).to be_kind_of(MyResource)
           expect(r.x).to eq 1
           expect(r.y).to be_nil
+        end
+        it "open(x: 1) creates a MyResource where x = 1" do
+          expect(r = MyResource.open(x: 1)).to be_kind_of(MyResource)
+          expect(r.x).to eq 1
+          expect(r.y).to be_nil
+        end
+        it "open(1, 2) fails with too many arguments" do
+          expect { MyResource.open(1, 2) }.to raise_error ArgumentError
+        end
+      end
+
+      context "When MyResource has attribute :x, identity: true, default: 10" do
+        with_struct(:MyResource) do
+          attribute :x, identity: true, default: 10
+          attribute :y
+        end
+        it "open() succeeds with x = 10" do
+          expect(r = MyResource.open()).to be_kind_of(MyResource)
+          expect(r.x).to eq 10
+          expect(r.y).to be_nil
+        end
+        it "open(1) fails due to non-required argument" do
+          expect { MyResource.open(1) }.to raise_error ArgumentError
         end
         it "open(x: 1) creates a MyResource where x = 1" do
           expect(r = MyResource.open(x: 1)).to be_kind_of(MyResource)

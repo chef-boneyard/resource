@@ -7,13 +7,19 @@ module Crazytown
     attr_reader :value
   end
 
-  class ReadonlyAttributeError < StandardError
-    def initialize(message, resource, attribute_type)
+  class ResourceStateError < StandardError
+    def initialize(message, resource)
       super(message)
       @resource = resource
-      @attribute_type = attribute_type
     end
     attr_reader :resource
+  end
+
+  class ReadonlyAttributeError < ResourceStateError
+    def initialize(message, resource, attribute_type)
+      super(message, resource)
+      @attribute_type = attribute_type
+    end
     attr_reader :attribute_type
   end
 end

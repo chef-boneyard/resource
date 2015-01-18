@@ -102,6 +102,11 @@ module Crazytown
     # 2. resource = MyResource.open(<enough information to retrieve resource)
     #
     module Resource
+      def initialize(*args, &block)
+        super
+        resource_declared
+      end
+
       #
       # Updates the real resource with desired changes
       #
@@ -245,7 +250,7 @@ module Crazytown
       # The state of this resource.  It moves through four phases:
       # - :new - has been created, but not fully opened (still initializing).
       #   Only identity values are writeable in this state.
-      # - :open - has been opened (has enough data to retrieve the actual value)
+      # - :declared - has been opened (has enough data to retrieve the actual value)
       #   Identity attributes are readonly in this state.
       # - :defined - has been fully defined (attributes are now readonly)
       #   All attributes are readonly in this state.
@@ -253,7 +258,16 @@ module Crazytown
       #   All attributes are readonly in this state, and update cannot be called.
       #
       def resource_state
-        @resource_state || :new
+        @resource_state
+      end
+
+      #
+      # Notify the resource that it has been created (and is now open to write
+      # identity attributes).  This happens automatically during initialize and
+      # before any identity attributes are set.
+      #
+      def resource_declared
+        @resource_state = :new
       end
 
       #
@@ -264,8 +278,8 @@ module Crazytown
       def resource_opened
         case resource_state
         when :new
-          @resource_state = :open
-        when :open
+          @resource_state = :declared
+        when :declared
         else
           raise "Cannot move a resource from #{@resource_state} to open"
         end
@@ -281,7 +295,7 @@ module Crazytown
         when :new
           resource_opened
           @resource_state = :defined
-        when :open
+        when :declared
           @resource_state = :defined
         when :defined
         else
@@ -301,7 +315,7 @@ module Crazytown
           resource_opened
           resource_defined
           @resource_state = :updated
-        when :open
+        when :declared
           resource_defined
           @resource_state = :updated
         when :defined

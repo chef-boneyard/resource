@@ -10,7 +10,7 @@ module Crazytown
       end
 
       def resource_event(resource, event, *args)
-        resources << child if event == :opened
+        resources << child if event == :declared
       end
 
       def update

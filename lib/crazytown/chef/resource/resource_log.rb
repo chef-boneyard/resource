@@ -27,7 +27,7 @@ module Crazytown
         end
 
         def opened
-          resource_event(:opened)
+          resource_event(:declared)
         end
         def defined
           resource_event(:defined)
