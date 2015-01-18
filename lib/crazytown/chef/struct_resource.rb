@@ -46,6 +46,10 @@ module Crazytown
       # *Only* copy over things that the user modified (desired_changes).
       #
       def reopen
+        if resource_state == :new
+          raise ResourceStateError.new("Resource cannot be reopened until resource is open", self)
+        end
+
         original = self
         resource = self.class.new() do
           original.desired_values.each do |name, value|
@@ -63,6 +67,10 @@ module Crazytown
       # Will not include values that are just set to their defaults.
       #
       def identity
+        if resource_state == :new
+          raise ResourceStateError.new("Identity cannot be retrieved until resource is open", self)
+        end
+
         result = {}
         self.class.attribute_types.each do |name, type|
           result[name] = public_send(name) if type.identity?
@@ -78,9 +86,23 @@ module Crazytown
       #
       def reset(name=nil)
         if name
+          if attribute_types[name].identity?
+            if resource_state != :open
+              raise ReadonlyAttributeError.new("#{self.class}.#{name} cannot be reset after resource is defined", self, attribute_types[name])
+            end
+          else
+            if resource_state != :new
+              raise ReadonlyAttributeError.new("#{self.class}.#{name} cannot be reset after resource is opened", self, attribute_types[name])
+            end
+          end
+
           desired_values.delete(name)
         else
-          desired_values.clear
+          # We only ever reset non-identity values
+          if ![:open].include?(resource_state)
+            raise ResourceStateError.new("#{self.class}", self)
+          end
+          desired_values.keep_if { |name,value| attribute_types[name].identity? }
         end
       end
 

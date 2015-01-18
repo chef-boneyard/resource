@@ -148,6 +148,8 @@ module Crazytown
           @actual_value = value
         elsif defined?(@actual_value)
           @actual_value
+        elsif resource_state == :new
+          raise "Cannot access actual_value while resource is still in new state"
         else
           # This is *just* like ResourceType.get(), except it does a reopen instead
           # of an open at the beginning.
@@ -301,8 +303,9 @@ module Crazytown
           @resource_state = :updated
         when :open
           resource_defined
-          @resource_state = :defined
+          @resource_state = :updated
         when :defined
+          @resource_state = :updated
         else
           raise "Cannot move a resource from #{@resource_state} to defined"
         end
