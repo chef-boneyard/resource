@@ -47,11 +47,13 @@ module Crazytown
       #
       def reopen
         original = self
-        self.class.new() do
+        resource = self.class.new() do
           original.desired_values.each do |name, value|
             public_send(name, value) if self.class.attribute_types[name].identity?
           end
         end
+        resource.resource_opened
+        resource
       end
 
       #
@@ -122,7 +124,7 @@ module Crazytown
       # - MyStruct.coerce(struct_value) -> copy attributes off the struct
       #
       def self.coerce(*args)
-        result = if args[-1].is_a?(Hash)
+        if args[-1].is_a?(Hash)
           #
           # Constructor form: required identity parameters first, and then non-required attributes in a hash.
           # - MyStruct.coerce(identity_attr, identity_attr2, ..., { attr1: value, attr2: value, ... }) -> open(identity1, identity2, ... { identity attributes }), and set non-identity attributes afterwards
@@ -149,6 +151,8 @@ module Crazytown
             resource.public_send(name, value)
           end
 
+          resource.resource_defined
+
           resource
 
         elsif args.size == 1 && is_valid?(args[0])
@@ -166,8 +170,6 @@ module Crazytown
           # - MyStruct.coerce() -> open()
           open(*args)
         end
-
-        result
       end
 
       #
@@ -194,7 +196,7 @@ module Crazytown
       #   puts s.y # 4
       #
       def self.open(*args)
-        result = new() do
+        resource = new() do
           #
           # Process named arguments open(..., a: 1, b: 2, c: 3, d: 4)
           #
@@ -225,8 +227,8 @@ module Crazytown
           end
         end
 
-        validate(result)
-        result
+        resource.resource_opened
+        resource
       end
 
       #
@@ -458,25 +460,25 @@ module Crazytown
       #
       def self.emit_attribute_type(name, type)
         class_name = CamelCase.from_snake_case(name)
-        # If the passed-in type is instantiable, make the attribute instantiable
-        if type.is_a?(Class) && type <= Resource
-          attribute_type = class_eval <<-EOM, __FILE__, __LINE__+1
-            class #{class_name} < type
-              include ::Crazytown::Chef::Resource::StructAttribute
-              extend ::Crazytown::Chef::Resource::StructAttributeType
-              self
-            end
-          EOM
-        else
-          # Otherwise, make a module and just include the class-level methods
-          attribute_type = class_eval <<-EOM, __FILE__, __LINE__+1
-            module #{class_name}
-              extend ::Crazytown::Chef::Resource::StructAttributeType
-              self
-            end
-          EOM
-        end
-        attribute_type
+        # # If the passed-in type is instantiable, make the attribute instantiable
+        # if type.is_a?(Class) && type <= Resource
+        #   attribute_type = class_eval <<-EOM, __FILE__, __LINE__+1
+        #     class #{class_name} < type
+        #       include ::Crazytown::Chef::Resource::StructAttribute
+        #       extend ::Crazytown::Chef::Resource::StructAttributeType
+        #       self
+        #     end
+        #   EOM
+        # else
+
+        # If it is a primitive or reference type, make the StructAttributeType
+        # be a plain ol' Type (it's not an embedded resource).
+        class_eval <<-EOM, __FILE__, __LINE__+1
+          module #{class_name}
+            extend ::Crazytown::Chef::Resource::StructAttributeType
+            self
+          end
+        EOM
       end
 
       #

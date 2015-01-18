@@ -163,6 +163,7 @@ module Crazytown
             # Foolproofing: if the user does not set exists, assume a successful
             # `load` means it *does* exist.  Principle of Least Surprise.
             resource.exists = true if !resource.exists_is_set?
+            resource.resource_defined
             @actual_value = resource.exists? ? resource : nil
           rescue
             @actual_value = nil
@@ -235,6 +236,75 @@ module Crazytown
           ResourceLog.new(self)
         else
           ResourceLog.new(self).info(str)
+        end
+      end
+
+      #
+      # The state of this resource.  It moves through four phases:
+      # - :new - has been created, but not fully opened (still initializing).
+      #   Only identity values are writeable in this state.
+      # - :open - has been opened (has enough data to retrieve the actual value)
+      #   Identity attributes are readonly in this state.
+      # - :defined - has been fully defined (attributes are now readonly)
+      #   All attributes are readonly in this state.
+      # - :updated - has updated
+      #   All attributes are readonly in this state, and update cannot be called.
+      #
+      def resource_state
+        @resource_state || :new
+      end
+
+      #
+      # Notify the resource that it is fully opened and ready to read and write.
+      #
+      # Identity attributes are readonly in this state.
+      #
+      def resource_opened
+        case resource_state
+        when :new
+          @resource_state = :open
+        when :open
+        else
+          raise "Cannot move a resource from #{@resource_state} to open"
+        end
+      end
+
+      #
+      # Shut down the definition of the resource.
+      #
+      # The entire resource is readonly in this state.
+      #
+      def resource_defined
+        case resource_state
+        when :new
+          resource_opened
+          @resource_state = :defined
+        when :open
+          @resource_state = :defined
+        when :defined
+        else
+          raise "Cannot move a resource from #{@resource_state} to defined"
+        end
+      end
+
+      #
+      # Mark the resource as update complete.
+      #
+      # The entire resource is readonly in this state, and update cannot be
+      # called.
+      #
+      def resource_updated
+        case resource_state
+        when :new
+          resource_opened
+          resource_defined
+          @resource_state = :updated
+        when :open
+          resource_defined
+          @resource_state = :defined
+        when :defined
+        else
+          raise "Cannot move a resource from #{@resource_state} to defined"
         end
       end
 

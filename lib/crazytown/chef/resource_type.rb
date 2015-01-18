@@ -26,12 +26,10 @@ module Crazytown
         # - Can be modified for update
         # - `self.is_valid?(resource)` is true
         #
-        # @raise ValidationError If the constructed value does not match.
-        #
         def open
-          result = new
-          validate(result)
-          result
+          resource = new
+          resource.resource_opened
+          resource
         end
 
         #
@@ -52,14 +50,13 @@ module Crazytown
           # open(*args) instead of reopen.
           #
           resource = open(*args)
-          # The resource we use for our actual_value, *shall not have its own*
-          # actual_value.  That way lies madness.  We do not truck with madness.
-          resource.actual_value = nil
           resource.load
           # Foolproofing: if the user does not set exists, assume a successful
           # `load` means it *does* exist.  Principle of Least Surprise.
           resource.exists = true if !result.exists_is_set?
-          resource.exists? ? result : nil
+          resource.resource_defined
+
+          resource.exists? ? resource : nil
         end
 
         #
@@ -77,6 +74,7 @@ module Crazytown
         def update(*open_args, &update_block)
           resource = open(*args)
           resource.instance_eval(&update_block)
+          resource.resource_defined
           resource.update
         end
       end

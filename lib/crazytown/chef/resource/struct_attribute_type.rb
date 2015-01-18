@@ -60,6 +60,19 @@ module Crazytown
         # Set the attribute value.
         #
         def set_attribute(struct, *args)
+          if identity?
+            if struct.resource_state != :new
+              raise ReadonlyAttributeError.new("Cannot modify identity attribute #{attribute_name} of #{struct.class} when struct is in #{struct.resource_state} state: identity attributes cannot be modified after the resource is opened.", struct, self)
+            end
+          else
+            if struct.resource_state != :open
+              if struct.resource_state == :new
+                raise ReadonlyAttributeError.new("Cannot modify normal attribute #{attribute_name} of #{struct.class} when struct is in #{struct.resource_state} state: normal attributes cannot be modified before the resource is opened.", struct, self)
+              else
+                raise ReadonlyAttributeError.new("Cannot modify normal attribute #{attribute_name} of #{struct.class} when struct is in #{struct.resource_state} state: normal attributes cannot be modified after the resource is fully defined.", struct, self)
+              end
+            end
+          end
           struct.desired_values[attribute_name] = coerce(*args)
         end
 
