@@ -1,11 +1,11 @@
 require 'support/spec_support'
-require 'crazytown/struct_resource'
+require 'crazytown/resource/struct_resource_base'
 
-describe Crazytown::StructResource do
+describe Crazytown::Resource::StructResource do
   def self.with_struct(name, &block)
     before :each do
       Object.send(:remove_const, name) if Object.const_defined?(name, false)
-      eval "class ::#{name} < Crazytown::StructResource; end"
+      eval "class ::#{name} < Crazytown::Resource::StructResourceBase; end"
       Object.const_get(name).class_eval(&block)
     end
     after :each do
@@ -14,7 +14,7 @@ describe Crazytown::StructResource do
 
   describe :inheritance do
     context "When A < B, and A has x and B has y" do
-      class A < Crazytown::StructResource
+      class A < Crazytown::Resource::StructResourceBase
         attribute :x, identity: true do
           default { y*2 }
         end
