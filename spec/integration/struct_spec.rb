@@ -20,42 +20,42 @@ describe Crazytown::Chef::StructResource do
         attribute :normal_not_set, default: 30
       end
       let(:r) { r = MyResource.open(1); r.normal_set = 2; r }
-      it "desired_values is missing values" do
-        expect(r.to_h).to eq({ identity_set: 1, normal_set: 2 })
+      it "explicit_values is missing values" do
+        expect(r.to_h(only_explicit: true)).to eq({ identity_set: 1, normal_set: 2 })
         expect(r.normal_set).to eq 2
         expect(r.normal_not_set).to eq 30
       end
       it "reset(:normal_set) succeeds" do
         r.reset(:normal_set)
-        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.to_h(only_explicit: true)).to eq({ identity_set: 1 })
         expect(r.normal_set).to eq 20
         expect(r.normal_not_set).to eq 30
       end
       it "reset(:normal_not_set) succeeds" do
         r.reset(:normal_not_set)
-        expect(r.to_h).to eq({ identity_set: 1, normal_set: 2 })
+        expect(r.to_h(only_explicit: true)).to eq({ identity_set: 1, normal_set: 2 })
         expect(r.normal_set).to eq 2
         expect(r.normal_not_set).to eq 30
       end
       it "reset(:normal_set) succeeds" do
         r.reset(:normal_set)
-        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.to_h(only_explicit: true)).to eq({ identity_set: 1 })
         expect(r.normal_set).to eq 20
         expect(r.normal_not_set).to eq 30
       end
       it "reset() resets normal but not identity attributes" do
         r.reset
-        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.to_h(only_explicit: true)).to eq({ identity_set: 1 })
         expect(r.normal_set).to eq 20
         expect(r.normal_not_set).to eq 30
       end
       it "reset() twice in a row succeeds (but second reset does nothing)" do
         r.reset
-        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.to_h(only_explicit: true)).to eq({ identity_set: 1 })
         expect(r.normal_set).to eq 20
         expect(r.normal_not_set).to eq 30
         r.reset
-        expect(r.to_h).to eq({ identity_set: 1 })
+        expect(r.to_h(only_explicit: true)).to eq({ identity_set: 1 })
         expect(r.normal_set).to eq 20
         expect(r.normal_not_set).to eq 30
       end
@@ -238,7 +238,7 @@ describe Crazytown::Chef::StructResource do
             end
           end
           it "MyResource.coerce({ x: 1 }) yields { x: '1 is awesome' }" do
-            expect(MyResource.coerce({ x: 1 }).to_h).to eq({ x: "1 is awesome" })
+            expect(MyResource.coerce({ x: 1 }).to_h(only_explicit: true)).to eq({ x: "1 is awesome" })
           end
         end
 
@@ -251,7 +251,7 @@ describe Crazytown::Chef::StructResource do
             end
           end
           it "MyResource.coerce({ x: 1 }) yields { x: '1 is awesome' }" do
-            expect(MyResource.coerce({ x: 1 }).to_h).to eq({ x: "1 is awesome" })
+            expect(MyResource.coerce({ x: 1 }).to_h(only_explicit: true)).to eq({ x: "1 is awesome" })
           end
         end
 
@@ -259,12 +259,19 @@ describe Crazytown::Chef::StructResource do
           with_struct(:MyResource) do
             attribute :x, MyResource do
               def self.coerce(value)
-                { x: "#{value} is awesome" }
+                if value.is_a?(Fixnum)
+                  x = value
+                  value = MyResource.open
+                  value.x "#{x} is awesome"
+                end
+                super(value)
               end
             end
           end
-          it "MyResource.coerce({ x: 1 }) yields { x: '1 is awesome' }" do
-            expect(MyResource.coerce({ x: 1 }).x.to_h).to eq({ x: "1 is awesome" })
+          it "MyResource.coerce({ x: 1 }) yields MyResource{ x: '1 is awesome' }" do
+            r = MyResource.coerce({ x: 1 })
+            expect(r.x).to be_kind_of(MyResource)
+            expect(r.x.to_h(only_explicit: true)).to eq({ x: "1 is awesome" })
           end
         end
 
@@ -282,18 +289,18 @@ describe Crazytown::Chef::StructResource do
             attribute :run_count, Fixnum, default: 0
           end
           it "MyResource.coerce({x: 1}) succeeds" do
-            expect(MyResource.coerce({ x: 1 }).to_h).to eq({ x: 1 })
+            expect(MyResource.coerce({ x: 1 }).to_h(only_explicit: true)).to eq({ x: 1 })
             expect(MyResource::X.run_count).to eq 1
           end
           it "MyResource.coerce({x: nil}) succeeds" do
-            expect(MyResource.coerce({ x: nil }).to_h).to eq({ x: nil })
+            expect(MyResource.coerce({ x: nil }).to_h(only_explicit: true)).to eq({ x: nil })
             expect(MyResource::X.run_count).to eq 0
           end
           it "MyResource.coerce({x: 11}) fails" do
             expect { MyResource.coerce({ x: 11 }).to_h }.to raise_error(Crazytown::ValidationError)
           end
           it "MyResource.coerce({}) never runs it" do
-            expect(MyResource.coerce({}).to_h).to eq({})
+            expect(MyResource.coerce({}).to_h(only_explicit: true)).to eq({})
             expect(MyResource::X.run_count).to eq 0
           end
         end
@@ -372,18 +379,18 @@ describe Crazytown::Chef::StructResource do
 
       context "multi-arg form" do
         it "coerce(1, 2) yields a=1,b=2" do
-          expect(MyResource.coerce(1, 2).to_h).to eq({ a: 1, b: 2 })
+          expect(MyResource.coerce(1, 2).to_h(only_explicit: true)).to eq({ a: 1, b: 2 })
         end
         it "coerce(1, 2, c: 3, d: 4) yields a=1, b=2, c=3, d=4" do
-          expect(MyResource.coerce(1, 2, c: 3, d: 4).to_h).to eq({ a: 1, b: 2, c: 3, d: 4 })
+          expect(MyResource.coerce(1, 2, c: 3, d: 4).to_h(only_explicit: true)).to eq({ a: 1, b: 2, c: 3, d: 4 })
         end
       end
       context "hash form" do
         it "coerce(a: 1, b: 2) yields a=1, b=2" do
-          expect(MyResource.coerce(a: 1, b: 2).to_h).to eq({ a: 1, b: 2 })
+          expect(MyResource.coerce(a: 1, b: 2).to_h(only_explicit: true)).to eq({ a: 1, b: 2 })
         end
         it "coerce(a: 1, b: 2, c: 3, d: 4) yields a=1, b=2, c=3, d=4" do
-          expect(MyResource.coerce(a: 1, b: 2, c: 3, d: 4).to_h).to eq({ a: 1, b: 2, c: 3, d: 4 })
+          expect(MyResource.coerce(a: 1, b: 2, c: 3, d: 4).to_h(only_explicit: true)).to eq({ a: 1, b: 2, c: 3, d: 4 })
         end
         it "coerce(c: 3, d: 4) fails" do
           expect { MyResource.coerce(c: 3, d: 4) }.to raise_error(ArgumentError)
@@ -475,15 +482,15 @@ describe Crazytown::Chef::StructResource do
         end
 
         it "coerce(s1: 'hi', n1: 1, s2: 'lo', n2: 2) succeeds" do
-          expect(MyResource.coerce(s1: 'hi', n1: 1, s2: 'lo', n2: 2).to_h).to eq(s1: 'hi', n1: 1, s2: 'lo', n2: 2)
+          expect(MyResource.coerce(s1: 'hi', n1: 1, s2: 'lo', n2: 2).to_h(only_explicit: true)).to eq(s1: 'hi', n1: 1, s2: 'lo', n2: 2)
         end
 
         it "coerce(s1: nil, n1: nil, s2: nil, n2: nil) succeeds" do
-          expect(MyResource.coerce(s1: nil, n1: nil, s2: nil, n2: nil).to_h).to eq(s1: nil, n1: nil, s2: nil, n2: nil)
+          expect(MyResource.coerce(s1: nil, n1: nil, s2: nil, n2: nil).to_h(only_explicit: true)).to eq(s1: nil, n1: nil, s2: nil, n2: nil)
         end
 
         it "coerce(s1: 'hi', n1: 1) succeeds" do
-          expect(MyResource.coerce(s1: 'hi', n1: 1).to_h).to eq(s1: 'hi', n1: 1)
+          expect(MyResource.coerce(s1: 'hi', n1: 1).to_h(only_explicit: true)).to eq(s1: 'hi', n1: 1)
         end
 
         it "coerce(s1: 'hi', n1: 'lo') fails" do

@@ -20,8 +20,8 @@ module Crazytown
 
         class Styles < StructResource
           attribute :default
-          attribute :declared         { default }
-          attribute :defined        { default }
+          attribute :identity_defined         { default }
+          attribute :fully_defined        { default }
           attribute :updating     { default }
           attribute :updated        { default }
           attribute :not_updated    { default }

@@ -37,9 +37,9 @@ module Crazytown
 
           def resource_event(event, *args)
             case event
-            when :declared
+            when :identity_defined
               print_line("Opened", output.style.opened)
-            when :defined
+            when :fully_defined
               print_line("Defined", output.style.defined)
             when :updating
               print_line("updating ...", output.style.updating)

@@ -33,6 +33,10 @@ module Crazytown
           instance.nil? || instance.is_a?(attribute_type)
         end
 
+        def coerce(*args)
+          attribute_type.is_a?(ResourceType) ? attribute_type.coerce(*args) : super
+        end
+
         #
         # Emit attribute methods into the struct class (attribute_parent_type)
         #
@@ -61,19 +65,15 @@ module Crazytown
         #
         def set_attribute(struct, *args)
           if identity?
-            if struct.resource_state != :new
-              raise ReadonlyAttributeError.new("Cannot modify identity attribute #{attribute_name} of #{struct.class} when struct is in #{struct.resource_state} state: identity attributes cannot be modified after the resource is opened.", struct, self)
+            if struct.resource_state != :created
+              raise AttributeDefinedError.new("Cannot modify identity attribute #{attribute_name} of #{struct.class}: identity attributes cannot be modified after the resource's identity is defined.  (State: #{struct.resource_state})", struct, self)
             end
           else
-            if struct.resource_state != :declared
-              if struct.resource_state == :new
-                raise ReadonlyAttributeError.new("Cannot modify normal attribute #{attribute_name} of #{struct.class} when struct is in #{struct.resource_state} state: normal attributes cannot be modified before the resource is opened.", struct, self)
-              else
-                raise ReadonlyAttributeError.new("Cannot modify normal attribute #{attribute_name} of #{struct.class} when struct is in #{struct.resource_state} state: normal attributes cannot be modified after the resource is fully defined.", struct, self)
-              end
+            if struct.resource_state != :created && struct.resource_state != :identity_defined
+              raise AttributeDefinedError.new("Cannot modify attribute #{attribute_name} of #{struct.class}: identity attributes cannot be modified after the resource's identity is defined.  (State: #{struct.resource_state})", struct, self)
             end
           end
-          struct.desired_values[attribute_name] = coerce(*args)
+          struct.explicit_values[attribute_name] = coerce(*args)
         end
 
         #
@@ -84,38 +84,27 @@ module Crazytown
         # the value, it looks for a load_value method.  Finally, if that isn't
         # there, it runs default_value.
         #
-        # TODO can load_value and default_value be the same thing?
-        #
         def get_attribute(struct)
-          if struct.desired_values.has_key?(attribute_name)
-            return struct.desired_values[attribute_name]
+          struct.explicit_values.fetch(attribute_name) { base_attribute_value(struct) }
+        end
+
+        #
+        # Get the base attribute value from the struct (i.e. the value not
+        # counting the )
+        #
+        def base_attribute_value(struct)
+          # Try to grab a known (non-default) value from base_resource
+          base_struct = struct.base_resource
+          if base_struct && base_struct.load_attribute(attribute_name)
+            return base_struct.explicit_values[attribute_name]
           end
 
-          # Get the actual value first.  If we have a "load" value, call that.
-          # Otherwise, call struct.actual_value
-          actual_struct = struct.actual_value
-          if actual_struct
-            if actual_struct.desired_values.has_key?(attribute_name)
-              return actual_struct.desired_values[attribute_name]
-            elsif load_value
-              value = coerce(struct.instance_exec(self, &load_value))
-              if value
-                actual_struct.desired_values[attribute_name] = value
-                return value
-              end
-            end
+          # Get the default value otherwise
+          if default.is_a?(Proc)
+            struct.instance_exec(self, &default)
+          else
+            default
           end
-
-          # If that didn't work, pull the default.
-          if !value
-            if default.is_a?(Proc)
-              value = struct.instance_exec(self, &default)
-            else
-              value = default
-            end
-          end
-
-          coerce(value)
         end
 
         #
@@ -165,21 +154,17 @@ module Crazytown
         # Run in context of the parent struct, and is passed the Type as a
         # parameter.
         #
-        # NOTE: the way it's implemented, you can't have the default actually
-        # *be* a proc.  Well, I suppose you could have a proc that returns a
-        # proc ...
-        #
         def default(value=NOT_PASSED, &block)
           if block
             @default = block
           elsif value == NOT_PASSED
             @default
           else
-            @default = value
+            @default = coerce(value)
           end
         end
         def default=(value)
-          @default = value
+          @default = coerce(value)
         end
 
         #
@@ -191,11 +176,11 @@ module Crazytown
           elsif value == NOT_PASSED
             @load_value
           else
-            @load_value = value
+            @load_value = coerce(value)
           end
         end
         def load_value=(value)
-          @load_value = value
+          @load_value = coerce(value)
         end
       end
     end

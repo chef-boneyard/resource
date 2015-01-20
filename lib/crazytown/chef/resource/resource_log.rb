@@ -27,10 +27,10 @@ module Crazytown
         end
 
         def opened
-          resource_event(:declared)
+          resource_event(:identity_defined)
         end
         def defined
-          resource_event(:defined)
+          resource_event(:fully_defined)
         end
         def updating
           resource_event(:updating)

@@ -29,40 +29,46 @@ module Crazytown
     # p.home_address.city = 'Malarky' # p.address.updates[:city] = 'Malarky'
     # p.update
     # # first does p.home_address.update
-    # # -> sets p.home_address.actual_value.city -> a.city = 'Malarky'
-    # # sets p.actual_value.home_address = p.home_address.actual_value
+    # # -> sets p.home_address.base_resource.city -> a.city = 'Malarky'
+    # # sets p.base_resource.home_address = p.home_address.base_resource
     #
     class StructResource
       include Resource
       extend ResourceType
 
       #
-      # Resource read/modify interface: reopen, identity, desired_values
+      # Resource read/modify interface: reopen, identity, explicit_values
       #
 
       #
-      # Reopen the struct based on its identity args.
+      # Get a new copy of the Resource with only identity values set.
       #
-      # *Only* copy over things that the user modified (desired_changes).
+      # Note: the Resource remains in :created state, not :identity_defined as
+      # one would get from `open`.  Call resource_identity_defined if you want
+      # to be able to retrieve actual values.
       #
-      def reopen
-        if resource_state == :new
-          raise ResourceStateError.new("Resource cannot be reopened until resource is open", self)
+      # This method is used by ResourceType.get() and Resource.reload.
+      #
+      def reopen_resource
+        # Create a new Resource of our same type, with just identity values.
+        resource = self.class.new
+        explicit_values.each do |name,value|
+          resource.explicit_values[name] = value if self.class.attribute_types[name].identity?
         end
-
-        resource = self.class.new()
-        desired_values.each do |name, value|
-          resource.public_send(name, value) if resource.class.attribute_types[name].identity?
-        end
-        resource.resource_opened
         resource
       end
 
       #
       # Reset changes to this struct (or to an attribute).
       #
+      # Reset without parameters never resets identity attributes--only normal
+      # attributes.
+      #
       # @param name Reset the attribute named `name`.  If not passed, resets
       #    all attributes.
+      # @raise AttributeDefinedError if the named attribute being referenced is
+      #   defined (i.e. we are in identity_defined or fully_defined state).
+      # @raise ResourceStateError if we are in fully_defined or updated state.
       #
       def reset(name=nil)
         if name
@@ -71,30 +77,64 @@ module Crazytown
             raise ArgumentError, "#{self.class} does not have attribute #{name}, cannot reset!"
           end
           if attribute_type.identity?
-            if resource_state != :new
-              raise ReadonlyAttributeError.new("#{self.class}.#{name} cannot be reset after resource is defined", self, attribute_type)
+            if resource_state != :created
+              raise AttributeDefinedError.new("Identity attribute #{self.class}.#{name} cannot be reset after open() or get() has been called (after the identity has been fully defined).  Current sate: #{resource_state}", self, attribute_type)
             end
           else
-            if resource_state != :declared
-              raise ReadonlyAttributeError.new("#{self.class}.#{name} cannot be reset after resource is opened", self, attribute_type)
+            if ![:created, :identity_defined].include?(resource_state)
+              raise AttributeDefinedError.new("Attribute #{self.class}.#{name} cannot be reset after the resource is fully defined.", self, attribute_type)
             end
           end
 
-          desired_values.delete(name)
+          explicit_values.delete(name)
         else
           # We only ever reset non-identity values
-          if ![:declared].include?(resource_state)
-            raise ResourceStateError.new("#{self.class}", self)
+          if ![:created, :identity_defined].include?(resource_state)
+            raise ResourceStateError.new("#{self.class} cannot be reset after it is fully defined", self)
           end
-          desired_values.keep_if { |name,value| self.class.attribute_types[name].identity? }
+          explicit_values.keep_if { |name,value| self.class.attribute_types[name].identity? }
         end
       end
 
       #
       # A hash of the changes the user has made to keys
       #
-      def desired_values
-        @desired_values ||= {}
+      def explicit_values
+        @explicit_values ||= {}
+      end
+
+      #
+      # Ensure we have loaded in the value of the given attribute.
+      #
+      # @param name the name of the attribute
+      # @return true if the attribute exists, false if not
+      # @raise Any error raised by load_value or load will pass through.
+      #
+      def load_attribute(name)
+        # First, check quickly if we already have it.
+        return true if explicit_values.has_key?(name)
+
+        # resource_exists? will trigger load.  If it doesn't exist, go no further.
+        if !resource_exists?
+          return false
+        end
+
+        # Check for the value now that load has definitely happened.
+        if explicit_values.has_key?(name)
+          return true
+        end
+
+        # `load` didn't load the attribute.  Use load_value if it has it.
+        load_value = self.class.attribute_types[name].load_value
+        return false if !load_value
+
+        begin
+          explicit_values[name] = instance_eval(&load_value)
+        rescue
+          # short circuit this from happening again
+          explicit_values[name] = nil
+          raise
+        end
       end
 
       #
@@ -141,23 +181,23 @@ module Crazytown
 
           # Split the identity attributes from normal so we can call open() with
           # just identity attributes
-          attribute_values = args[-1]
+          explicit_values = args[-1]
           identity_values = {}
-          attribute_values.each_key do |name|
+          explicit_values.each_key do |name|
             type = attribute_types[name]
             raise ValidationError, "#{self.class}.coerce was passed attribute #{name}, but #{name} is not an attribute on #{self.class}." if !type
-            identity_values[name] = attribute_values.delete(name) if type.identity?
+            identity_values[name] = explicit_values.delete(name) if type.identity?
           end
 
           # open the resource
           resource = open(*args[0..-2], identity_values)
 
           # Set the non-identity attributes before returning
-          attribute_values.each do |name, value|
+          explicit_values.each do |name, value|
             resource.public_send(name, value)
           end
 
-          resource.resource_defined
+          resource.resource_fully_defined
 
           resource
 
@@ -201,8 +241,9 @@ module Crazytown
       #   puts s.x # 3
       #   puts s.y # 4
       #
-      def self.open(*args)
+      def self.open(*args, &define_identity_block)
         resource = new()
+
         #
         # Process named arguments open(..., a: 1, b: 2, c: 3, d: 4)
         #
@@ -239,7 +280,9 @@ module Crazytown
           end
         end
 
-        resource.resource_opened
+        resource.instance_eval(&define_identity_block) if define_identity_block
+
+        resource.resource_identity_defined
         resource
       end
 
@@ -383,16 +426,36 @@ module Crazytown
       #
 
       #
-      # Returns this struct as a hash, including modified attributes and actual_value.
+      # Returns this struct as a hash, including modified attributes and base_resource.
+      #
+      # @param only_changed Returns only values which have actually changed from
+      #   their base or default value.
+      # @param only_explicit Returns only values which have been explicitly set
+      #   by the user.
       #
       # TODO when we have a HashResource, return that instead.  Need deep merge
       # and need to avoid wastefully pulling on values we don't need to pull on
       #
-      def to_h
-        if actual_value
-          actual_value.to_h.merge(desired_values)
+      def to_h(only_changed: false, only_explicit: false)
+        if only_explicit
+          explicit_values.dup
+
+        elsif only_changed
+          result = {}
+          explicit_values.each do |name, value|
+            base_attribute_value = self.class.attribute_types[name].base_attribute_value(self)
+            if value != base_attribute_value
+              result[name] = value
+            end
+          end
+          result
+
         else
-          desired_values
+          result = {}
+          self.class.attribute_types.each_key do |name|
+            result[name] = public_send(name)
+          end
+          result
         end
       end
 
@@ -404,18 +467,18 @@ module Crazytown
         # TODO this might be wrong--what about attribute type subclasses?
         return false if !other.is_a?(self.class)
 
-        # Try to rule out differences via desired_values first (this should
+        # Try to rule out differences via explicit_values first (this should
         # handle any identity keys and prevent us from accidentally pulling on
-        # actual_value).
-        (desired_values.keys & other.desired_values.keys).each do |name|
-          return false if desired_values[name] != other.desired_values[name]
+        # base_resource).
+        (explicit_values.keys & other.explicit_values.keys).each do |name|
+          return false if explicit_values[name] != other.explicit_values[name]
         end
 
         # If one struct has more desired (set) values than the other,
-        (desired_values.keys - other.desired_values.keys).each do |name|
+        (explicit_values.keys - other.explicit_values.keys).each do |name|
           return false if public_send(name) != other.public_send(name)
         end
-        (other.desired_values.keys - desired_values.keys).each do |attr|
+        (other.explicit_values.keys - explicit_values.keys).each do |attr|
           return false if public_send(name) != other.public_send(name)
         end
       end
@@ -462,20 +525,7 @@ module Crazytown
       #
       def self.emit_attribute_type(name, type)
         class_name = CamelCase.from_snake_case(name)
-        # # If the passed-in type is instantiable, make the attribute instantiable
-        # if type.is_a?(Class) && type <= Resource
-        #   attribute_type = class_eval <<-EOM, __FILE__, __LINE__+1
-        #     class #{class_name} < type
-        #       include ::Crazytown::Chef::Resource::StructAttribute
-        #       extend ::Crazytown::Chef::Resource::StructAttributeType
-        #       self
-        #     end
-        #   EOM
-        # else
-
-        # If it is a primitive or reference type, make the StructAttributeType
-        # be a plain ol' Type (it's not an embedded resource).
-        class_eval <<-EOM, __FILE__, __LINE__+1
+        attribute_module = class_eval <<-EOM, __FILE__, __LINE__+1
           module #{class_name}
             extend ::Crazytown::Chef::Resource::StructAttributeType
             self

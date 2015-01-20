@@ -14,19 +14,19 @@ module Crazytown
         attr_reader :parent_struct
 
         #
-        # The actual value defaults to parent.actual_value.attr_name.  If
-        # parent.actual_value is `nil`, actual_value defaults to `nil`.
+        # The actual value defaults to parent.base_resource.attr_name.  If
+        # parent.base_resource is `nil`, base_resource defaults to `nil`.
         #
-        def actual_value
-          actual_struct = parent_struct.actual_value
+        def base_resource
+          actual_struct = parent_struct.base_resource
           actual_struct.public_send(self.class.attribute_name) if actual_struct
         end
 
         #
         # This attribute exists if its parent does.
         #
-        def exists?
-          parent_struct.exists?
+        def resource_exists?
+          parent_struct.resource_exists?
         end
 
         protected

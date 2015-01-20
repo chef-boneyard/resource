@@ -95,16 +95,32 @@ module Crazytown
     # Chef compatibility along with a consistent interface, all wrapped up in a
     # simple class definition.
     #
-    # A Resource generally goes through these phases:
-    # 1. resource = MyResource.open(<enough information to retrieve resource>)
-    #    This calls MyResource.new() with no arguments, and sets identity values
-    #    on the resource.
-    # 2. resource = MyResource.open(<enough information to retrieve resource)
+    # A Resource generally goes through these phases (represented by resource_state):
+    # 1. :created - the Resource object has been created but its identity values are
+    #    not yet filled in.  Because the identity is not yet complete,
+    #    `base_resource` cannot be retrieved: defaults and actual loaded values
+    #    are unavailable.
+    # 2. :identity_defined - The identity of this Resource--the information needed to be
+    #    able to retrieve its actual value--is set.  Identity values are now set
+    #    in stone and can no longer be changed.  `base_resource` is now available,
+    #    and the actual value (get) and default values can now be accessed.
+    #    Note: even though identity is now readonly on the open Resource object,
+    #    the base_resource can set its *own* identity values during `load`, which
+    #    will become the default for those attributes.
+    #
+    #    Because the desired value of the Resource is not yet fully known (it
+    #    can still be set), `update` cannot be called in this state.
+    # 3. :fully_defined - This Resource's desired values are now complete.  The
+    #    Resource is now readonly.  `update` is now available.
+    # 4. :updated - `update` is complete.
+    #
+    # TODO thread safety on calling load and update, and on changing and
+    # checking resource_state
     #
     module Resource
       def initialize(*args, &block)
         super
-        resource_declared
+        resource_created
       end
 
       #
@@ -115,7 +131,7 @@ module Crazytown
       end
 
       #
-      # Load this resource with actual values.  Must set exists = false if the
+      # Load this resource with actual values.  Must set resource_exists = false if the
       # resource does not exist.
       #
       # @raise Various errors if the resource could not be loaded and it is not
@@ -129,98 +145,98 @@ module Crazytown
       #
 
       #
-      # Makes a new, blank copy of this Resource, pointed at the same thing
-      # (generally copies the identity values).
+      # The underlying value of this resource.  Any values the user has not
+      # filled in will be based on this.
       #
-      # This is used by actual_value.
+      # This method may return the actual value, or the default value (if the
+      # actual_value does not exist).
       #
-      def reopen
-        raise NotImplementedError, "#{self.class}.reopen"
+      # The first time this is called, it will attempt to load the actual value,
+      # caching it or recording the fact that it does not exist.
+      #
+      def base_resource(resource=NOT_PASSED)
+        if resource != NOT_PASSED
+          @base_resource = resource
+        else
+          # If this is the first time we've been called, calculate base_resource as
+          # either the current value, or the default value if there is no current
+          # value.
+          if !defined?(@base_resource)
+            if resource_state == :created
+              raise ResourceStateError.new("Resource cannot be loaded (and defaults cannot be read) until the identity is defined", self)
+            end
+
+            # Reopen the resource (it's in :identity_defined state) with
+            # `identity` values copied over.  We will not grab actual values
+            # unless requested.
+            new_base = reopen_resource
+
+            # Explicitly set base_resource to `nil` to avoid base_resource inception.
+            new_base.base_resource = nil unless new_base.instance_eval { defined?(@base_resource) }
+
+            # Run "load"
+            begin
+              new_base.load
+            ensure
+              # Whether an exception occurs or not, we set the base_resource so
+              # we don't call load again.
+              @base_resource = new_base
+            end
+          end
+
+          @base_resource
+        end
       end
 
       #
-      # The actual value of this resource.
+      # Get a new copy of the Resource with only identity values set.
       #
-      # The first time this is called, this calls reopen() and then load() on
-      # the new resource.  If resource.exists was set to false, or if an error
-      # is raised, the new resource will be thrown away and @actual_value set to
-      # nil.
+      # Note: the Resource remains in :created state, not :identity_defined as
+      # one would get from `open`.  Call resource_identity_defined if you want
+      # to be able to retrieve actual values.
       #
-      # This is cached and will only ever call reopen() and load() once.
+      # This method is used by ResourceType.get() and Resource.reload.
       #
-      def actual_value(value=NOT_PASSED)
-        if value != NOT_PASSED
-          @actual_value = value
-        elsif defined?(@actual_value)
-          @actual_value
-        elsif resource_state == :new
-          raise "Cannot access actual_value while resource is still in new state"
-        else
-          # This is *just* like ResourceType.get(), except it does a reopen instead
-          # of an open at the beginning.
-          resource = reopen
-
-          begin
-            # The resource we use for our actual_value, *shall not have its own*
-            # actual_value.  That way lies madness.  We do not truck with madness.
-            resource.actual_value = nil
-
-            resource.load
-
-            # Foolproofing: if the user does not set exists, assume a successful
-            # `load` means it *does* exist.  Principle of Least Surprise.
-            resource.exists = true if !resource.exists_is_set?
-            resource.resource_defined
-            @actual_value = resource.exists? ? resource : nil
-          rescue
-            @actual_value = nil
-            raise
-          end
-        end
+      def reopen_resource
+        raise NotImplementedError, "#{self.class}.reopen_resource"
       end
 
       #
       # Set the actual value.
       #
-      def actual_value=(value)
-        @actual_value = value
+      def base_resource=(resource)
+        @base_resource = resource
       end
 
       #
       # Set whether this resource exists or not.
       #
-      def exists=(value)
-        @exists = value
+      def resource_exists=(value)
+        @resource_exists = value
       end
 
       #
       # Get/set whether this resource exists.
       #
-      def exists(value=NOT_PASSED)
+      def resource_exists(value=NOT_PASSED)
         if value == NOT_PASSED
-          exists?
+          if defined?(@resource_exists)
+            @resource_exists
+          elsif base_resource
+            base_resource.resource_exists?
+          else
+            # Defaults to true if there is no base_resource.
+            true
+          end
         else
-          @exists = value
+          @resource_exists = value
         end
-      end
-
-      #
-      # Tells whether exists? was explicitly set or just defaulted to nil.
-      #
-      def exists_is_set?
-        defined?(@exists)
       end
 
       #
       # Whether this resource exists or not.
       #
-      def exists?
-        if !defined?(@exists)
-          # Pull on actual_value, causing @exists to get set too
-          actual_value
-        end
-        @exists
-      end
+      alias :resource_exists? :resource_exists
 
       #
       # Resets the Resource so that `update` will make no changes and its value
@@ -248,11 +264,11 @@ module Crazytown
 
       #
       # The state of this resource.  It moves through four phases:
-      # - :new - has been created, but not fully opened (still initializing).
+      # - :created - has been created, but not fully opened (still initializing).
       #   Only identity values are writeable in this state.
-      # - :declared - has been opened (has enough data to retrieve the actual value)
+      # - :identity_defined - has been opened (has enough data to retrieve the actual value)
       #   Identity attributes are readonly in this state.
-      # - :defined - has been fully defined (attributes are now readonly)
+      # - :fully_defined - has been fully defined (attributes are now readonly)
       #   All attributes are readonly in this state.
       # - :updated - has updated
       #   All attributes are readonly in this state, and update cannot be called.
@@ -266,8 +282,8 @@ module Crazytown
       # identity attributes).  This happens automatically during initialize and
       # before any identity attributes are set.
       #
-      def resource_declared
-        @resource_state = :new
+      def resource_created
+        @resource_state = :created
       end
 
       #
@@ -275,11 +291,11 @@ module Crazytown
       #
       # Identity attributes are readonly in this state.
       #
-      def resource_opened
+      def resource_identity_defined
         case resource_state
-        when :new
-          @resource_state = :declared
-        when :declared
+        when :created
+          @resource_state = :identity_defined
+        when :identity_defined
         else
           raise "Cannot move a resource from #{@resource_state} to open"
         end
@@ -290,14 +306,14 @@ module Crazytown
       #
       # The entire resource is readonly in this state.
       #
-      def resource_defined
+      def resource_fully_defined
         case resource_state
-        when :new
-          resource_opened
-          @resource_state = :defined
-        when :declared
-          @resource_state = :defined
-        when :defined
+        when :created
+          resource_identity_defined
+          @resource_state = :fully_defined
+        when :identity_defined
+          @resource_state = :fully_defined
+        when :fully_defined
         else
           raise "Cannot move a resource from #{@resource_state} to defined"
         end
@@ -311,14 +327,14 @@ module Crazytown
       #
       def resource_updated
         case resource_state
-        when :new
-          resource_opened
-          resource_defined
+        when :created
+          resource_identity_defined
+          resource_fully_defined
           @resource_state = :updated
-        when :declared
-          resource_defined
+        when :identity_defined
+          resource_fully_defined
           @resource_state = :updated
-        when :defined
+        when :fully_defined
           @resource_state = :updated
         else
           raise "Cannot move a resource from #{@resource_state} to defined"

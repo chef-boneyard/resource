@@ -26,9 +26,10 @@ module Crazytown
         # - Can be modified for update
         # - `self.is_valid?(resource)` is true
         #
-        def open
+        def open(&define_identity_block)
           resource = new
-          resource.resource_opened
+          resource.instance_eval(&define_identity_block)
+          resource.resource_identity_defined if resource.resource_state == :created
           resource
         end
 
@@ -37,26 +38,18 @@ module Crazytown
         # be passed enough data to uniquely identify the resource so it can be
         # retrieved.
         #
-        # The default implementation (ResourceType.get) calls open(), load(),
-        # and sets exists to true if load succeeds and does not set exists
-        # explicitly.
+        # The default implementation (ResourceType.get) calls open(*args) { load }
         #
-        # @return A resource value with values immediately filled in; or nil
-        #   if the resource does not exist.
+        # @return A readonly resource value with values filled in; or nil if the
+        # resource does not exist.
         #
-        def get(*args)
-          #
-          # This code is identical to Resource.actual_value, except it uses
-          # open(*args) instead of reopen.
-          #
-          resource = open(*args)
-          resource.load
-          # Foolproofing: if the user does not set exists, assume a successful
-          # `load` means it *does* exist.  Principle of Least Surprise.
-          resource.exists = true if !result.exists_is_set?
-          resource.resource_defined
-
-          resource.exists? ? resource : nil
+        def get(*args, &define_identity_block)
+          resource = open(*args) do
+            instance_eval(&define_identity_block) if define_identity_block
+            load
+          end
+          resource.resource_fully_defined
+          resource
         end
 
         #
@@ -74,7 +67,7 @@ module Crazytown
         def update(*open_args, &update_block)
           resource = open(*args)
           resource.instance_eval(&update_block)
-          resource.resource_defined
+          resource.resource_fully_defined
           resource.update
         end
       end

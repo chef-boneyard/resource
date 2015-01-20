@@ -11,6 +11,10 @@ Basic Resource (Modifying A Real Thing) Support
   or modules)
 - Can we prevent people from screwing up and writing both "load" and "load_value"?
   Or at least tell them when they do it?  It can cause inconsistent results.
+- NOTE: if someone writes a `load` that canonicalizes an identity attribute, the
+  attribute will be marked as changed (and the user's specified value will be
+  the new value).  This is probably the right thing ... but it's sort of weird,
+  too.
 
 Nesting
 - Add nested structs
@@ -50,9 +54,9 @@ Future
       # name(..., &override_block) - update idiom
       #
       # NEXT 4: lazy reality (GET+PUT)
-      # "actual_value" instance method for struct and for attributes, called
+      # "base_resource" instance method for struct and for attributes, called
       # instead of default
-      # StructAttribute initializes "actual_value" to "parent_struct.actual_value.name"
+      # StructAttribute initializes "base_resource" to "parent_struct.base_resource.name"
       #
       # NEXT 5: primitive attributes
       # Symbol

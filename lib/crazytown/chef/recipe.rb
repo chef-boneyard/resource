@@ -10,7 +10,7 @@ module Crazytown
       end
 
       def resource_event(resource, event, *args)
-        resources << child if event == :declared
+        resources << child if event == :identity_defined
       end
 
       def update

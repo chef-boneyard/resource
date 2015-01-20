@@ -38,7 +38,7 @@ module Crazytown
       # TODO perhaps autogenerate this in subclasses
       # TODO toss ALL validation errors, not just the one!
       #
-      def validate(value, parent=nil)
+      def validate(value)
         # Handle nullable=true/false
         if value.nil? && !nullable.nil?
           if nullable?
@@ -61,7 +61,7 @@ module Crazytown
         end
 
         validators.each do |message, must_be_true|
-          if !value.instance_exec(self, parent, &must_be_true)
+          if !value.instance_exec(self, &must_be_true)
             raise ValidationError.new(message, value)
           end
         end

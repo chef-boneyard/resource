@@ -15,7 +15,10 @@ module Crazytown
     attr_reader :resource
   end
 
-  class ReadonlyAttributeError < ResourceStateError
+  class ResourceCannotBeOpenedError < ResourceStateError
+  end
+
+  class AttributeDefinedError < ResourceStateError
     def initialize(message, resource, attribute_type)
       super(message, resource)
       @attribute_type = attribute_type
