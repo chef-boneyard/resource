@@ -510,7 +510,18 @@ module Crazytown
     #
     # TODO make this an attribute so it's introspectible.
     def self.attribute_types
-      @attribute_types ||= {}
+      @attribute_types ||= begin
+        if self == StructResource
+          {}
+        else
+          # TODO use real merging in the future.  This carries
+          # danger that someone could modify types on the parent.
+          # But it at least gets us basic inheritance for the
+          # normal case where people are adding new attributes
+          # rather than overriding old ones.
+          superclass.attribute_types.dup
+        end
+      end
     end
 
     #

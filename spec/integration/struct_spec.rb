@@ -12,6 +12,31 @@ describe Crazytown::StructResource do
     end
   end
 
+  describe :inheritance do
+    context "When A < B, and A has x and B has y" do
+      class A < Crazytown::StructResource
+        attribute :x, identity: true do
+          default { y*2 }
+        end
+      end
+      class B < A
+        attribute :y, identity: true do
+          default { x*2 }
+        end
+      end
+
+      it "A.open(x: 1).y raises an error" do
+        expect { A.open(x: 1).y }.to raise_error
+      end
+      it "B.open(x: 1).y yields 2" do
+        expect(B.open(x: 1).y).to eq 2
+      end
+      it "B.open(y: 1).x yields 2" do
+        expect(B.open(y: 1).x).to eq 2
+      end
+    end
+  end
+
   describe :reset do
     context "When MyResource has both a set and not-set attribute" do
       with_struct(:MyResource) do

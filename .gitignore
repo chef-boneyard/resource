@@ -1,0 +1,10 @@
+docs/work
+work
+pkg
+doc
+.yardoc
+*.gem
+.idea
+x.rb
+x2.rb
+blah.rb

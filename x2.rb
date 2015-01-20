@@ -1,2 +1,0 @@
-resource :config do
-end
