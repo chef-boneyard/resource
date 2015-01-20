@@ -28,7 +28,7 @@ Specifics
 - Chef API: net.rest, chef.authentication, chef.server, formats.json, chef.node
 - Local Mode: entry, file, directory, chef.repository, chef.ruby_format, chef.defaults
 - Zero: net.http_server, chef.authentication, core.authorization
-- Chef::Config
+- Config
 - Command Line tying it all together
 - Server that serves resources
 
@@ -71,7 +71,7 @@ Future
       #
       # NEXT 4: struct hierarchy
       # RecipeDSL
-      # Crazytown::Chef.global_dsl
+      # Crazytown.global_dsl
       #
       # NEXT 5: useful primitives
       # ruby_block

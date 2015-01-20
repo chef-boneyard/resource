@@ -1,6 +1,6 @@
-require 'crazytown/chef/output/nested_converge/styles'
-require 'crazytown/chef/output/nested_converge/open_resource'
-require 'crazytown/chef/resource/resource_events'
+require 'crazytown/output/nested_converge/styles'
+require 'crazytown/output/nested_converge/open_resource'
+require 'crazytown/resource/resource_events'
 require 'crazytown/constants'
 
 module Crazytown

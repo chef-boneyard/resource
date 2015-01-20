@@ -1,7 +1,7 @@
 require 'crazytown/errors'
 
 module Crazytown
-  module Chef
+  module Resource
     module Type
       #
       # Take the input value and coerce it to a desired value (which means

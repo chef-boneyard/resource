@@ -1,11 +1,11 @@
 require 'support/spec_support'
-require 'crazytown/chef/struct_resource'
+require 'crazytown/struct_resource'
 
 describe "StructResource behavior in different states" do
   def self.with_struct(name, &block)
     before :each do
       Object.send(:remove_const, name) if Object.const_defined?(name, false)
-      eval "class ::#{name} < Crazytown::Chef::StructResource; end"
+      eval "class ::#{name} < Crazytown::StructResource; end"
       Object.const_get(name).class_eval(&block)
     end
     after :each do
