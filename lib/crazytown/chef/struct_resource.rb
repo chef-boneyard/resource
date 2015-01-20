@@ -112,24 +112,26 @@ module Crazytown
       #
       def load_attribute(name)
         # First, check quickly if we already have it.
-        return true if explicit_values.has_key?(name)
-
-        # resource_exists? will trigger load.  If it doesn't exist, go no further.
-        if !resource_exists?
-          return false
-        end
-
-        # Check for the value now that load has definitely happened.
         if explicit_values.has_key?(name)
           return true
         end
 
-        # `load` didn't load the attribute.  Use load_value if it has it.
+        # If the resource doesn't exist, we won't try to load any more
+        # attributes--it is futile.
+        if !resource_exists?
+          return false
+        end
+
+        # Since we were already brought up, we must already be loaded, yet the
+        # attribute isn't there.  Use load_value if it has it.
         load_value = self.class.attribute_types[name].load_value
-        return false if !load_value
+        if !load_value
+          return false
+        end
 
         begin
           explicit_values[name] = instance_eval(&load_value)
+          return true
         rescue
           # short circuit this from happening again
           explicit_values[name] = nil
