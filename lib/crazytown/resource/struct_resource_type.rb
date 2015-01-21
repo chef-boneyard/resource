@@ -110,47 +110,8 @@ module Crazytown
       #   puts s.y # 4
       #
       def open(*args, &define_identity_block)
-        resource = new()
-
-        #
-        # Process named arguments open(..., a: 1, b: 2, c: 3, d: 4)
-        #
-        if args[-1].is_a?(Hash)
-          named_args = args.pop
-          named_args.each do |name, value|
-            type = attribute_types[name]
-            raise ArgumentError, "Attribute #{name} was passed to #{self}.open, but does not exist on #{self}!" if !type
-            raise ArgumentError, "#{self}.open only takes identity attributes, and #{name} is not an identity attribute on #{self}!" if !type.identity?
-            resource.public_send(name, value)
-          end
-        end
-
-        # Process positional arguments - open(1, 2, 3, ...)
-        required_identity_attributes = attribute_types.values.
-        select { |attr| attr.identity? && attr.required? }.
-        map { |attr| attr.attribute_name }
-
-        if args.size > required_identity_attributes.size
-          raise ArgumentError, "Too many arguments to #{self}.open! (#{args.size} for #{required_identity_attributes.size})!  #{self} has #{required_identity_attributes.size}"
-        end
-        required_identity_attributes.each_with_index do |name, index|
-          if args.size > index
-            # If the argument was passed positionally (open(a, b, c ...)) set it from that.
-            if named_args && named_args.has_key?(name)
-              raise ArgumentError, "Attribute #{name} specified twice in #{self}.open!  Both as argument ##{index} and as a named argument."
-            end
-            resource.public_send(name, args[index])
-          else
-            # If the argument wasn't passed positionally, check whether it was passed in the hash.  If not, error.
-            if !named_args || !named_args.has_key?(name)
-              raise ArgumentError, "Required attribute #{name} not passed to #{self}.open!"
-            end
-          end
-        end
-
-        resource.instance_eval(&define_identity_block) if define_identity_block
-
-        resource.resource_identity_defined
+        resource = new
+        resource.define_identity(resource, *args, &define_identity_block)
         resource
       end
 

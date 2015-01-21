@@ -58,6 +58,66 @@ module Crazytown
       end
 
       #
+      # Define the identity of this struct, based on the given arguments and
+      # block.  After this method, the identity is frozen.
+      #
+      # @param *args The arguments.  Generally the user passed you these from
+      #   some other function, and you are trusting the struct to do the right
+      #   thing with them.
+      # @param &define_identity_block A block that should run after the arguments
+      #   are parsed but before the resource identity is frozen.
+      #
+      def define_identity(*args, &define_identity_block)
+        #
+        # Process named arguments - open(..., a: 1, b: 2, c: 3, d: 4)
+        #
+        if args[-1].is_a?(Hash)
+          named_args = args.pop
+          named_args.each do |name, value|
+            type = self.class.attribute_types[name]
+            raise ArgumentError, "Attribute #{name} was passed to #{self.class}.define_identity, but does not exist on #{self.class}!" if !type
+            raise ArgumentError, "#{self.class}.open only takes identity attributes, and #{name} is not an identity attribute on #{self.class}!" if !type.identity?
+            public_send(name, value)
+          end
+        end
+
+        #
+        # Process positional arguments - open(1, 2, 3, ...)
+        #
+        required_identity_attributes = self.class.attribute_types.values.
+          select { |attr| attr.identity? && attr.required? }.
+          map { |attr| attr.attribute_name }
+
+        if args.size > required_identity_attributes.size
+          raise ArgumentError, "Too many arguments to #{self.class}.define_identity! (#{args.size} for #{required_identity_attributes.size})!  #{self} has #{required_identity_attributes.size}"
+        end
+        required_identity_attributes.each_with_index do |name, index|
+          if args.size > index
+            # If the argument was passed positionally (open(a, b, c ...)) set it from that.
+            if named_args && named_args.has_key?(name)
+              raise ArgumentError, "Attribute #{name} specified twice in #{self}.define_identity!  Both as argument ##{index} and as a named argument."
+            end
+            public_send(name, args[index])
+          else
+            # If the argument wasn't passed positionally, check whether it was passed in the hash.  If not, error.
+            if !named_args || !named_args.has_key?(name)
+              raise ArgumentError, "Required attribute #{name} not passed to #{self}.define_identity!"
+            end
+          end
+        end
+
+        #
+        # Run the block
+        #
+        instance_eval(&define_identity_block) if define_identity_block
+
+        #
+        # Freeze the identity attributes
+        #
+        resource_identity_defined
+      end
+
+      #
       # Reset changes to this struct (or to an attribute).
       #
       # Reset without parameters never resets identity attributes--only normal

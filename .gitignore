@@ -5,6 +5,7 @@ doc
 .yardoc
 *.gem
 .idea
+Gemfile.lock
 x.rb
 x2.rb
 blah.rb
