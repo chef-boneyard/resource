@@ -163,8 +163,7 @@ module Crazytown
       #
       # Turn the value into a string in just the context of this Type.
       #
-      def to_s(value=NOT_PASSED)
-        return super() if value == NOT_PASSED
+      def value_to_s(value)
         value.to_s
       end
     end

@@ -230,9 +230,9 @@ module Crazytown
           if explicit_values.has_key?(name)
             type = self.class.attribute_types[name]
 
-            desired_value = type.to_s( public_send(name) )
+            desired_value = type.value_to_s( public_send(name) )
             if exists
-              current_value = type.to_s( type.base_attribute_value(self) )
+              current_value = type.value_to_s( type.base_attribute_value(self) )
               if desired_value != current_value
                 h[name] = [ desired_value, current_value ]
               end

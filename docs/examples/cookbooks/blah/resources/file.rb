@@ -1,7 +1,11 @@
 crazytown
 
 attribute :path, String, identity: true
-attribute :mode, Fixnum
+attribute :mode, Fixnum do
+  def self.value_to_s(value)
+    "0#{value.to_s(8)}"
+  end
+end
 attribute :gid, Fixnum
 attribute :uid, Fixnum
 attribute :content, String do
