@@ -6,6 +6,16 @@ module Crazytown
       end
       attr_reader :resource
 
+      # Keep track of descriptions of the current load/update/action
+      attr_accessor :current_load
+      attr_accessor :current_update
+      def current_load_values
+        @current_load_values ||= {}
+      end
+      def current_action_stack
+        @current_action_stack ||= []
+      end
+
       def debug(str)
         log(:debug, str)
       end
@@ -22,30 +32,156 @@ module Crazytown
         log(:fatal, str)
       end
       def log(level, str)
-        resource_event(level, str)
       end
 
-      def opened
-        resource_event(:identity_defined)
-      end
-      def defined
-        resource_event(:fully_defined)
-      end
-      def updating
-        resource_event(:updating)
-      end
-      def updated
-        resource_event(:updated)
-      end
-      def unchanged
-        resource_event(:unchanged)
-      end
-      def update_failed(failure)
-        resource_event(:update_failed, failure)
+      #
+      # Resource phases
+      #
+
+      #
+      # Fired when the resource is created (but identity is not yet defined)
+      #
+      def created
       end
 
-      def resource_event(event, data=nil)
-        puts "#{resource}: #{event}#{data ? ", #{data}" : ""}"
+      #
+      # Fired when the resource identity is defined
+      #
+      def identity_defined
+      end
+
+      #
+      # Fired when the resource desired state is fully defined
+      #
+      def fully_defined
+      end
+
+      #
+      # Resource.load and load_value
+      #
+
+      #
+      # Fired when Resource.load starts
+      #
+      def load_started
+        self.current_load = true
+      end
+
+      #
+      # Fired when Resource.load succeeds
+      #
+      # @param exists if the resource exists, false if it doesn't
+      #
+      def load_succeeded(exists: true)
+        raise "load succeeded when load was never started!" if !current_load
+        self.current_load = false
+      end
+
+      #
+      # Fired when Resource.load fails.
+      #
+      # @param error The error that was raised.
+      #
+      def load_failed(error)
+        raise "load failed when load was never started!" if !current_load
+        self.current_load = false
+      end
+
+      #
+      # Fired when load_value for a given attribute starts
+      #
+      def load_value_started(name)
+        raise "load_value(#{name}) started twice!" if current_load_values[name]
+        self.current_load_values[name] = true
+      end
+
+      #
+      # Fired when load_value for a given attribute succeeds
+      #
+      # @param name The name of the attribute
+      #
+      def load_value_succeeded(name)
+        raise "load_value(name) succeeded but was never started!" if !current_load_values[name]
+        current_load_values.delete(name)
+      end
+
+      #
+      # Fired when Resource.load_value for a given attribute fails
+      #
+      # @param name The name of the attribute
+      # @param error The error that was raised
+      #
+      def load_value_failed(name, error)
+        raise "load_value(name) failed but was never started!" if !current_load_values[name]
+        current_load_values.delete(name)
+      end
+
+      #
+      # Resource.update and actions
+      #
+
+      #
+      # Fired when update starts.
+      #
+      def update_started
+        raise "update started twice!" if current_update
+        self.current_update = true
+      end
+
+      #
+      # Fired when the update succeeds.
+      #
+      def update_succeeded
+        raise "update succeeded, but was never started!" if !current_update
+        raise "update succeeded when actions are still running!" if !current_action_stack.empty?
+        self.current_update = nil
+      end
+
+      #
+      # Fired when the update fails.
+      #
+      # @param error [String] The error that was raised
+      #
+      def update_failed(error)
+        raise "update failed when no update is taking place!" if !current_update
+        raise "update failed when actions are still running!" if !current_action_stack.empty?
+        self.current_update = nil
+      end
+
+      #
+      # Fired when an action starts.
+      #
+      # @param description [String] A description of the action being taken.
+      # @param update_guaranteed [Boolean] Whether an update is guaranteed on success or not.
+      #
+      def action_started(description, update_guaranteed: true)
+        raise "action started when no update is taking place!" if !current_update
+        current_action_stack.push [ description, update_guaranteed ]
+      end
+
+      #
+      # Fired when an action succeeds.
+      #
+      # @param description [String] A more detailed description of what the action did.
+      # @param updated [Boolean] Whether anything was actually updated.
+      # @return [String, Boolean] The action that succeeded (a pair of [ description, updated ])
+      #
+      def action_succeeded(description: nil, updated: true)
+        raise "action succeeded when no action was started" if current_action_stack.empty?
+        original_description, _ = current_action_stack.pop
+        [ description || original_description, updated ]
+      end
+
+      #
+      # Fired when an action fails.
+      #
+      # @param error [String] The error that was raised.
+      # @return [String] The description of the action that failed.
+      #
+      def action_failed(error)
+        raise "action failed when no action was started" if current_action.nil?
+        original_description, _ = current_action_stack.pop
+        original_description
       end
     end
   end

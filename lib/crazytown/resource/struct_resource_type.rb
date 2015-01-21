@@ -111,7 +111,7 @@ module Crazytown
       #
       def open(*args, &define_identity_block)
         resource = new
-        resource.define_identity(resource, *args, &define_identity_block)
+        resource.define_identity(*args, &define_identity_block)
         resource
       end
 

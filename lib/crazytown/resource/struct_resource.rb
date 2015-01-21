@@ -58,6 +58,34 @@ module Crazytown
       end
 
       #
+      # Get the identity string of the resource.
+      #
+      def resource_identity_string
+        positionals = []
+        named = {}
+        explicit_values.each do |name,value|
+          if self.class.attribute_types[name].identity?
+            if self.class.attribute_types[name].required?
+              positionals << value
+            else
+              named[name] = value
+            end
+          end
+        end
+        if named.empty?
+          if positionals.empty?
+            name ""
+            return
+          elsif positionals.size == 1
+            name positionals[0].to_s
+            return
+          end
+        end
+        (positionals.map { |value| value.inspect } +
+               named.map { |name,value| "#{name}: #{value.inspect}" }).join(",")
+      end
+
+      #
       # Define the identity of this struct, based on the given arguments and
       # block.  After this method, the identity is frozen.
       #
@@ -89,7 +117,7 @@ module Crazytown
           map { |attr| attr.attribute_name }
 
         if args.size > required_identity_attributes.size
-          raise ArgumentError, "Too many arguments to #{self.class}.define_identity! (#{args.size} for #{required_identity_attributes.size})!  #{self} has #{required_identity_attributes.size}"
+          raise ArgumentError, "Too many arguments to #{self.class}.define_identity! (#{args.size} for #{required_identity_attributes.size})!"
         end
         required_identity_attributes.each_with_index do |name, index|
           if args.size > index
@@ -127,7 +155,7 @@ module Crazytown
       #    all attributes.
       # @raise AttributeDefinedError if the named attribute being referenced is
       #   defined (i.e. we are in identity_defined or fully_defined state).
-      # @raise ResourceStateError if we are in fully_defined or updated state.
+      # @raise ResourceStateError if we are in fully_defined state.
       #
       def reset(name=nil)
         if name
@@ -163,39 +191,89 @@ module Crazytown
       end
 
       #
-      # Ensure we have loaded in the value of the given attribute.
+      # Take an action to update the real resource, as long as the given keys have
+      # actually changed from their real values.  Their real values are obtained
+      # via `load` and `load_value`.
       #
-      # @param name the name of the attribute
-      # @return true if the attribute exists, false if not
-      # @raise Any error raised by load_value or load will pass through.
+      # @param *names [Symbol] A list of attribute names which must be different
+      #   from their actual / default value in order to set them.  If the last parameter is a String, it
+      #   is treated as the description of the update.
+      # @yield [new_values] a Set containing the list of keys whose values have
+      #   changed.  This block is run in the context of the Resource.  Its
+      #   return value is ignored.
+      # @return the list of changes, or nil if there are no changes
       #
-      def load_attribute(name)
-        # First, check quickly if we already have it.
-        if explicit_values.has_key?(name)
-          return true
+      def if_changed(*names, &update_block)
+        #
+        # Grab the user's description from the last parameter, if it was passed
+        #
+        if names[-1].is_a?(String)
+          *names, description = *names if names[-1].is_a?(String)
         end
 
-        # If the resource doesn't exist, we won't try to load any more
-        # attributes--it is futile.
-        if !resource_exists?
-          return false
+        #
+        # Decide on the header, and fix up the list of names to include all names
+        # if the user didn't pass any names
+        #
+        if names.empty?
+          change_header = ""
+          names = self.class.attribute_types.keys if names.empty?
+        else
+          change_header = "#{Crazytown.english_list(*names)}"
         end
 
-        # Since we were already brought up, we must already be loaded, yet the
-        # attribute isn't there.  Use load_value if it has it.
-        load_value = self.class.attribute_types[name].load_value
-        if !load_value
-          return false
+        #
+        # Figure out if anything changed
+        #
+        exists = resource_exists?
+        changed_names = names.inject({}) do |h, name|
+          if explicit_values.has_key?(name)
+            type = self.class.attribute_types[name]
+
+            desired_value = type.to_s( public_send(name) )
+            if exists
+              current_value = type.to_s( type.base_attribute_value(self) )
+              if desired_value != current_value
+                h[name] = [ desired_value, current_value ]
+              end
+            else
+              h[name] = [ desired_value, nil ]
+            end
+          end
+          h
         end
 
-        begin
-          explicit_values[name] = instance_eval(&load_value)
-          return true
-        rescue
-          # short circuit this from happening again
-          explicit_values[name] = nil
-          raise
+        #
+        # Skip the action if nothing was changed
+        #
+        if exists
+          if changed_names.empty?
+            skip_action "skipping #{change_header}: no values changed"
+            return nil
+          end
         end
+
+        #
+        # Figure out the printout for what's changing:
+        #
+        # update file[x.txt]
+        #   set abc    to blah
+        #   set abcdef to 12
+        #   set a      to nil
+        #
+        description ||= exists ? "update #{change_header}" : "create #{change_header}"
+        name_width = changed_names.keys.map { |name| name.size }.max
+        description_lines = [ description ] +
+          changed_names.map do |name, (desired, current)|
+            "  set #{name.to_s.ljust(name_width)} to #{desired}#{current ? " (was #{current})" : ""}"
+          end
+
+        #
+        # Actually take the action
+        #
+        take_action(description_lines, &update_block)
+
+        changed_names
       end
 
       #

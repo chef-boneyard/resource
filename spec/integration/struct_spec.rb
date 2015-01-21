@@ -470,10 +470,9 @@ describe Crazytown::Resource::StructResource do
         attribute :x, identity: true
         attribute :y
         attribute :z, load_value: proc { self.num_loads += 1; x*3 }
-        attribute :num_loads
+        attribute :num_loads, default: 0
         def load
           y x*2
-          self.num_loads ||= 0
           self.num_loads += 1
         end
       end

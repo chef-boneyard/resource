@@ -1,1 +1,1 @@
-require 'crazytown'
+require 'crazytown/chef'

@@ -1,3 +1,4 @@
+require 'crazytown'
 require 'crazytown/resource/resource_log'
 
 module Crazytown
@@ -111,7 +112,6 @@ module Crazytown
   #    can still be set), `update` cannot be called in this state.
   # 3. :fully_defined - This Resource's desired values are now complete.  The
   #    Resource is now readonly.  `update` is now available.
-  # 4. :updated - `update` is complete.
   #
   # TODO thread safety on calling load and update, and on changing and
   # checking resource_state
@@ -174,13 +174,18 @@ module Crazytown
           new_base.base_resource = nil unless new_base.instance_eval { defined?(@base_resource) }
 
           # Run "load"
+          log.load_started
           begin
             new_base.load
+          rescue
+            log.load_failed($!)
+            raise
           ensure
-            # Whether an exception occurs or not, we set the base_resource so
-            # we don't call load again.
+            # Set @base_resource even if we failed, so we can be sure we never
+            # run load again.
             @base_resource = new_base
           end
+          log.load_succeeded
         end
 
         @base_resource
@@ -254,10 +259,12 @@ module Crazytown
     #   your_resource.log.error "Oh noes"
     #
     def log(str=nil)
+      @resource_log ||= ResourceLog.new(self)
       if str
-        ResourceLog.new(self)
+        @resource_log.info(str)
+        @resource_log
       else
-        ResourceLog.new(self).info(str)
+        @resource_log
       end
     end
 
@@ -269,8 +276,6 @@ module Crazytown
     #   Identity attributes are readonly in this state.
     # - :fully_defined - has been fully defined (attributes are now readonly)
     #   All attributes are readonly in this state.
-    # - :updated - has updated
-    #   All attributes are readonly in this state, and update cannot be called.
     #
     def resource_state
       @resource_state
@@ -283,6 +288,7 @@ module Crazytown
     #
     def resource_created
       @resource_state = :created
+      log.created
     end
 
     #
@@ -294,6 +300,7 @@ module Crazytown
       case resource_state
       when :created
         @resource_state = :identity_defined
+        log.identity_defined
       when :identity_defined
       else
         raise "Cannot move a resource from #{@resource_state} to open"
@@ -310,8 +317,10 @@ module Crazytown
       when :created
         resource_identity_defined
         @resource_state = :fully_defined
+        log.fully_defined
       when :identity_defined
         @resource_state = :fully_defined
+        log.fully_defined
       when :fully_defined
       else
         raise "Cannot move a resource from #{@resource_state} to defined"
@@ -319,37 +328,66 @@ module Crazytown
     end
 
     #
-    # Mark the resource as update complete.
+    # Update events and print stuff
     #
-    # The entire resource is readonly in this state, and update cannot be
-    # called.
+
     #
-    def resource_updated
-      case resource_state
-      when :created
-        resource_identity_defined
-        resource_fully_defined
-        @resource_state = :updated
-      when :identity_defined
-        resource_fully_defined
-        @resource_state = :updated
-      when :fully_defined
-        @resource_state = :updated
-      else
-        raise "Cannot move a resource from #{@resource_state} to defined"
+    # Take an action that will update the resource.
+    #
+    # @param description [String] The action being taken.
+    # @yield A block that will perform the actual update.
+    # @raise Any error raised by the block is passed through.
+    #
+    def take_action(description, &action_block)
+      log.action_started(description)
+      begin
+        instance_eval(&action_block)
+      rescue
+        log.action_failed($!)
+        raise
       end
+      log.action_succeeded
+    end
+
+    #
+    # Take an action that may or may not update the resource.
+    #
+    # @param description [String] The action being attempted.
+    # @yield A block that will perform the actual update.
+    # @yieldreturn [Boolean String] `true` or a String describing the update if
+    #   the resource was updated; `false` if the resource did not need to be
+    #   updated.
+    # @raise Any error raised by the block is passed through.
+    #
+    def try_action(description, &action_block)
+      log.action_started(description, update_guaranteed: false)
+      begin
+        result = instance_eval(&action_block)
+      rescue
+        log.action_failed($!)
+        raise
+      end
+
+      if result.is_a?(String)
+        log.action_succeeded(updated: true, update_description: result)
+      elsif result
+        log.action_succeeded(updated: true)
+      else
+        log.action_succeeded(updated: false)
+      end
+    end
+
+    #
+    # Record the fact that we skipped an action.
+    #
+    def skip_action(description)
+      log.action_started(description, update_guaranteed: false)
+      log.action_succeeded(updated: false)
     end
 
     # A short name for this resource for output formatters
-    def short_name
-    end
-
-    # A description of the resource's defining information (like file path) that does not include changes (like desired mode).  Can be a string or an array of lines.
-    def description
-    end
-
-    # A description of the *changes* represented by this resource for output formatters.  Can be a string or an array of lines.
-    def change_description
+    def resource_short_name
+      raise NotImplementedError
     end
   end
 end

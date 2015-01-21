@@ -270,7 +270,6 @@ describe "StructResource behavior in different states" do
         let(:r) { base_resource }
         before :each do
           r.resource_fully_defined
-          r.resource_updated
         end
 
         context "Values cannot be set" do

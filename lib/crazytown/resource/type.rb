@@ -159,6 +159,14 @@ module Crazytown
           @must_be_kind_of = classes_or_modules.is_a?(Array) ? classes_or_modules : [ classes_or_modules ]
         end
       end
+
+      #
+      # Turn the value into a string in just the context of this Type.
+      #
+      def to_s(value=NOT_PASSED)
+        return super() if value == NOT_PASSED
+        value.to_s
+      end
     end
   end
 end

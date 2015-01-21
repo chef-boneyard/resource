@@ -2,6 +2,8 @@ require 'chef/dsl/recipe'
 require 'crazytown/camel_case'
 require 'crazytown/resource/struct_resource'
 require 'crazytown/resource/struct_resource_type'
+require 'crazytown/constants'
+require 'set'
 
 class Chef
   class Resource
@@ -12,7 +14,8 @@ class Chef
     def self.crazytown
       include Crazytown::Resource::StructResource
       extend Crazytown::Resource::StructResourceType
-      include Crazytown::ResourceExtensions
+      include Crazytown::ChefResourceExtensions
+      extend Crazytown::ChefResourceClassExtensions
       register_crazytown_resource
     end
 
@@ -60,10 +63,21 @@ class Chef
 end
 
 module Crazytown
+  module ChefResourceClassExtensions
+    #
+    # recipe do
+    #   ...
+    # end
+    #
+    def recipe(&recipe_block)
+      define_method(:update, &recipe_block)
+    end
+  end
+
   #
   # Removes the ideas of providers from your resource
   #
-  module ResourceExtensions
+  module ChefResourceExtensions
     #
     # We only support one action, presently.  Hardcode it.
     #
@@ -87,19 +101,14 @@ module Crazytown
       end
 
       # Call update.
-      update
-
-      if updated_by_last_action?
-        events.resource_updated(self, action)
-        updated_by_last_action(true)
-      else
-        events.resource_up_to_date(self, action)
+      log.update_started
+      begin
+        update
+      rescue
+        log.update_failed($!)
+        raise
       end
-
-      # If we STILL didn't ever load the resource, report that fact.
-      if !defined?(@base_resource)
-        events.resource_current_state_load_bypassed(self, action, nil)
-      end
+      log.update_succeeded
     end
 
     #
@@ -108,22 +117,6 @@ module Crazytown
     #
     def provider_for_action(action)
       self
-    end
-
-    # Report that we loaded the resource.
-    def base_resource
-      # If the base_resource is asked for, we will load the resource.
-      # Report that fact.
-      gonna_load = !defined?(@base_resource)
-
-      result = super
-
-      if gonna_load
-        # The state is lazily loaded ...
-        events.resource_current_state_loaded(self, action, @current_resource)
-      end
-
-      result
     end
 
     #
@@ -138,30 +131,57 @@ module Crazytown
       resource
     end
 
-    def resource_identity_defined(*args)
+    def resource_short_name
+      to_s
+    end
+
+    def log(*args)
+      @resource_log ||= ChefResourceLog.new(self)
       super
-      positionals = []
-      named = {}
-      explicit_values.each do |name,value|
-        if self.class.attribute_types[name].identity?
-          if self.class.attribute_types[name].required?
-            positionals << value
-          else
-            named[name] = value
-          end
-        end
+    end
+  end
+
+  class ChefResourceLog < Crazytown::Resource::ResourceLog
+    def action
+      resource.action[0]
+    end
+
+    # When load happens, notify Chef that the resource's current state is loaded.
+    def load_succeeded
+      super
+      resource.events.resource_current_state_loaded(self, action, resource.base_resource)
+    end
+
+    # When an update succeeds, we mark the resource
+    def update_succeeded
+      super
+      # If even through the entire update, we never loaded the resource,
+      # report that fact.
+      if !defined?(@base_resource)
+        resource.events.resource_current_state_load_bypassed(self, action, nil)
       end
-      if named.empty?
-        if positionals.empty?
-          name ""
-          return
-        elsif positionals.size == 1
-          name positionals[0].to_s
-          return
-        end
+
+      if resource.updated_by_last_action?
+        resource.events.resource_updated(self, action)
+      else
+        resource.events.resource_up_to_date(self, action)
       end
-      name (positionals.map { |value| value.inspect } +
-            named.map { |name,value| "#{name}: #{value.inspect}" }).join(",")
+    end
+
+    # When an action succeeds, we mark the resource updated if it did anything.
+    def action_succeeded(**args)
+      description, updated = super
+      if updated
+        resource.events.resource_update_applied(self, action, description)
+        resource.updated_by_last_action true
+      end
+    end
+
+    # When the identity is defined, we set the name of the resource (since that's
+    # what the name of the resource is really about).
+    def identity_defined
+      super
+      resource.name resource.resource_identity_string
     end
   end
 end
