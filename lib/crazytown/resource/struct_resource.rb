@@ -203,7 +203,7 @@ module Crazytown
       #   return value is ignored.
       # @return the list of changes, or nil if there are no changes
       #
-      def if_changed(*names, &update_block)
+      def converge(*names, &update_block)
         #
         # Grab the user's description from the last parameter, if it was passed
         #

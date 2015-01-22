@@ -142,6 +142,10 @@ module Crazytown
   end
 
   class ChefResourceLog < Crazytown::Resource::ResourceLog
+    def log(level, str)
+      Chef::Log.public_send(level, "[#{resource.resource_short_name}] str")
+    end
+
     def action
       resource.action[0]
     end
@@ -155,11 +159,6 @@ module Crazytown
     # When an update succeeds, we mark the resource
     def update_succeeded
       super
-      # If even through the entire update, we never loaded the resource,
-      # report that fact.
-      if !defined?(@base_resource)
-        resource.events.resource_current_state_load_bypassed(self, action, nil)
-      end
 
       if resource.updated_by_last_action?
         resource.events.resource_updated(self, action)

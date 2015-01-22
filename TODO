@@ -2,7 +2,7 @@ Basic Resource (Modifying A Real Thing) Support
 
 - Add `changes` API, distinguish between explicit user desired changes and
   "loaded values" that may or may not have changed / drifted
-- Make API to change things: if_changed, if_create, if_change_desired (which is probably where try_change lands)
+- Make API to change things: converge, if_create, if_change_desired (which is probably where try_change lands)
 - Create the resource tree and resource :name object
 - Add events and printing
 - Add "recipe" (might be handled automatically by resource tree)
@@ -43,7 +43,7 @@ Future
 
                         # NEXT 2: structs as changesets
       # Store "changes" as hash
-      # "if_changed" in "update" method
+      # "converge" in "update" method
       #
       # NEXT 3: nested struct changesets
       # Make override block work at class level, not just block level

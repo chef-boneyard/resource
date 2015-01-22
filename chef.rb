@@ -75,7 +75,7 @@ resource :machine do
     end
 
     def update
-      if_changed :content do
+      converge :content do
         IO.write(path, content)
       end
       super
@@ -90,7 +90,7 @@ resource :machine do
     end
 
     def update
-      if_changed :to do
+      converge :to do
         File.symlink(path, to.path)
       end
       super
@@ -300,7 +300,7 @@ class ChefAPI
     end
 
     recipe do
-      if_changed do
+      converge do
         chef_rest = REST.new(chef_server, chef_client_name, chef_client_key)
 
         json = JSON.to_json {
@@ -339,7 +339,7 @@ resource :chef
     end
 
     def update
-      if_changed do
+      converge do
         json = JSON.to_json {
           username: username,
           name: name,
@@ -366,7 +366,7 @@ end
     end
 
     def update
-      if_changed :name, :description do
+      converge :name, :description do
         if exists?
           REST.put("organizations/#{name}", to_h)
         else

@@ -45,7 +45,7 @@ module Crazytown
   #     File.exist?(path) ? IO.read(content) : nil
   #   end
   #   def update
-  #     if_changed :content do
+  #     converge :content do
   #       IO.write(path.to_s, content)
   #     end
   #   end

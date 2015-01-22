@@ -13,13 +13,13 @@ attribute :content, String do
 end
 
 recipe do
-  if_changed :content, "write out content to #{path}" do
+  converge :content, "write out content to #{path}" do
     IO.write(path, content)
   end
-  if_changed :mode do
+  converge :mode do
     ::File.chmod(mode, path)
   end
-  if_changed :uid, :gid do
+  converge :uid, :gid do
     ::File.chown(uid, gid, path)
   end
 end
