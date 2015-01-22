@@ -1,3 +1,7 @@
+
+Strong typing
+2. Coercion
+
 ```ruby
 class MyStruct < Crazytown::StructBase
   attribute :b, Struct do

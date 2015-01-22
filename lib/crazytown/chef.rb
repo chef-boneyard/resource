@@ -16,6 +16,7 @@ class Chef
       extend Crazytown::Resource::StructResourceType
       include Crazytown::ChefResourceExtensions
       extend Crazytown::ChefResourceClassExtensions
+      include Chef::DSL::Recipe
       register_crazytown_resource
     end
 
@@ -51,13 +52,6 @@ class Chef
           end
         end
       EOM
-    end
-  end
-end
-
-class Chef
-  module DSL
-    module Recipe
     end
   end
 end
@@ -103,10 +97,29 @@ module Crazytown
       # Call update.
       log.update_started
       begin
+
+        # Enable update to run its own resources, inline.
+
+        # Executes the given block in a temporary run_context with its own
+        # resource collection. After the block is executed, any resources
+        # declared inside are converged, and if any are updated, the
+        # new_resource will be marked updated.
+        saved_run_context = @run_context
+        temp_run_context = @run_context.dup
+        @run_context = temp_run_context
+        @run_context.resource_collection = Chef::ResourceCollection.new
+
         update
+
+        Chef::Runner.new(@run_context).converge
       rescue
         log.update_failed($!)
         raise
+      ensure
+        @run_context = saved_run_context
+        if temp_run_context.resource_collection.any? {|r| r.updated? }
+          updated_by_last_action(true)
+        end
       end
       log.update_succeeded
     end

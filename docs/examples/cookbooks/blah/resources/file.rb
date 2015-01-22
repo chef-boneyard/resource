@@ -13,6 +13,11 @@ attribute :content, String do
 end
 
 recipe do
+  file '/Users/jkeiser/y.txt' do
+    content 'hi'
+  end
+  execute 'echo true'
+
   converge :content, "write out content to #{path}" do
     IO.write(path, content)
   end
