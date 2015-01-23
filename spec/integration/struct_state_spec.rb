@@ -24,7 +24,7 @@ describe "StructResource behavior in different states" do
         attribute :identity_set_same_as_load_value,
                   identity: true,
                   default: "identity_set_same_as_default DEFAULT",
-                  load_value: proc { @num_load_values = num_load_values + 1; "identity_set_same_as_load_value" }
+                  load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "identity_set_same_as_load_value" }
         attribute :identity_set_same_as_load,
                   identity: true,
                   required: false,
@@ -35,7 +35,7 @@ describe "StructResource behavior in different states" do
         attribute :identity_load_value,
                   identity: true,
                   default: "identity_load_value DEFAULT",
-                  load_value: proc { @num_load_values = num_load_values + 1; "identity_load_value" }
+                  load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "identity_load_value" }
         attribute :identity_load,
                   identity: true,
                   default: "identity_load DEFAULT"
@@ -46,14 +46,14 @@ describe "StructResource behavior in different states" do
                   default: "normal_set_same_as_default"
         attribute :normal_set_same_as_load_value,
                   default: "normal_set_same_as_load_value DEFAULT",
-                  load_value: proc { @num_load_values = num_load_values + 1; "normal_set_same_as_load_value" }
+                  load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "normal_set_same_as_load_value" }
         attribute :normal_set_same_as_load,
                   default: "normal_set_same_as_load LOAD"
         attribute :normal_default,
                   default: "normal_default"
         attribute :normal_load_value,
                   default: "normal_load_value DEFAULT",
-                  load_value: proc { @num_load_values = num_load_values + 1; "normal_load_value" }
+                  load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "normal_load_value" }
         attribute :normal_load,
                   default: "normal_load DEFAULT"
 

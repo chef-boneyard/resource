@@ -370,7 +370,7 @@ describe Crazytown::Resource::StructResource do
       context "When MyResource is a ResourceStruct with attribute :x, 15 and attribute :y { x*2 } (default block)" do
         with_struct(:MyResource) do
           attribute :x, default: 15
-          attribute :y, default: proc { x*2 }
+          attribute :y, default: Crazytown::LazyProc.new { x*2 }
         end
         it "x and y return the default if not set" do
           r = MyResource.open
@@ -469,7 +469,7 @@ describe Crazytown::Resource::StructResource do
       with_struct(:MyResource) do
         attribute :x, identity: true
         attribute :y
-        attribute :z, load_value: proc { self.num_loads += 1; x*3 }
+        attribute :z, load_value: Crazytown::LazyProc.new { self.num_loads += 1; x*3 }
         attribute :num_loads, default: 0
         def load
           y x*2
@@ -524,6 +524,96 @@ describe Crazytown::Resource::StructResource do
         it "coerce(s1: 'hi', n1: 'lo') fails" do
           expect { MyResource.coerce(s1: 'hi', n1: 'lo') }.to raise_error(Crazytown::ValidationError)
         end
+      end
+    end
+
+    context "Lazy values" do
+      context "With a struct with x and some default values with instance_eval in various states" do
+        with_struct(:MyResource) do
+          def self.x
+            "outside.x"
+          end
+          attribute :x, default: "instance.x" do
+            def self.coerce(value)
+              "coerce(#{value})"
+            end
+          end
+          attribute :default_no_params, default: Crazytown::LazyProc.new { "#{x} lazy_default" } do
+            def self.coerce(value)
+              "coerce(#{value})"
+            end
+          end
+          attribute :default_instance_eval_symbol, default: Crazytown::LazyProc.new(:instance_eval) { "#{x} lazy_default" } do
+            def self.coerce(value)
+              "coerce(#{value})"
+            end
+          end
+          attribute :default_instance_eval_true, default: Crazytown::LazyProc.new(instance_eval: true) { "#{x} lazy_default" } do
+            def self.coerce(value)
+              "coerce(#{value})"
+            end
+          end
+          attribute :default_instance_eval_false, default: Crazytown::LazyProc.new(instance_eval: false) { "#{x} lazy_default" } do
+            def self.coerce(value)
+              "coerce(#{value})"
+            end
+          end
+          attribute :default_block do
+            default { "#{x} lazy_default" }
+            def self.coerce(value)
+              "coerce(#{value})"
+            end
+          end
+
+          attribute :z, default: "instance.z"
+        end
+
+        it "lazy default does instance_eval and coerces" do
+          r = MyResource.open
+          expect(r.default_no_params).to eq "coerce(instance.x lazy_default)"
+        end
+        it "lazy default with :instance_eval does instance_eval and coerces" do
+          r = MyResource.open
+          expect(r.default_instance_eval_symbol).to eq "coerce(instance.x lazy_default)"
+        end
+        it "lazy default with instance_eval: true does instance_eval and coerces" do
+          r = MyResource.open
+          expect(r.default_instance_eval_true).to eq "coerce(instance.x lazy_default)"
+        end
+        it "lazy default with instance_eval: false does not do instance_eval, and coerces" do
+          r = MyResource.open
+          expect(r.default_instance_eval_false).to eq "coerce(outside.x lazy_default)"
+        end
+        it "default block does instance_eval and coerces" do
+          r = MyResource.open
+          expect(r.default_block).to eq "coerce(instance.x lazy_default)"
+        end
+
+        def z
+          "outside.z"
+        end
+
+        it "lazy on x does not do instance_eval but coerces" do
+          r = MyResource.open
+          r.x Crazytown::LazyProc.new { "#{z} set_lazy" }
+          expect(r.x).to eq "coerce(outside.z set_lazy)"
+        end
+        it "lazy on x with :instance_eval does instance_eval and coerces" do
+          r = MyResource.open
+          r.x Crazytown::LazyProc.new(:instance_eval) { "#{z} set_lazy" }
+          expect(r.x).to eq "coerce(instance.z set_lazy)"
+        end
+        it "lazy on x with instance_eval: true does instance_eval and coerces" do
+          r = MyResource.open
+          r.x Crazytown::LazyProc.new(instance_eval: true) { "#{z} set_lazy" }
+          expect(r.x).to eq "coerce(instance.z set_lazy)"
+        end
+        it "lazy on x with instance_eval: false does instance_eval and coerces" do
+          r = MyResource.open
+          r.x Crazytown::LazyProc.new(instance_eval: false) { "#{z} set_lazy" }
+          expect(r.x).to eq "coerce(outside.z set_lazy)"
+        end
+
       end
     end
   end

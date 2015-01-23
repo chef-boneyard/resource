@@ -1,4 +1,5 @@
 require 'crazytown/resource/type'
+require 'crazytown/lazy_proc'
 
 module Crazytown
   module Resource
@@ -72,7 +73,11 @@ module Crazytown
             raise AttributeDefinedError.new("Cannot modify attribute #{attribute_name} of #{struct.class}: identity attributes cannot be modified after the resource's identity is defined.  (State: #{struct.resource_state})", struct, self)
           end
         end
-        struct.explicit_values[attribute_name] = coerce(*args)
+        if args.size == 1 && args[0].is_a?(Crazytown::LazyProc)
+          struct.explicit_values[attribute_name] = args[0]
+        else
+          struct.explicit_values[attribute_name] = coerce(*args)
+        end
       end
 
       #
@@ -84,7 +89,14 @@ module Crazytown
       # there, it runs default_value.
       #
       def get_attribute(struct)
-        struct.explicit_values.fetch(attribute_name) { base_attribute_value(struct) }
+        value = struct.explicit_values.fetch(attribute_name) do
+          return base_attribute_value(struct)
+        end
+        if value.is_a?(Crazytown::LazyProc)
+          coerce(value.get(instance: struct))
+        else
+          value
+        end
       end
 
       #
@@ -98,15 +110,20 @@ module Crazytown
         # Try to grab a known (non-default) value from base_resource
         base_struct = struct.base_resource
         has_value, value = base_explicit_value(struct)
-        if has_value
-          return value
+        if !has_value
+          value = default
         end
+        delazify(struct, value)
+      end
 
-        # Get the default value otherwise
-        if default.is_a?(Proc)
-          struct.instance_exec(self, &default)
+      #
+      # Expand values if they are lazy.  Used for final output of a value.
+      #
+      def delazify(struct, value)
+        if value.is_a?(Crazytown::LazyProc)
+          coerce(value.get(instance: struct))
         else
-          default
+          value
         end
       end
 
@@ -126,7 +143,7 @@ module Crazytown
 
         # First, check quickly if we already have it.
         if base_struct.explicit_values.has_key?(attribute_name)
-          return [ true, base_struct.explicit_values[attribute_name] ]
+          return [ true, base_struct.public_send(attribute_name) ]
         end
 
         # Since we were already brought up, we must already be loaded, yet the
@@ -138,7 +155,11 @@ module Crazytown
         struct.log.load_value_started(attribute_name)
 
         begin
-          value = base_struct.instance_eval(&load_value)
+          if load_value.is_a?(Crazytown::LazyProc)
+            value = load_value.get(instance: base_struct)
+          else
+            value = base_struct.instance_eval(&load_value)
+          end
           # Set the value (if it gets coerced, catch the result)
           value = base_struct.public_send(attribute_name, value)
           struct.log.load_value_succeeded(attribute_name)
@@ -193,26 +214,39 @@ module Crazytown
       end
 
       #
-      # A block which calculates the default for a value of this type.
+      # The default value for things of this type.
       #
-      # Run in context of the parent struct, and is passed the Type as a
-      # parameter.
+      # @param value The default value.  If this is a LazyProc, the block will
+      #   be run in the context of the struct (`struct.instance_eval`) unless
+      #   the block is explicitly set to `instance_eval: false`.
       #
       def default(value=NOT_PASSED, &block)
         if block
-          @default = block
+          @default = LazyProc.new(:instance_eval, &block)
         elsif value == NOT_PASSED
           @default
         else
-          @default = coerce(value)
+          if value.is_a?(LazyProc)
+            # Flip on instance_eval if it's not set, so you can say
+            # default: lazy { ... } and it does the expected thing.
+            value.instance_eval = true if !value.instance_eval_set?
+          else
+            value = coerce(value)
+          end
+          @default = value
         end
       end
       def default=(value)
-        @default = coerce(value)
+        default(value)
       end
 
       #
       # A block which loads the attribute from reality.
+      #
+      # @param value The load proc.  If this is a LazyProc, the block will
+      #   be run in the context of the struct (`struct.instance_eval`) unless
+      #   the block is explicitly set to `instance_eval: false`.  If it is not,
+      #   it will always be instance_eval'd.
       #
       def load_value(value=NOT_PASSED, &block)
         if block
@@ -220,11 +254,18 @@ module Crazytown
         elsif value == NOT_PASSED
           @load_value
         else
-          @load_value = coerce(value)
+          if value.is_a?(LazyProc)
+            # Flip on instance_eval if it's not set, so you can say
+            # load_value: lazy { ... } and it does the expected thing.
+            value.instance_eval = true if !value.instance_eval_set?
+          else
+            value = coerce(value)
+          end
+          @load_value = value
         end
       end
       def load_value=(value)
-        @load_value = coerce(value)
+        load_value(value)
       end
     end
   end

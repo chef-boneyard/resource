@@ -63,9 +63,11 @@ module Crazytown
       def resource_identity_string
         positionals = []
         named = {}
-        explicit_values.each do |name,value|
-          if self.class.attribute_types[name].identity?
-            if self.class.attribute_types[name].required?
+        explicit_values.each_key do |name|
+          value = public_send(name)
+          type = self.class.attribute_types[name]
+          if type.identity?
+            if type.required?
               positionals << value
             else
               named[name] = value
@@ -326,7 +328,7 @@ module Crazytown
         # handle any identity keys and prevent us from accidentally pulling on
         # base_resource).
         (explicit_values.keys & other.explicit_values.keys).each do |name|
-          return false if explicit_values[name] != other.explicit_values[name]
+          return false if public_send(name) != other.public_send(name)
         end
 
         # If one struct has more desired (set) values than the other,

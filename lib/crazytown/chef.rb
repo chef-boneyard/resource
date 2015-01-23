@@ -5,6 +5,15 @@ require 'crazytown/resource/struct_resource'
 require 'crazytown/resource/struct_resource_type'
 require 'crazytown/constants'
 require 'set'
+require 'crazytown/lazy_proc'
+require 'chef/mixin/params_validate' # for DelayedEvaluator
+
+#
+# Redefine Chef's DelayedEvaluator (same basic def, with added goodies
+# for cache and instance_eval)
+#
+Chef.send(:remove_const, :DelayedEvaluator)
+Chef.const_set(:DelayedEvaluator, Crazytown::LazyProc)
 
 class Chef
   class Resource
