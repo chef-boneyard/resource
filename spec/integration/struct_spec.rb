@@ -284,7 +284,7 @@ describe Crazytown::Resource::StructResource do
           with_struct(:MyResource) do
             attribute :x, MyResource do
               def self.coerce(value)
-                if value.is_a?(Fixnum)
+                if value.is_a?(Integer)
                   x = value
                   value = MyResource.open
                   value.x "#{x} is awesome"
@@ -302,7 +302,7 @@ describe Crazytown::Resource::StructResource do
 
         context "When MyResource has an override that sets must(be between 0 and 10)" do
           with_struct(:MyResource) do
-            attribute :x, Fixnum do
+            attribute :x, Integer do
               def self.run_count
                 @run_count ||= 0
               end
@@ -311,7 +311,7 @@ describe Crazytown::Resource::StructResource do
               end
               must("be between 0 and 10") { MyResource::X.run_count += 1; self >= 0 && self <= 10 }
             end
-            attribute :run_count, Fixnum, default: 0
+            attribute :run_count, Integer, default: 0
           end
           it "MyResource.coerce({x: 1}) succeeds" do
             expect(MyResource.coerce({ x: 1 }).to_h(only_explicit: true)).to eq({ x: 1 })
@@ -497,12 +497,12 @@ describe Crazytown::Resource::StructResource do
     end
 
     context "Primitive values" do
-      context "With a struct with Fixnums and Strings" do
+      context "With a struct with Integers and Strings" do
         with_struct(:MyResource) do
           attribute :s1, String, identity: true
-          attribute :n1, Fixnum, identity: true
+          attribute :n1, Integer, identity: true
           attribute :s2, String
-          attribute :n2, Fixnum
+          attribute :n2, Integer
         end
 
         it "coerce(s1: 'hi', n1: 1, s2: 'lo', n2: 2) succeeds" do

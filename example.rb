@@ -1,5 +1,5 @@
 class Bar < Crazytown::Struct
-  attribute :x, Fixnum do
+  attribute :x, Integer do
     def self.default
       20
     end

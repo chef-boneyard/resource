@@ -11,7 +11,7 @@ end
 resource :machine do
   resource :entry do
     attribute :path, Path, identity: true
-    attribute :mode, Fixnum do
+    attribute :mode, Integer do
     end
     attribute :owner, User
     attribute :group, Group
@@ -194,7 +194,7 @@ resource :chef do
     end
 
     resource :vpc do
-      attribute :vpc_id, Fixnum
+      attribute :vpc_id, Integer
     end
 
     vpc 'vpc2324397' do

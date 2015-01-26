@@ -60,7 +60,7 @@ Future
       #
       # NEXT 5: primitive attributes
       # Symbol
-      # String/Fixnum (non-modified types)
+      # String/Integer (non-modified types)
       #
       # NEXT 6: proper inheritance
       # Make inheritance bring over parent identity attributes

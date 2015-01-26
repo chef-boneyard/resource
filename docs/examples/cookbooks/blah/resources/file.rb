@@ -1,13 +1,13 @@
 crazytown
 
 attribute :path, String, identity: true
-attribute :mode, Fixnum do
+attribute :mode, Integer do
   def self.value_to_s(value)
     "0#{value.to_s(8)}"
   end
 end
-attribute :gid, Fixnum
-attribute :uid, Fixnum
+attribute :gid, Integer
+attribute :uid, Integer
 attribute :content, String do
   load_value { IO.read(path) }
 end

@@ -78,7 +78,7 @@ module Crazytown
       #
       # @example
       # class MyStruct < StructResource
-      #   attribute :x, Fixnum do
+      #   attribute :x, Integer do
       #     must "be between 0 and 10" { self >= 0 && self <= 10 }
       #   end
       # end
