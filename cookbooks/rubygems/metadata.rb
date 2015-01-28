@@ -1,0 +1,2 @@
+name "rubygems"
+depends "crazytown"
