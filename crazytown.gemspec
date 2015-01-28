@@ -20,5 +20,5 @@ Gem::Specification.new do |s|
   s.bindir       = 'bin'
   s.executables  = []
   s.require_path = 'lib'
-  s.files = %w(LICENSE README.md CHANGELOG.md Rakefile) + Dir.glob('{lib,spec}/**/*')
+  s.files = %w(LICENSE README.md CHANGELOG.md Rakefile) + Dir.glob('{lib,spec}/**/*', File::FNM_DOTMATCH).reject {|f| File.directory?(f)}
 end
