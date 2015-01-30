@@ -145,6 +145,10 @@ describe Crazytown::Type do
     context "With a Path attribute" do
       with_attr Crazytown::Type::Path
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to '/x/y'" do
         struct.attr = '/x/y'
         expect(struct.attr.to_s).to eq '/x/y'
@@ -186,6 +190,10 @@ describe Crazytown::Type do
     context "With a Path attribute relative to /a/b" do
       with_attr Crazytown::Type::Path, relative_to: '/a/b'
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to '/x/y'" do
         struct.attr = '/x/y'
         expect(struct.attr.to_s).to eq '/x/y'
@@ -227,6 +235,10 @@ describe Crazytown::Type do
     context "With a Path attribute relative to a/b" do
       with_attr Crazytown::Type::Path, relative_to: 'a/b'
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to '/x/y'" do
         struct.attr = '/x/y'
         expect(struct.attr.to_s).to eq '/x/y'
@@ -268,6 +280,10 @@ describe Crazytown::Type do
     context "With a Path attribute relative to a/b/" do
       with_attr Crazytown::Type::Path, relative_to: 'a/b/'
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to '/x/y'" do
         struct.attr = '/x/y'
         expect(struct.attr.to_s).to eq '/x/y'
@@ -309,6 +325,10 @@ describe Crazytown::Type do
     context "With a Path attribute relative to a" do
       with_attr Crazytown::Type::Path, relative_to: 'a'
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to '/x/y'" do
         struct.attr = '/x/y'
         expect(struct.attr.to_s).to eq '/x/y'
@@ -352,6 +372,10 @@ describe Crazytown::Type do
     context "With a URI attribute" do
       with_attr URI
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to 'https://blah.com'" do
         struct.attr = 'https://blah.com'
         expect(struct.attr.to_s).to eq 'https://blah.com'
@@ -401,6 +425,10 @@ describe Crazytown::Type do
     context "With a URI attribute relative to https://google.com/a/b" do
       with_attr URI, relative_to: 'https://google.com/a/b'
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to 'https://blah.com'" do
         struct.attr = 'https://blah.com'
         expect(struct.attr.to_s).to eq 'https://blah.com'
@@ -456,6 +484,10 @@ describe Crazytown::Type do
     context "With a URI attribute relative to https://google.com/a/b/" do
       with_attr URI, relative_to: 'https://google.com/a/b/'
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to 'https://blah.com'" do
         struct.attr = 'https://blah.com'
         expect(struct.attr.to_s).to eq 'https://blah.com'
@@ -505,6 +537,10 @@ describe Crazytown::Type do
     context "With a URI attribute relative to https://google.com" do
       with_attr URI, relative_to: 'https://google.com'
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to 'https://blah.com'" do
         struct.attr = 'https://blah.com'
         expect(struct.attr.to_s).to eq 'https://blah.com'
@@ -554,6 +590,10 @@ describe Crazytown::Type do
     context "With a URI attribute relative to https://google.com/" do
       with_attr URI, relative_to: 'https://google.com/'
 
+      it "can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
       it "can be set to 'https://blah.com'" do
         struct.attr = 'https://blah.com'
         expect(struct.attr.to_s).to eq 'https://blah.com'

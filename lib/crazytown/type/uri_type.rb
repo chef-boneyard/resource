@@ -15,11 +15,10 @@ module Crazytown
       must_be_kind_of URI
 
       def self.coerce(uri)
-        case uri
-        when String
+        if uri.is_a?(String)
           uri = URI.parse(uri)
         end
-        uri = @relative_to + uri if @relative_to
+        uri = @relative_to + uri if uri && @relative_to
         super
       end
 

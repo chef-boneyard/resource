@@ -19,7 +19,7 @@ module Crazytown
         when String
           path = Pathname.new(path)
         end
-        path = @relative_to + path if @relative_to && !path.absolute?
+        path = @relative_to + path if path && @relative_to && !path.absolute?
         super
       end
 
