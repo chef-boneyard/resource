@@ -141,5 +141,211 @@ describe Crazytown::Type do
     end
   end
 
+  describe Crazytown::Type::Path do
+    context "With a Path attribute" do
+      with_attr Crazytown::Type::Path
+
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq '/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq '/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq 'x/y'
+      end
+      it "can be set to 'x/y/'" do
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq 'x/y/'
+      end
+      it "can be set to 'x'" do
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq 'x'
+      end
+      it "can be set to 'x/'" do
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq 'x/'
+      end
+      it "can be set to '//x/y/'" do
+        struct.attr = '//x/y/'
+        expect(struct.attr.to_s).to eq '//x/y/'
+      end
+      it "can be set to '/x//y/'" do
+        struct.attr = '/x//y/'
+        expect(struct.attr.to_s).to eq '/x//y/'
+      end
+      it "can be set to '/x/y//'" do
+        struct.attr = '/x/y//'
+        expect(struct.attr.to_s).to eq '/x/y//'
+      end
+    end
+
+    context "With a Path attribute relative to /a/b" do
+      with_attr Crazytown::Type::Path, relative_to: '/a/b'
+
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq '/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq '/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq '/a/b/x/y'
+      end
+      it "can be set to 'x/y/'" do
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq '/a/b/x/y/'
+      end
+      it "can be set to 'x'" do
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq '/a/b/x'
+      end
+      it "can be set to 'x/'" do
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq '/a/b/x/'
+      end
+      it "can be set to '//x/y/'" do
+        struct.attr = '//x/y/'
+        expect(struct.attr.to_s).to eq '//x/y/'
+      end
+      it "can be set to 'x//y/'" do
+        struct.attr = 'x//y/'
+        expect(struct.attr.to_s).to eq '/a/b/x//y/'
+      end
+      it "can be set to 'x/y//'" do
+        struct.attr = 'x/y//'
+        expect(struct.attr.to_s).to eq '/a/b/x/y//'
+      end
+    end
+
+    context "With a Path attribute relative to a/b" do
+      with_attr Crazytown::Type::Path, relative_to: 'a/b'
+
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq '/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq '/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq 'a/b/x/y'
+      end
+      it "can be set to 'x/y/'" do
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq 'a/b/x/y/'
+      end
+      it "can be set to 'x'" do
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq 'a/b/x'
+      end
+      it "can be set to 'x/'" do
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq 'a/b/x/'
+      end
+      it "can be set to '//x/y/'" do
+        struct.attr = '//x/y/'
+        expect(struct.attr.to_s).to eq '//x/y/'
+      end
+      it "can be set to 'x//y/'" do
+        struct.attr = 'x//y/'
+        expect(struct.attr.to_s).to eq 'a/b/x//y/'
+      end
+      it "can be set to 'x/y//'" do
+        struct.attr = 'x/y//'
+        expect(struct.attr.to_s).to eq 'a/b/x/y//'
+      end
+    end
+
+    context "With a Path attribute relative to a/b/" do
+      with_attr Crazytown::Type::Path, relative_to: 'a/b/'
+
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq '/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq '/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq 'a/b/x/y'
+      end
+      it "can be set to 'x/y/'" do
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq 'a/b/x/y/'
+      end
+      it "can be set to 'x'" do
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq 'a/b/x'
+      end
+      it "can be set to 'x/'" do
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq 'a/b/x/'
+      end
+      it "can be set to '//x/y/'" do
+        struct.attr = '//x/y/'
+        expect(struct.attr.to_s).to eq '//x/y/'
+      end
+      it "can be set to 'x//y/'" do
+        struct.attr = 'x//y/'
+        expect(struct.attr.to_s).to eq 'a/b/x//y/'
+      end
+      it "can be set to 'x/y//'" do
+        struct.attr = 'x/y//'
+        expect(struct.attr.to_s).to eq 'a/b/x/y//'
+      end
+    end
+
+    context "With a Path attribute relative to a" do
+      with_attr Crazytown::Type::Path, relative_to: 'a'
+
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq '/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq '/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq 'a/x/y'
+      end
+      it "can be set to 'x/y/'" do
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq 'a/x/y/'
+      end
+      it "can be set to 'x'" do
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq 'a/x'
+      end
+      it "can be set to 'x/'" do
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq 'a/x/'
+      end
+      it "can be set to '//x/y/'" do
+        struct.attr = '//x/y/'
+        expect(struct.attr.to_s).to eq '//x/y/'
+      end
+      it "can be set to 'x//y/'" do
+        struct.attr = 'x//y/'
+        expect(struct.attr.to_s).to eq 'a/x//y/'
+      end
+      it "can be set to 'x/y//'" do
+        struct.attr = 'x/y//'
+        expect(struct.attr.to_s).to eq 'a/x/y//'
+      end
+    end
+  end
 
 end
