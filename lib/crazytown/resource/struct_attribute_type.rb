@@ -45,31 +45,6 @@ module Crazytown
       boolean_attribute :required, default: "identity? && !defined?(@default)"
 
       #
-      # The default value for things of this type.
-      #
-      # @param value The default value.  If this is a LazyProc, the block will
-      #   be run in the context of the struct (`struct.instance_eval`) unless
-      #   the block is explicitly set to `instance_eval: false`.
-      #
-      def default=(value)
-        default value
-      end
-      def default(value=NOT_PASSED, &block)
-        if block
-          @default = LazyProc.new(:instance_eval, &block)
-        elsif value == NOT_PASSED
-          @default
-        else
-          if value.is_a?(LazyProc)
-            # Flip on instance_eval if it's not set, so you can say
-            # default: lazy { ... } and it does the expected thing.
-            value.instance_eval = true if !value.instance_eval_set?
-          end
-          @default = value
-        end
-      end
-
-      #
       # A block which loads the attribute from reality.
       #
       # @param value The load proc.  If this is a LazyProc, the block will

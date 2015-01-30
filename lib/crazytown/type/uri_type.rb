@@ -22,6 +22,14 @@ module Crazytown
         super
       end
 
+      def self.default(value=NOT_PASSED)
+        if value == NOT_PASSED && !defined?(@default)
+          relative_to
+        else
+          super
+        end
+      end
+
       def self.relative_to=(uri)
         relative_to uri
       end

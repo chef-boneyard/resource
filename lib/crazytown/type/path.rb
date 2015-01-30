@@ -9,6 +9,8 @@ module Crazytown
     # Allows paths to be specified as Pathname or as String.  Can handle
     # absolutizing relative URLs with #relative_to.
     #
+    # TODO consider lazily concatenating the path, and storing the relative
+    # path instead of absolute--for accuracy's sake
     class Path
       extend Type
 
@@ -21,6 +23,14 @@ module Crazytown
         end
         path = @relative_to + path if path && @relative_to && !path.absolute?
         super
+      end
+
+      def self.default(value=NOT_PASSED)
+        if value == NOT_PASSED && !defined?(@default)
+          relative_to
+        else
+          super
+        end
       end
 
       def self.relative_to=(path)
