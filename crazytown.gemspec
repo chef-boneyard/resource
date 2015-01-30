@@ -13,7 +13,6 @@ Gem::Specification.new do |s|
   s.homepage = 'http://getchef.com'
   s.license = 'Apache 2.0'
 
-  s.add_development_dependency 'halite', '>= 1.0.0.a'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec'
 

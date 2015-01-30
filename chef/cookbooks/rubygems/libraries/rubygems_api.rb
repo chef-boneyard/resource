@@ -1,4 +1,7 @@
-require 'rubygems'
+unless self.class.const_defined?(:RubygemsAPI)
+
+require 'rubygems/command'
+require 'rubygems/gemcutter_utilities'
 
 class RubygemsAPI
   include Gem::GemcutterUtilities
@@ -31,14 +34,16 @@ class RubygemsAPI
   end
 
   def put(path, **params)
-    request(:put, path, params: **params)
+    request(:put, path, params: params)
   end
 
   def post(path, **params)
-    request(:put, path, params: **params)
+    request(:put, path, params: params)
   end
 
   def delete(path, **params)
-    request(:delete, path)
+    request(:delete, path, params: params)
   end
+end
+
 end

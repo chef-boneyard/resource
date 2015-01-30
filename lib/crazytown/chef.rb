@@ -266,7 +266,7 @@ module Crazytown
       end
 
       resource_class = Chef::Resource.class_eval <<-EOM, __FILE__, __LINE__+1
-        class Chef::Resource::#{class_name} < base_resource_class
+        class #{class_name} < base_resource_class
           resource_name #{name.inspect} if resource_name != #{name.inspect}
           crazytown if !(self <= Crazytown::ChefResourceExtensions)
           self

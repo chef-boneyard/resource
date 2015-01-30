@@ -1,5 +1,5 @@
-require 'crazytown/resource/type'
-require 'crazytown/lazy_proc'
+require 'crazytown/type'
+require 'crazytown/simple_struct'
 
 module Crazytown
   module Resource
@@ -10,29 +10,81 @@ module Crazytown
     module StructAttributeType
       include Type
 
+      extend SimpleStruct
+
       #
       # The name of this attribute
       #
-      attr_accessor :attribute_name
+      attribute :attribute_name
 
       #
       # The type of this attribute
       #
-      attr_accessor :attribute_type
+      attribute :attribute_type
 
       #
       # The parent type (struct type) of this attribute
       #
-      attr_accessor :attribute_parent_type
+      attribute :attribute_parent_type
 
       #
-      # Tell whether a value is already of this type.
+      # True if this is an identity attribute.
       #
-      def implemented_by?(instance)
-        return true if !attribute_type
-        instance.nil? || instance.is_a?(attribute_type)
+      boolean_attribute :identity
+
+      #
+      # True if this attribute is required.
+      #
+      # Required identity attributes can be specified positionally in `open`,
+      # like so: `FileResource.open('/x/y.txt')` is equivalent to
+      # `FileResource.open(path: '/x/y.txt')`
+      #
+      # By default, this is false for most attributes, but true for identity
+      # attributes that have no default set.
+      #
+      boolean_attribute :required, default: "identity? && !defined?(@default)"
+
+      #
+      # The default value for things of this type.
+      #
+      # @param value The default value.  If this is a LazyProc, the block will
+      #   be run in the context of the struct (`struct.instance_eval`) unless
+      #   the block is explicitly set to `instance_eval: false`.
+      #
+      def default=(value)
+        default value
+      end
+      def default(value=NOT_PASSED, &block)
+        if block
+          @default = LazyProc.new(:instance_eval, &block)
+        elsif value == NOT_PASSED
+          @default
+        else
+          if value.is_a?(LazyProc)
+            # Flip on instance_eval if it's not set, so you can say
+            # default: lazy { ... } and it does the expected thing.
+            value.instance_eval = true if !value.instance_eval_set?
+          end
+          @default = value
+        end
       end
 
+      #
+      # A block which loads the attribute from reality.
+      #
+      # @param value The load proc.  If this is a LazyProc, the block will
+      #   be run in the context of the struct (`struct.instance_eval`) unless
+      #   the block is explicitly set to `instance_eval: false`.  If it is not,
+      #   it will always be instance_eval'd.
+      #
+      block_attribute :load_value
+
+      #
+      # Return a value of this type by coercion or construction.
+      #
+      # @param args The value to coerce or the values to construct with.
+      # @return A value of this Type.
+      #
       def coerce(*args)
         attribute_type.is_a?(ResourceType) ? attribute_type.coerce(*args) : super
       end
@@ -170,102 +222,6 @@ module Crazytown
           struct.log.load_value_failed(attribute_name, $!)
           raise
         end
-      end
-
-      #
-      # Set to true if this is an identity attribute.
-      #
-      def identity=(value)
-        @identity = value
-      end
-
-      #
-      # True if this is an identity attribute.
-      #
-      def identity?
-        @identity
-      end
-
-      #
-      # Set to false if this attribute is not required (defaults to true).
-      #
-      def required=(value)
-        @required = value
-      end
-
-      #
-      # True if this attribute is required.
-      #
-      # Required identity attributes can be specified positionally in `open`,
-      # like so: `FileResource.open('/x/y.txt')` is equivalent to
-      # `FileResource.open(path: '/x/y.txt')`
-      #
-      # By default, this is false for most attributes, but true for identity
-      # attributes that have no default set.
-      #
-      def required?
-        if defined?(@required)
-          @required
-        elsif identity? && !defined?(@default)
-          true
-        else
-          false
-        end
-      end
-
-      #
-      # The default value for things of this type.
-      #
-      # @param value The default value.  If this is a LazyProc, the block will
-      #   be run in the context of the struct (`struct.instance_eval`) unless
-      #   the block is explicitly set to `instance_eval: false`.
-      #
-      def default(value=NOT_PASSED, &block)
-        if block
-          @default = LazyProc.new(:instance_eval, &block)
-        elsif value == NOT_PASSED
-          @default
-        else
-          if value.is_a?(LazyProc)
-            # Flip on instance_eval if it's not set, so you can say
-            # default: lazy { ... } and it does the expected thing.
-            value.instance_eval = true if !value.instance_eval_set?
-          else
-            value = coerce(value)
-          end
-          @default = value
-        end
-      end
-      def default=(value)
-        default(value)
-      end
-
-      #
-      # A block which loads the attribute from reality.
-      #
-      # @param value The load proc.  If this is a LazyProc, the block will
-      #   be run in the context of the struct (`struct.instance_eval`) unless
-      #   the block is explicitly set to `instance_eval: false`.  If it is not,
-      #   it will always be instance_eval'd.
-      #
-      def load_value(value=NOT_PASSED, &block)
-        if block
-          @load_value = block
-        elsif value == NOT_PASSED
-          @load_value
-        else
-          if value.is_a?(LazyProc)
-            # Flip on instance_eval if it's not set, so you can say
-            # load_value: lazy { ... } and it does the expected thing.
-            value.instance_eval = true if !value.instance_eval_set?
-          else
-            value = coerce(value)
-          end
-          @load_value = value
-        end
-      end
-      def load_value=(value)
-        load_value(value)
       end
     end
   end

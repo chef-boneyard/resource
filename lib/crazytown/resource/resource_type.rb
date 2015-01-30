@@ -1,4 +1,4 @@
-require 'crazytown/resource/type'
+require 'crazytown/type'
 
 module Crazytown
   module Resource

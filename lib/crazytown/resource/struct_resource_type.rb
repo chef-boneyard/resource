@@ -149,6 +149,10 @@ module Crazytown
       #   properties of the struct to compute the value.  Value is *not* cached,
       #   but rather is called every time.
       #
+      # @example Attribute referencing a resource type by "snake case name"
+      #   class MyResource < StructResourceBase
+      #     attribute :blah, :my_resource
+      #   end
       # @example Typeless, optionless attribute.
       #   class MyResource < StructResourceBase
       #     attribute :simple
@@ -225,29 +229,22 @@ module Crazytown
       #   p = Person.open
       #   p.home_address = Address.open
       #
-      def attribute(name, type=nil, identity: nil, required: NOT_PASSED, default: NOT_PASSED, load_value: NOT_PASSED, value_must: NOT_PASSED, &override_block)
+      def attribute(name, type=nil, identity: nil, default: NOT_PASSED, required: NOT_PASSED, load_value: NOT_PASSED, **type_properties, &override_block)
+        parent = self
         name = name.to_sym
-
-        attribute_type = emit_attribute_type(name, type)
-        attribute_type.attribute_parent_type = self
-        attribute_type.attribute_name = name
-        attribute_type.attribute_type = type
-        attribute_type.identity = identity
-        attribute_type.default = default unless default == NOT_PASSED
-        attribute_type.required = required unless required == NOT_PASSED
-        attribute_type.load_value = load_value unless load_value == NOT_PASSED
-        attribute_type.must_be_kind_of type if type
-        if override_block
-          if attribute_type.is_a?(Module)
-            attribute_type.class_eval(&override_block)
-          else
-            attribute_type.instance_eval(&override_block)
-          end
+        result = self.type(name, type, **type_properties) do
+          extend StructAttributeType
+          self.attribute_parent_type parent
+          self.attribute_name name
+          self.identity identity
+          self.default default unless default == NOT_PASSED
+          self.required required unless required == NOT_PASSED
+          self.load_value load_value unless load_value == NOT_PASSED
+          instance_eval(&override_block) if override_block
         end
-
-        # Add the attribute type to the class and emit the getters / setters
-        attribute_types[name] = attribute_type
-        attribute_type.emit_attribute_methods
+        attribute_types[result.attribute_name] = result
+        result.emit_attribute_methods
+        result
       end
 
       #
@@ -274,20 +271,6 @@ module Crazytown
       #
       def identity_attribute_types
         attribute_types.values.select { |attr| attr.identity? }
-      end
-
-      #
-      # Creates a class named YourClass::AttributeName that corresponds to the
-      # attribute type.
-      #
-      def emit_attribute_type(name, type)
-        class_name = CamelCase.from_snake_case(name)
-        attribute_module = class_eval <<-EOM, __FILE__, __LINE__+1
-        module #{class_name}
-          extend ::Crazytown::Resource::StructAttributeType
-          self
-        end
-        EOM
       end
     end
   end
