@@ -600,4 +600,49 @@ describe Crazytown::Type do
       end
     end
   end
+
+  describe Crazytown::Type::StringType do
+    context "With a String attribute" do
+      with_attr String
+
+      it "Can be set to 'blah'" do
+        struct.attr = 'blah'
+        expect(struct.attr).to eq 'blah'
+      end
+      it "Can be set to :blah" do
+        struct.attr = :blah
+        expect(struct.attr).to eq 'blah'
+      end
+      it "Can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
+      it "Can be set to 1" do
+        struct.attr = 1
+        expect(struct.attr).to eq '1'
+      end
+    end
+  end
+
+  describe Crazytown::Type::SymbolType do
+    context "With a Symbol attribute" do
+      with_attr Symbol
+
+      it "Can be set to :blah" do
+        struct.attr = :blah
+        expect(struct.attr).to eq :blah
+      end
+      it "Can be set to 'blah'" do
+        struct.attr = 'blah'
+        expect(struct.attr).to eq :blah
+      end
+      it "Can be set to nil" do
+        struct.attr = nil
+        expect(struct.attr).to eq nil
+      end
+      it "Cannot be set to 1" do
+        expect { struct.attr = 1 }.to raise_error Crazytown::ValidationError
+      end
+    end
+  end
 end
