@@ -348,4 +348,256 @@ describe Crazytown::Type do
     end
   end
 
+  describe Crazytown::Type::URIType do
+    context "With a URI attribute" do
+      with_attr URI
+
+      it "can be set to 'https://blah.com'" do
+        struct.attr = 'https://blah.com'
+        expect(struct.attr.to_s).to eq 'https://blah.com'
+      end
+      it "can be set to 'https://blah.com/zztop'" do
+        struct.attr = 'https://blah.com/zztop'
+        expect(struct.attr.to_s).to eq 'https://blah.com/zztop'
+      end
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq '/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq '/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq 'x/y'
+      end
+      it "can be set to 'x/y/'" do
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq 'x/y/'
+      end
+      it "can be set to 'x'" do
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq 'x'
+      end
+      it "can be set to 'x/'" do
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq 'x/'
+      end
+      it "can be set to '//x/y/'" do
+        struct.attr = '//x/y/'
+        expect(struct.attr.to_s).to eq '//x/y/'
+      end
+      it "can be set to '/x//y/'" do
+        struct.attr = '/x//y/'
+        expect(struct.attr.to_s).to eq '/x//y/'
+      end
+      it "can be set to '/x/y//'" do
+        struct.attr = '/x/y//'
+        expect(struct.attr.to_s).to eq '/x/y//'
+      end
+    end
+
+    context "With a URI attribute relative to https://google.com/a/b" do
+      with_attr URI, relative_to: 'https://google.com/a/b'
+
+      it "can be set to 'https://blah.com'" do
+        struct.attr = 'https://blah.com'
+        expect(struct.attr.to_s).to eq 'https://blah.com'
+      end
+      it "can be set to 'https://blah.com/zztop'" do
+        struct.attr = 'https://blah.com/zztop'
+        expect(struct.attr.to_s).to eq 'https://blah.com/zztop'
+      end
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        pending
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/y'
+      end
+      it "can be set to 'x/y/'" do
+        pending
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/y/'
+      end
+      it "can be set to 'x'" do
+        pending
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x'
+      end
+      it "can be set to 'x/'" do
+        pending
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/'
+      end
+      it "can be set to '//x.com/y/'" do
+        struct.attr = '//x.com/y/'
+        expect(struct.attr.to_s).to eq 'https://x.com/y/'
+      end
+      it "can be set to 'x//y/'" do
+        pending
+        struct.attr = 'x//y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/y/'
+      end
+      it "can be set to 'x/y//'" do
+        pending
+        struct.attr = 'x/y//'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/y/'
+      end
+    end
+
+    context "With a URI attribute relative to https://google.com/a/b/" do
+      with_attr URI, relative_to: 'https://google.com/a/b/'
+
+      it "can be set to 'https://blah.com'" do
+        struct.attr = 'https://blah.com'
+        expect(struct.attr.to_s).to eq 'https://blah.com'
+      end
+      it "can be set to 'https://blah.com/zztop'" do
+        struct.attr = 'https://blah.com/zztop'
+        expect(struct.attr.to_s).to eq 'https://blah.com/zztop'
+      end
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/y'
+      end
+      it "can be set to 'x/y/'" do
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/y/'
+      end
+      it "can be set to 'x'" do
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x'
+      end
+      it "can be set to 'x/'" do
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/'
+      end
+      it "can be set to '//x.com/y/'" do
+        struct.attr = '//x.com/y/'
+        expect(struct.attr.to_s).to eq 'https://x.com/y/'
+      end
+      it "can be set to 'x//y/'" do
+        struct.attr = 'x//y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/y/'
+      end
+      it "can be set to 'x/y//'" do
+        struct.attr = 'x/y//'
+        expect(struct.attr.to_s).to eq 'https://google.com/a/b/x/y/'
+      end
+    end
+
+    context "With a URI attribute relative to https://google.com" do
+      with_attr URI, relative_to: 'https://google.com'
+
+      it "can be set to 'https://blah.com'" do
+        struct.attr = 'https://blah.com'
+        expect(struct.attr.to_s).to eq 'https://blah.com'
+      end
+      it "can be set to 'https://blah.com/zztop'" do
+        struct.attr = 'https://blah.com/zztop'
+        expect(struct.attr.to_s).to eq 'https://blah.com/zztop'
+      end
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y'
+      end
+      it "can be set to 'x/y/'" do
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+      it "can be set to 'x'" do
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq 'https://google.com/x'
+      end
+      it "can be set to 'x/'" do
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/'
+      end
+      it "can be set to '//x.com/y/'" do
+        struct.attr = '//x.com/y/'
+        expect(struct.attr.to_s).to eq 'https://x.com/y/'
+      end
+      it "can be set to 'x//y/'" do
+        struct.attr = 'x//y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+      it "can be set to 'x/y//'" do
+        struct.attr = 'x/y//'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+    end
+
+    context "With a URI attribute relative to https://google.com/" do
+      with_attr URI, relative_to: 'https://google.com/'
+
+      it "can be set to 'https://blah.com'" do
+        struct.attr = 'https://blah.com'
+        expect(struct.attr.to_s).to eq 'https://blah.com'
+      end
+      it "can be set to 'https://blah.com/zztop'" do
+        struct.attr = 'https://blah.com/zztop'
+        expect(struct.attr.to_s).to eq 'https://blah.com/zztop'
+      end
+      it "can be set to '/x/y'" do
+        struct.attr = '/x/y'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y'
+      end
+      it "can be set to '/x/y/'" do
+        struct.attr = '/x/y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+      it "can be set to 'x/y'" do
+        struct.attr = 'x/y'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y'
+      end
+      it "can be set to 'x/y/'" do
+        struct.attr = 'x/y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+      it "can be set to 'x'" do
+        struct.attr = 'x'
+        expect(struct.attr.to_s).to eq 'https://google.com/x'
+      end
+      it "can be set to 'x/'" do
+        struct.attr = 'x/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/'
+      end
+      it "can be set to '//x.com/y/'" do
+        struct.attr = '//x.com/y/'
+        expect(struct.attr.to_s).to eq 'https://x.com/y/'
+      end
+      it "can be set to 'x//y/'" do
+        struct.attr = 'x//y/'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+      it "can be set to 'x/y//'" do
+        struct.attr = 'x/y//'
+        expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
+      end
+    end
+  end
 end

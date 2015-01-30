@@ -269,7 +269,7 @@ module Crazytown
       case type
       when Type
         type_class = type
-      when Class
+      when Module
         instance_class = type
       when nil
       else
