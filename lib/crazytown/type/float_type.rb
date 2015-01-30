@@ -16,6 +16,8 @@ module Crazytown
         # TODO valid float regex
         if value.is_a?(String)
           value = value.to_f
+        elsif value.is_a?(Numeric)
+          value = value.to_f
         end
         super
       end

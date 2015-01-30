@@ -53,7 +53,7 @@ module Crazytown
 
       # Check must_be_kind_of
       if value && !must_be_kind_of.empty? && !must_be_kind_of.any? { |type| value.is_a?(type) }
-        raise ValidationError.new("must be a #{Crazytown.english_list('or', *must_be_kind_of)}", value)
+        raise ValidationError.new("must be a #{Crazytown.english_list(*must_be_kind_of, conjunction: 'or')}", value)
       end
 
       validators.each do |message, must_be_true|

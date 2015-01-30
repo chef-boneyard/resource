@@ -5,7 +5,7 @@ module Crazytown
     #
     # Handles Integer types.
     #
-    # Supports base and digits.
+    # Supports parse / to_s in bases other than 10.
     #
     class IntegerType
       extend Type
@@ -14,7 +14,11 @@ module Crazytown
 
       def self.coerce(value)
         # TODO valid int regex
-        if value.is_a?(String) && ((!base || base <= 10) && value =~ /^\d+$/)
+        if value.is_a?(String)
+          if !base_regexp.match(value)
+            raise ValidationError.new("must be a base #{base||10} value", value)
+          end
+
           if base
             value = value.to_i(base)
           else
@@ -26,14 +30,24 @@ module Crazytown
 
       def self.value_to_s(value)
         str = base ? value.to_s(base) : value.to_s
-        str = str.rjust(digits, '0') if digits
         str
+      end
+
+      def self.base_regexp
+        base = self.base || 10
+        if base <= 10
+          /^[0-#{base-1}]+$/
+        elsif base <= 36
+          top_char = ('a'.ord + base-11).chr
+          /^[0-9a-#{top_char}]+$/i
+        else
+          raise "Base #{base} strings not supported: nothing bigger than 36!"
+        end
       end
 
       class <<self
         extend SimpleStruct
         attribute :base
-        attribute :digits
       end
     end
   end
