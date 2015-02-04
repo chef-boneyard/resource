@@ -321,7 +321,6 @@ module Crazytown
       # Avoids comparing things that aren't modified in either struct.
       #
       def ==(other)
-        # TODO this might be wrong--what about attribute type subclasses?
         return false if !other.is_a?(self.class)
 
         # Try to rule out differences via explicit_values first (this should
@@ -331,7 +330,8 @@ module Crazytown
           return false if public_send(name) != other.public_send(name)
         end
 
-        # If one struct has more desired (set) values than the other,
+        # If one struct has more desired (set) values than the other, compare
+        # the values to the current/default on the other.
         (explicit_values.keys - other.explicit_values.keys).each do |name|
           return false if public_send(name) != other.public_send(name)
         end

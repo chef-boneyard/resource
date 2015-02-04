@@ -32,8 +32,8 @@ module Crazytown
       # - MyStruct.coerce(identity_attr, identity_attr2, ...) -> open(identity_attr, identity_attr2, ...)
       # - MyStruct.coerce() -> open()
       #
-      # TODO struct form:
-      # - MyStruct.coerce(struct_value) -> copy attributes off the struct
+      # Struct Form:
+      # - MyStruct.coerce(other_my_struct_instance)
       #
       def coerce(parent, *args)
         if args[-1].is_a?(Hash)
@@ -65,7 +65,7 @@ module Crazytown
 
           resource.resource_fully_defined
 
-          resource
+          super(parent, resource)
 
         elsif args.size == 1 && is_valid?(parent, args[0])
           # nil:
@@ -73,14 +73,15 @@ module Crazytown
           #
           # Resource of this type:
           # - MyStruct.coerce(x = MyStruct.open) -> x
-          args[0]
+          super(parent, args[0])
 
         else
           # Simple constructor form: identity parameters
           # - MyStruct.coerce(identity_attr) -> open(identity_attr)
           # - MyStruct.coerce(identity_attr, identity_attr2, ...) -> open(identity_attr, identity_attr2, ...)
           # - MyStruct.coerce() -> open()
-          open(*args)
+          super(parent, open(*args))
+
         end
       end
 

@@ -52,7 +52,7 @@ class Chef
       #
       Chef::DSL::Recipe.class_eval <<-EOM, __FILE__, __LINE__+1
         def #{resource_name}(*identity, &update_block)
-          # TODO let declare_resource take the resource class
+          # TODO fix Chef: let declare_resource take the resource class
           declare_resource(#{resource_name.inspect}, "", caller[0]) do
             define_identity(*identity)
             instance_eval(&update_block) if update_block
