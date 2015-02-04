@@ -325,7 +325,7 @@ module Crazytown
         URIType
 
       elsif instance_class <= Pathname
-        Path
+        PathnameType
 
       elsif instance_class <= DateTime
         DateTimeType

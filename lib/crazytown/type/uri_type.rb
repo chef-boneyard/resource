@@ -1,4 +1,5 @@
 require 'crazytown/type'
+require 'crazytown/simple_struct'
 require 'uri'
 
 module Crazytown
@@ -11,35 +12,22 @@ module Crazytown
     #
     class URIType
       extend Type
+      extend SimpleStruct
 
       must_be_kind_of URI
 
       def self.coerce(uri)
-        if uri.is_a?(String)
-          uri = URI.parse(uri)
-        end
-        uri = @relative_to + uri if uri && @relative_to
+        uri = coerce_non_relative(uri)
+        uri = relative_to + uri if uri && relative_to
         super
       end
-
-      def self.default(value=NOT_PASSED)
-        if value == NOT_PASSED && !defined?(@default)
-          relative_to
-        else
-          super
-        end
+      def self.coerce_non_relative(uri)
+        uri.is_a?(String) ? URI.parse(uri) : uri
       end
 
-      def self.relative_to=(uri)
-        relative_to uri
-      end
-
-      def self.relative_to(uri=NOT_PASSED)
-        if uri == NOT_PASSED
-          @relative_to
-        else
-          @relative_to = coerce(uri)
-        end
+      class <<self
+        extend SimpleStruct
+        attribute :relative_to, coerced: "coerce_non_relative(value)"
       end
     end
   end

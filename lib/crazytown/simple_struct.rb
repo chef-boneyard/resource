@@ -14,7 +14,7 @@ module Crazytown
     # Supports lazy values and asks for the superclass's value if the value has
     # not been set locally.
     #
-    def attribute(name, default: "nil")
+    def attribute(name, default: "nil", coerced: "value")
       module_eval <<-EOM, __FILE__, __LINE__+1
         def #{name}=(value)
           #{name} value
@@ -22,13 +22,19 @@ module Crazytown
         def #{name}(value=NOT_PASSED)
           if value == NOT_PASSED
             if defined?(@#{name})
-              @#{name}.is_a?(LazyProc) ? @#{name}.get(instance: self) : @#{name}
+              if @#{name}.is_a?(LazyProc)
+                value = @#{name}.get(instance: self)
+              else
+                value = @#{name}
+              end
+              value = #{coerced}
             elsif respond_to?(:superclass) && superclass.respond_to?(#{name.inspect})
-              superclass.#{name}
+              return superclass.#{name}
             else
-              #{default}
+              value = #{default}
             end
           else
+            value = #{coerced} unless value.is_a?(LazyProc)
             @#{name} = value
           end
         end
@@ -101,8 +107,8 @@ module Crazytown
     #
     # Create a boolean attribute with getter, setter and getter?.
     #
-    def boolean_attribute(name, default: "nil")
-      attribute(name, default: default)
+    def boolean_attribute(name, default: "nil", coerced: "value")
+      attribute(name, default: default, coerced: coerced)
       module_eval <<-EOM, __FILE__, __LINE__+1
         def #{name}?
           #{name}
