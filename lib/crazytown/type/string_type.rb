@@ -7,7 +7,7 @@ module Crazytown
 
       must_be_kind_of String
 
-      def self.coerce(value)
+      def self.coerce(parent, value)
         value = value.to_s unless value.nil?
         super
       end

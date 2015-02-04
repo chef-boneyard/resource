@@ -60,7 +60,7 @@ module Crazytown
       # @param args The value to coerce or the values to construct with.
       # @return A value of this Type.
       #
-      def coerce(*args)
+      def coerce(parent, *args)
         attribute_type.is_a?(ResourceType) ? attribute_type.coerce(*args) : super
       end
 
@@ -103,7 +103,7 @@ module Crazytown
         if args.size == 1 && args[0].is_a?(Crazytown::LazyProc)
           struct.explicit_values[attribute_name] = args[0]
         else
-          struct.explicit_values[attribute_name] = coerce(*args)
+          struct.explicit_values[attribute_name] = coerce(struct, *args)
         end
       end
 
@@ -113,17 +113,13 @@ module Crazytown
       # First tries to get the desired value.  If there is none, tries to get
       # the actual value from the struct.  If the actual value doesn't have
       # the value, it looks for a load_value method.  Finally, if that isn't
-      # there, it runs default_value.
+      # there, it runs default.
       #
       def get_attribute(struct)
         value = struct.explicit_values.fetch(attribute_name) do
           return base_attribute_value(struct)
         end
-        if value.is_a?(Crazytown::LazyProc)
-          coerce(value.get(instance: struct))
-        else
-          value
-        end
+        coerce_to_user(struct, value)
       end
 
       #
@@ -138,20 +134,9 @@ module Crazytown
         base_struct = struct.base_resource
         has_value, value = base_explicit_value(struct)
         if !has_value
-          value = default
+          value = default(parent: struct)
         end
-        delazify(struct, value)
-      end
-
-      #
-      # Expand values if they are lazy.  Used for final output of a value.
-      #
-      def delazify(struct, value)
-        if value.is_a?(Crazytown::LazyProc)
-          coerce(value.get(instance: struct))
-        else
-          value
-        end
+        coerce_to_user(struct, value)
       end
 
       #

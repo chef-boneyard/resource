@@ -257,44 +257,44 @@ describe Crazytown::Resource::StructResource do
         context "When MyResource has a primitive attribute that overrides coerce" do
           with_struct(:MyResource) do
             attribute :x, String do
-              def self.coerce(value)
+              def self.coerce(parent, value)
                 "#{value} is awesome"
               end
             end
           end
-          it "MyResource.coerce({ x: 1 }) yields { x: '1 is awesome' }" do
-            expect(MyResource.coerce({ x: 1 }).to_h(only_explicit: true)).to eq({ x: "1 is awesome" })
+          it "MyResource.coerce(nil, { x: 1 }) yields { x: '1 is awesome' }" do
+            expect(MyResource.coerce(nil, { x: 1 }).to_h(only_explicit: true)).to eq({ x: "1 is awesome" })
           end
         end
 
         context "When MyResource has an untyped attribute that overrides coerce" do
           with_struct(:MyResource) do
             attribute :x do
-              def self.coerce(value)
+              def self.coerce(parent, value)
                 "#{value} is awesome"
               end
             end
           end
-          it "MyResource.coerce({ x: 1 }) yields { x: '1 is awesome' }" do
-            expect(MyResource.coerce({ x: 1 }).to_h(only_explicit: true)).to eq({ x: "1 is awesome" })
+          it "MyResource.coerce(nil, { x: 1 }) yields { x: '1 is awesome' }" do
+            expect(MyResource.coerce(nil, { x: 1 }).to_h(only_explicit: true)).to eq({ x: "1 is awesome" })
           end
         end
 
         context "When MyResource has a resource typed attribute that overrides coerce" do
           with_struct(:MyResource) do
             attribute :x, MyResource do
-              def self.coerce(value)
+              def self.coerce(parent, value)
                 if value.is_a?(Integer)
                   x = value
                   value = MyResource.open
                   value.x "#{x} is awesome"
                 end
-                super(value)
+                super
               end
             end
           end
-          it "MyResource.coerce({ x: 1 }) yields MyResource{ x: '1 is awesome' }" do
-            r = MyResource.coerce({ x: 1 })
+          it "MyResource.coerce(nil, { x: 1 }) yields MyResource{ x: '1 is awesome' }" do
+            r = MyResource.coerce(nil, { x: 1 })
             expect(r.x).to be_kind_of(MyResource)
             expect(r.x.to_h(only_explicit: true)).to eq({ x: "1 is awesome" })
           end
@@ -313,19 +313,19 @@ describe Crazytown::Resource::StructResource do
             end
             attribute :run_count, Integer, default: 0
           end
-          it "MyResource.coerce({x: 1}) succeeds" do
-            expect(MyResource.coerce({ x: 1 }).to_h(only_explicit: true)).to eq({ x: 1 })
+          it "MyResource.coerce(nil, {x: 1}) succeeds" do
+            expect(MyResource.coerce(nil, { x: 1 }).to_h(only_explicit: true)).to eq({ x: 1 })
             expect(MyResource::X.run_count).to eq 1
           end
-          it "MyResource.coerce({x: nil}) succeeds" do
-            expect(MyResource.coerce({ x: nil }).to_h(only_explicit: true)).to eq({ x: nil })
+          it "MyResource.coerce(nil, {x: nil}) succeeds" do
+            expect(MyResource.coerce(nil, { x: nil }).to_h(only_explicit: true)).to eq({ x: nil })
             expect(MyResource::X.run_count).to eq 0
           end
-          it "MyResource.coerce({x: 11}) fails" do
-            expect { MyResource.coerce({ x: 11 }).to_h }.to raise_error(Crazytown::ValidationError)
+          it "MyResource.coerce(nil, {x: 11}) fails" do
+            expect { MyResource.coerce(nil, { x: 11 }).to_h }.to raise_error(Crazytown::ValidationError)
           end
-          it "MyResource.coerce({}) never runs it" do
-            expect(MyResource.coerce({}).to_h(only_explicit: true)).to eq({})
+          it "MyResource.coerce(nil, {}) never runs it" do
+            expect(MyResource.coerce(nil, {}).to_h(only_explicit: true)).to eq({})
             expect(MyResource::X.run_count).to eq 0
           end
         end
@@ -403,30 +403,30 @@ describe Crazytown::Resource::StructResource do
       end
 
       context "multi-arg form" do
-        it "coerce(1, 2) yields a=1,b=2" do
-          expect(MyResource.coerce(1, 2).to_h(only_explicit: true)).to eq({ a: 1, b: 2 })
+        it "coerce(nil, 1, 2) yields a=1,b=2" do
+          expect(MyResource.coerce(nil, 1, 2).to_h(only_explicit: true)).to eq({ a: 1, b: 2 })
         end
-        it "coerce(1, 2, c: 3, d: 4) yields a=1, b=2, c=3, d=4" do
-          expect(MyResource.coerce(1, 2, c: 3, d: 4).to_h(only_explicit: true)).to eq({ a: 1, b: 2, c: 3, d: 4 })
+        it "coerce(nil, 1, 2, c: 3, d: 4) yields a=1, b=2, c=3, d=4" do
+          expect(MyResource.coerce(nil, 1, 2, c: 3, d: 4).to_h(only_explicit: true)).to eq({ a: 1, b: 2, c: 3, d: 4 })
         end
       end
       context "hash form" do
-        it "coerce(a: 1, b: 2) yields a=1, b=2" do
-          expect(MyResource.coerce(a: 1, b: 2).to_h(only_explicit: true)).to eq({ a: 1, b: 2 })
+        it "coerce(nil, a: 1, b: 2) yields a=1, b=2" do
+          expect(MyResource.coerce(nil, a: 1, b: 2).to_h(only_explicit: true)).to eq({ a: 1, b: 2 })
         end
-        it "coerce(a: 1, b: 2, c: 3, d: 4) yields a=1, b=2, c=3, d=4" do
-          expect(MyResource.coerce(a: 1, b: 2, c: 3, d: 4).to_h(only_explicit: true)).to eq({ a: 1, b: 2, c: 3, d: 4 })
+        it "coerce(nil, a: 1, b: 2, c: 3, d: 4) yields a=1, b=2, c=3, d=4" do
+          expect(MyResource.coerce(nil, a: 1, b: 2, c: 3, d: 4).to_h(only_explicit: true)).to eq({ a: 1, b: 2, c: 3, d: 4 })
         end
-        it "coerce(c: 3, d: 4) fails" do
-          expect { MyResource.coerce(c: 3, d: 4) }.to raise_error(ArgumentError)
+        it "coerce(nil, c: 3, d: 4) fails" do
+          expect { MyResource.coerce(nil, c: 3, d: 4) }.to raise_error(ArgumentError)
         end
       end
-      it "coerce(another resource) yields that resource" do
+      it "coerce(nil, another resource) yields that resource" do
         x = MyResource.open(1,2)
-        expect(MyResource.coerce(x).object_id).to eq x.object_id
+        expect(MyResource.coerce(nil, x).object_id).to eq x.object_id
       end
-      it "coerce(nil) yields nil" do
-        expect(MyResource.coerce(nil)).to be_nil
+      it "coerce(nil, nil) yields nil" do
+        expect(MyResource.coerce(nil, nil)).to be_nil
       end
     end
   end
@@ -505,24 +505,24 @@ describe Crazytown::Resource::StructResource do
           attribute :n2, Integer
         end
 
-        it "coerce(s1: 'hi', n1: 1, s2: 'lo', n2: 2) succeeds" do
-          expect(MyResource.coerce(s1: 'hi', n1: 1, s2: 'lo', n2: 2).to_h(only_explicit: true)).to eq(s1: 'hi', n1: 1, s2: 'lo', n2: 2)
+        it "coerce(nil, s1: 'hi', n1: 1, s2: 'lo', n2: 2) succeeds" do
+          expect(MyResource.coerce(nil, s1: 'hi', n1: 1, s2: 'lo', n2: 2).to_h(only_explicit: true)).to eq(s1: 'hi', n1: 1, s2: 'lo', n2: 2)
         end
 
-        it "coerce(s1: nil, n1: nil, s2: nil, n2: nil) succeeds" do
-          expect(MyResource.coerce(s1: nil, n1: nil, s2: nil, n2: nil).to_h(only_explicit: true)).to eq(s1: nil, n1: nil, s2: nil, n2: nil)
+        it "coerce(nil, s1: nil, n1: nil, s2: nil, n2: nil) succeeds" do
+          expect(MyResource.coerce(nil, s1: nil, n1: nil, s2: nil, n2: nil).to_h(only_explicit: true)).to eq(s1: nil, n1: nil, s2: nil, n2: nil)
         end
 
-        it "coerce(s1: 'hi', n1: 1) succeeds" do
-          expect(MyResource.coerce(s1: 'hi', n1: 1).to_h(only_explicit: true)).to eq(s1: 'hi', n1: 1)
+        it "coerce(nil, s1: 'hi', n1: 1) succeeds" do
+          expect(MyResource.coerce(nil, s1: 'hi', n1: 1).to_h(only_explicit: true)).to eq(s1: 'hi', n1: 1)
         end
 
-        it "coerce(s1: 'hi', n1: 'lo') fails" do
-          expect { MyResource.coerce(s1: 'hi', n1: 'lo') }.to raise_error(Crazytown::ValidationError)
+        it "coerce(nil, s1: 'hi', n1: 'lo') fails" do
+          expect { MyResource.coerce(nil, s1: 'hi', n1: 'lo') }.to raise_error(Crazytown::ValidationError)
         end
 
-        it "coerce(s1: 'hi', n1: 'lo') fails" do
-          expect { MyResource.coerce(s1: 'hi', n1: 'lo') }.to raise_error(Crazytown::ValidationError)
+        it "coerce(nil, s1: 'hi', n1: 'lo') fails" do
+          expect { MyResource.coerce(nil, s1: 'hi', n1: 'lo') }.to raise_error(Crazytown::ValidationError)
         end
       end
     end
@@ -534,33 +534,33 @@ describe Crazytown::Resource::StructResource do
             "outside.x"
           end
           attribute :x, default: "instance.x" do
-            def self.coerce(value)
+            def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
           attribute :default_no_params, default: Crazytown::LazyProc.new { "#{x} lazy_default" } do
-            def self.coerce(value)
+            def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
           attribute :default_instance_eval_symbol, default: Crazytown::LazyProc.new(:instance_eval) { "#{x} lazy_default" } do
-            def self.coerce(value)
+            def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
           attribute :default_instance_eval_true, default: Crazytown::LazyProc.new(instance_eval: true) { "#{x} lazy_default" } do
-            def self.coerce(value)
+            def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
           attribute :default_instance_eval_false, default: Crazytown::LazyProc.new(instance_eval: false) { "#{x} lazy_default" } do
-            def self.coerce(value)
+            def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
           attribute :default_block do
             default { "#{x} lazy_default" }
-            def self.coerce(value)
+            def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
@@ -570,15 +570,15 @@ describe Crazytown::Resource::StructResource do
 
         it "lazy default does instance_eval and coerces" do
           r = MyResource.open
-          expect(r.default_no_params).to eq "coerce(instance.x lazy_default)"
+          expect(r.default_no_params).to eq "coerce(coerce(instance.x) lazy_default)"
         end
         it "lazy default with :instance_eval does instance_eval and coerces" do
           r = MyResource.open
-          expect(r.default_instance_eval_symbol).to eq "coerce(instance.x lazy_default)"
+          expect(r.default_instance_eval_symbol).to eq "coerce(coerce(instance.x) lazy_default)"
         end
         it "lazy default with instance_eval: true does instance_eval and coerces" do
           r = MyResource.open
-          expect(r.default_instance_eval_true).to eq "coerce(instance.x lazy_default)"
+          expect(r.default_instance_eval_true).to eq "coerce(coerce(instance.x) lazy_default)"
         end
         it "lazy default with instance_eval: false does not do instance_eval, and coerces" do
           r = MyResource.open
@@ -586,7 +586,7 @@ describe Crazytown::Resource::StructResource do
         end
         it "default block does instance_eval and coerces" do
           r = MyResource.open
-          expect(r.default_block).to eq "coerce(instance.x lazy_default)"
+          expect(r.default_block).to eq "coerce(coerce(instance.x) lazy_default)"
         end
 
         def z

@@ -35,7 +35,7 @@ module Crazytown
       # TODO struct form:
       # - MyStruct.coerce(struct_value) -> copy attributes off the struct
       #
-      def coerce(*args)
+      def coerce(parent, *args)
         if args[-1].is_a?(Hash)
           #
           # Constructor form: required identity parameters first, and then non-required attributes in a hash.

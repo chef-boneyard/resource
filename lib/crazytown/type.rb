@@ -1,5 +1,6 @@
 require 'crazytown/errors'
 require 'crazytown/simple_struct'
+require 'crazytown/lazy_proc'
 
 module Crazytown
   module Type
@@ -11,14 +12,35 @@ module Crazytown
     # this will return a non-open Resource.  For a primitive, it casts the
     # value to the right type.
     #
+    # @param parent The parent context which is asking for the value
+    #    (for a struct, the parent is the struct)
+    #
     # @return A value which:
     # - Implements the desired type
     # - May or may not be open (depends on whether it's a reference or not)
     # - May have any and all values set (not just identity values, unlike get)
     #
-    def coerce(value)
+    def coerce(parent, value)
       validate(value)
       value
+    end
+
+    #
+    # Take the raw (stored) value and coerce it to a value (used when the user
+    # asks for an attribute or other value).  The default implementation simply
+    # delazifies the value (and coerces/validates it if it is lazy).
+    #
+    # @return A value which:
+    # - Implements the desired type
+    # - May or may not be open (depends on whether it's a reference or not)
+    # - May have any and all values set (not just identity values, unlike get)
+    #
+    def coerce_to_user(parent, value)
+      if value.is_a?(Crazytown::LazyProc)
+        coerce(parent, value.get(instance: parent))
+      else
+        value
+      end
     end
 
     #
@@ -49,6 +71,10 @@ module Crazytown
         else
           raise ValidationError.new("must not be null", value)
         end
+      end
+
+      if value.is_a?(LazyProc)
+
       end
 
       # Check must_be_kind_of
@@ -132,6 +158,7 @@ module Crazytown
       end
     end
 
+    extend SimpleStruct
 
     #
     # The default value for things of this type.
@@ -140,23 +167,7 @@ module Crazytown
     #   be run in the context of the struct (`struct.instance_eval`) unless
     #   the block is explicitly set to `instance_eval: false`.
     #
-    def default=(value)
-      default value
-    end
-    def default(value=NOT_PASSED, &block)
-      if block
-        @default = LazyProc.new(:instance_eval, &block)
-      elsif value == NOT_PASSED
-        @default
-      else
-        if value.is_a?(LazyProc)
-          # Flip on instance_eval if it's not set, so you can say
-          # default: lazy { ... } and it does the expected thing.
-          value.instance_eval = true if !value.instance_eval_set?
-        end
-        @default = value
-      end
-    end
+    attribute :default, coerced: "coerce(parent, value)"
 
     #
     # Turn the value into a string in just the context of this Type.

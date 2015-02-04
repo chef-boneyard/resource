@@ -13,19 +13,21 @@ module Crazytown
 
       must_be_kind_of String
 
-      def self.coerce(path)
-        path = coerce_non_relative(path)
-        path = (Pathname.new(relative_to) + path).to_s if path && relative_to
-        super
-      end
-
-      def self.coerce_non_relative(path)
-        path.is_a?(Pathname) ? path.to_s : path
-      end
-
       class <<self
         extend SimpleStruct
-        attribute :relative_to, coerced: "coerce_non_relative(value)"
+        attribute :relative_to, coerced: "value.is_a?(Pathname) ? value.to_s : value"
+      end
+
+      def self.coerce(parent, path)
+        if path
+          rel = relative_to(parent: parent)
+          if rel
+            path = (Pathname.new(rel) + path).to_s
+          else
+            path = path.to_s if path.is_a?(Pathname)
+          end
+        end
+        super
       end
     end
   end

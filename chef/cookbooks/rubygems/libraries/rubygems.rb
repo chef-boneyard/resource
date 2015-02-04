@@ -42,7 +42,7 @@ Crazytown.resource :rubygems do
 
     # handle user setting the value to 1a4dfb9827dad498aaa234982374239e directly
     # or loading the correct profile
-    def self.coerce(value)
+    def self.coerce(parent, value)
       value = value.to_s
       if value =~ /^[0-9a-fA-F]{32}$/
         value

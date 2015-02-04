@@ -12,7 +12,7 @@ module Crazytown
 
       must_be_kind_of Integer
 
-      def self.coerce(value)
+      def self.coerce(parent, value)
         # TODO valid int regex
         if value.is_a?(String)
           if !base_regexp.match(value)

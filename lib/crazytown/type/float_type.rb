@@ -12,7 +12,7 @@ module Crazytown
 
       must_be_kind_of Float
 
-      def self.coerce(value)
+      def self.coerce(parent, value)
         # TODO valid float regex
         if value.is_a?(String)
           value = value.to_f

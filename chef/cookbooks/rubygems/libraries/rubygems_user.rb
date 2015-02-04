@@ -27,7 +27,7 @@ Crazytown.resource :rubygems_user do
     end
   end
 
-  def self.coerce(value)
+  def self.coerce(parent, value)
     if value.is_a?(String)
       if value.index('@')
         super(email: value)

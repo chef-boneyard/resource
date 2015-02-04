@@ -7,7 +7,7 @@ module Crazytown
 
       must_be_kind_of Symbol
 
-      def self.coerce(value)
+      def self.coerce(parent, value)
         if value.respond_to?(:to_sym)
           value = value.to_sym
         end

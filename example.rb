@@ -27,7 +27,7 @@ bar.x         # Bar::X.uncoerce(bar) -> bar.updates.fetch(:x) { Bar::X.default }
 bar.x = 10    # bar.create do
               #   x = 10
               # end
-updates[:x] = X.coerce(bar, 10)
+updates[:x] = X.coerce(x, bar, 10)
 if bar.is_set?(:x)
 end
 if foo.is_set?(:bar)

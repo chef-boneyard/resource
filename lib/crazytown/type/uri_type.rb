@@ -16,7 +16,7 @@ module Crazytown
 
       must_be_kind_of URI
 
-      def self.coerce(uri)
+      def self.coerce(parent, uri)
         uri = coerce_non_relative(uri)
         uri = relative_to + uri if uri && relative_to
         super

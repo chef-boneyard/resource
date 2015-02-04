@@ -12,18 +12,21 @@ module Crazytown
     # and equal setter (struct.name = value).
     #
     # Supports lazy values and asks for the superclass's value if the value has
-    # not been set locally.
+    # not been set locally.  Also flips on instance_eval automatically for lazy
+    # procs.
     #
     def attribute(name, default: "nil", coerced: "value")
       module_eval <<-EOM, __FILE__, __LINE__+1
         def #{name}=(value)
           #{name} value
         end
-        def #{name}(value=NOT_PASSED)
-          if value == NOT_PASSED
+        def #{name}(value=NOT_PASSED, parent: self, &block)
+          if block
+            @#{name} = Crazytown::LazyProc.new(instance_eval: true, &block)
+          elsif value == NOT_PASSED
             if defined?(@#{name})
               if @#{name}.is_a?(LazyProc)
-                value = @#{name}.get(instance: self)
+                value = @#{name}.get(instance: parent)
               else
                 value = @#{name}
               end
@@ -33,9 +36,13 @@ module Crazytown
             else
               value = #{default}
             end
-          else
-            value = #{coerced} unless value.is_a?(LazyProc)
+          elsif value.is_a?(LazyProc)
+            # Flip on instance_eval if it's not set, so you can say
+            # default: lazy { ... } and it does the expected thing.
+            value.instance_eval = true if !value.instance_eval_set?
             @#{name} = value
+          else
+            @#{name} = #{coerced}
           end
         end
       EOM
@@ -60,7 +67,7 @@ module Crazytown
     #   struct.attr = proc { do stuff here }
     #   struct.attr = lazy { do stuff here }
     #
-    def block_attribute(name)
+    def block_attribute(name, coerced: "value")
       module_eval <<-EOM, __FILE__, __LINE__+1
         def #{name}=(value)
           #{name} value
@@ -76,15 +83,13 @@ module Crazytown
             else
               nil
             end
-          else
-            if value.is_a?(LazyProc)
-              # Flip on instance_eval if it's not set, so you can say
-              # default: lazy { ... } and it does the expected thing.
-              value.instance_eval = true if !value.instance_eval_set?
-            elsif !value.is_a?(Proc)
-              raise ArgumentError, "#{name} must be set to a Proc or LazyProc: caller tried to set #{name} to \#{value}"
-            end
+          elsif value.is_a?(LazyProc)
+            # Flip on instance_eval if it's not set, so you can say
+            # default: lazy { ... } and it does the expected thing.
+            value.instance_eval = true if !value.instance_eval_set?
             @#{name} = value
+          else
+            @#{name} = #{coerced}
           end
         end
       EOM

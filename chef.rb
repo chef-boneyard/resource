@@ -160,7 +160,7 @@ resource :chef do
     coerce
 
     # This is where we do the magic of converting user input to
-    def self.coerce(*args)
+    def self.coerce(parent, *args)
       if value.nil?
         if args.empty?
         value
@@ -172,7 +172,7 @@ resource :chef do
 
 
       elsif !value.nil?
-        uri = UriType.coerce(value)
+        uri = UriType.coerce(parent, value)
         case uri.scheme
         when 'file'
           ChefRepositorySource.open(uri, *args, **named_args)
