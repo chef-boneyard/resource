@@ -75,7 +75,6 @@ describe Crazytown::Type do
         expect { struct.attr = {} }.to raise_error Crazytown::ValidationError
       end
       it "cannot be set to 'blargh'" do
-        pending
         expect { struct.attr = 'true' }.to raise_error Crazytown::ValidationError
       end
     end
