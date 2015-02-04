@@ -203,52 +203,54 @@ describe Crazytown::Type do
       end
     end
 
-    context "With a Path attribute with attr_default=c/d and default: Crazytown::LazyProc.new { attr_default }" do
-      with_struct do
-        attribute :attr_default, Crazytown::Type::Path
-        attribute :attr, Crazytown::Type::Path, default: Crazytown::LazyProc.new { attr_default }
+    context "Lazy" do
+      context "With a Path attribute with attr_default=c/d and default: Crazytown::LazyProc.new { attr_default }" do
+        with_struct do
+          attribute :attr_default, Crazytown::Type::Path
+          attribute :attr, Crazytown::Type::Path, default: Crazytown::LazyProc.new { attr_default }
+        end
+        before :each do
+          struct.attr_default 'c/d'
+        end
+        it "Defaults to c/d" do
+          expect(struct.attr).to eq 'c/d'
+        end
       end
-      before :each do
-        struct.attr_default 'c/d'
-      end
-      it "Defaults to c/d" do
-        expect(struct.attr).to eq 'c/d'
-      end
-    end
 
-    context "With a Path attribute with rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }" do
-      with_struct do
-        attribute :rel, Crazytown::Type::Path
-        attribute :attr, Crazytown::Type::Path, relative_to: Crazytown::LazyProc.new { rel }
+      context "With a Path attribute with rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }" do
+        with_struct do
+          attribute :rel, Crazytown::Type::Path
+          attribute :attr, Crazytown::Type::Path, relative_to: Crazytown::LazyProc.new { rel }
+        end
+        before :each do
+          struct.rel = '/a/b'
+        end
+        it "Defaults to nil" do
+          expect(struct.attr).to be_nil
+        end
+        it "Relativizes c/d" do
+          struct.attr = 'c/d'
+          expect(struct.attr).to eq '/a/b/c/d'
+        end
       end
-      before :each do
-        struct.rel = '/a/b'
-      end
-      it "Defaults to nil" do
-        expect(struct.attr).to be_nil
-      end
-      it "Relativizes c/d" do
-        struct.attr = 'c/d'
-        expect(struct.attr).to eq '/a/b/c/d'
-      end
-    end
 
-    context "With a Path attribute attr_default=c/d, rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }, and default: Crazytown::LazyProc.new { attr_default }" do
-      with_struct do
-        attribute :attr_default, Crazytown::Type::Path
-        attribute :rel, Crazytown::Type::Path
-        attribute :attr, Crazytown::Type::Path, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }
-      end
-      before :each do
-        struct.attr_default 'c/d'
-        struct.rel '/a/b'
-      end
-      it "Defaults to /a/b/c/d" do
-        expect(struct.attr).to eq '/a/b/c/d'
-      end
-      it "Relativizes foo/bar" do
-        struct.attr = 'foo/bar'
-        expect(struct.attr).to eq '/a/b/foo/bar'
+      context "With a Path attribute attr_default=c/d, rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }, and default: Crazytown::LazyProc.new { attr_default }" do
+        with_struct do
+          attribute :attr_default, Crazytown::Type::Path
+          attribute :rel, Crazytown::Type::Path
+          attribute :attr, Crazytown::Type::Path, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }
+        end
+        before :each do
+          struct.attr_default 'c/d'
+          struct.rel '/a/b'
+        end
+        it "Defaults to /a/b/c/d" do
+          expect(struct.attr).to eq '/a/b/c/d'
+        end
+        it "Relativizes foo/bar" do
+          struct.attr = 'foo/bar'
+          expect(struct.attr).to eq '/a/b/foo/bar'
+        end
       end
     end
 
@@ -488,6 +490,57 @@ describe Crazytown::Type do
       it "can be set to '/x/y//'" do
         struct.attr = '/x/y//'
         expect(struct.attr.to_s).to eq '/x/y//'
+      end
+    end
+
+    context "Lazy" do
+      context "With a Pathname attribute with attr_default=c/d and default: Crazytown::LazyProc.new { attr_default }" do
+        with_struct do
+          attribute :attr_default, Pathname
+          attribute :attr, Pathname, default: Crazytown::LazyProc.new { attr_default }
+        end
+        before :each do
+          struct.attr_default 'c/d'
+        end
+        it "Defaults to c/d" do
+          expect(struct.attr).to eq Pathname.new('c/d')
+        end
+      end
+
+      context "With a Pathname attribute with rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }" do
+        with_struct do
+          attribute :rel, Pathname
+          attribute :attr, Pathname, relative_to: Crazytown::LazyProc.new { rel }
+        end
+        before :each do
+          struct.rel = '/a/b'
+        end
+        it "Defaults to nil" do
+          expect(struct.attr).to be_nil
+        end
+        it "Relativizes c/d" do
+          struct.attr = 'c/d'
+          expect(struct.attr).to eq Pathname.new('/a/b/c/d')
+        end
+      end
+
+      context "With a Pathname attribute attr_default=c/d, rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }, and default: Crazytown::LazyProc.new { attr_default }" do
+        with_struct do
+          attribute :attr_default, Pathname
+          attribute :rel, Pathname
+          attribute :attr, Pathname, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }
+        end
+        before :each do
+          struct.attr_default 'c/d'
+          struct.rel '/a/b'
+        end
+        it "Defaults to /a/b/c/d" do
+          expect(struct.attr).to eq Pathname.new('/a/b/c/d')
+        end
+        it "Relativizes foo/bar" do
+          struct.attr = 'foo/bar'
+          expect(struct.attr).to eq Pathname.new('/a/b/foo/bar')
+        end
       end
     end
 
@@ -741,6 +794,57 @@ describe Crazytown::Type do
       end
     end
 
+    context "Lazy" do
+      context "With a URI attribute with attr_default=c/d and default: Crazytown::LazyProc.new { attr_default }" do
+        with_struct do
+          attribute :attr_default, URI
+          attribute :attr, URI, default: Crazytown::LazyProc.new { attr_default }
+        end
+        before :each do
+          struct.attr_default 'c/d'
+        end
+        it "Defaults to c/d" do
+          expect(struct.attr.to_s).to eq 'c/d'
+        end
+      end
+
+      context "With a URI attribute with rel=https://google.com and relative_to: Crazytown::LazyProc.new { rel }" do
+        with_struct do
+          attribute :rel, URI
+          attribute :attr, URI, relative_to: Crazytown::LazyProc.new { rel }
+        end
+        before :each do
+          struct.rel = 'https://google.com'
+        end
+        it "Defaults to nil" do
+          expect(struct.attr).to be_nil
+        end
+        it "Relativizes c/d" do
+          struct.attr = 'c/d'
+          expect(struct.attr.to_s).to eq 'https://google.com/c/d'
+        end
+      end
+
+      context "With a URI attribute attr_default=c/d, rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }, and default: Crazytown::LazyProc.new { attr_default }" do
+        with_struct do
+          attribute :attr_default, URI
+          attribute :rel, URI
+          attribute :attr, URI, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }
+        end
+        before :each do
+          struct.attr_default 'c/d'
+          struct.rel 'https://google.com'
+        end
+        it "Defaults to https://google.com/c/d" do
+          expect(struct.attr.to_s).to eq 'https://google.com/c/d'
+        end
+        it "Relativizes foo/bar" do
+          struct.attr = 'foo/bar'
+          expect(struct.attr.to_s).to eq 'https://google.com/foo/bar'
+        end
+      end
+    end
+
     context "With a URI attribute relative to https://google.com/a/b" do
       with_attr URI, relative_to: 'https://google.com/a/b'
 
@@ -914,9 +1018,6 @@ describe Crazytown::Type do
         expect(struct.attr.to_s).to eq 'https://google.com/x/y/'
       end
     end
-
-    # TODO add defaults tests for URI and Pathname
-    # TODO add tests for setting actual values to lazy
 
     context "With a URI attribute relative to https://google.com/" do
       with_attr URI, relative_to: 'https://google.com/'

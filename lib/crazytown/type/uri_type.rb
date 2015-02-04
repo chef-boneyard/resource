@@ -17,17 +17,20 @@ module Crazytown
       must_be_kind_of URI
 
       def self.coerce(parent, uri)
-        uri = coerce_non_relative(uri)
-        uri = relative_to + uri if uri && relative_to
+        if uri
+          rel = relative_to(parent: parent)
+          if rel
+            uri = rel + uri
+          else
+            uri = URI.parse(uri) if uri.is_a?(String)
+          end
+        end
         super
-      end
-      def self.coerce_non_relative(uri)
-        uri.is_a?(String) ? URI.parse(uri) : uri
       end
 
       class <<self
         extend SimpleStruct
-        attribute :relative_to, coerced: "coerce_non_relative(value)"
+        attribute :relative_to, coerced: "value.is_a?(String) ? URI.parse(value) : value"
       end
     end
   end

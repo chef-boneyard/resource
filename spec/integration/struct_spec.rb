@@ -329,21 +329,6 @@ describe Crazytown::Resource::StructResource do
             expect(MyResource::X.run_count).to eq 0
           end
         end
-
-        context "When MyResource has an override that sets default" do
-        end
-        context "When MyResource has an override that sets identity" do
-        end
-        context "When MyResource has an override that sets required" do
-        end
-        context "When MyResource has an override that sets attribute_type" do
-        end
-        context "When MyResource has an override that sets attribute_name" do
-        end
-        context "When MyResource has an override that sets attribute_parent_type" do
-        end
-        context "When MyResource has an override that sets load" do
-        end
       end
     end
 
