@@ -117,22 +117,22 @@ module Crazytown
       #
       def get_attribute(struct)
         value = struct.explicit_values.fetch(attribute_name) do
-          return base_attribute_value(struct)
+          return current_attribute_value(struct)
         end
         coerce_to_user(struct, value)
       end
 
       #
-      # Get the base attribute value from the struct (i.e. the value not
+      # Get the current attribute value from the struct (i.e. the value not
       # counting anything the user has actually set--including actual value
       # and default value).
       #
       # @param struct The struct we're loading from
       #
-      def base_attribute_value(struct)
-        # Try to grab a known (non-default) value from base_resource
-        base_struct = struct.base_resource
-        has_value, value = base_explicit_value(struct)
+      def current_attribute_value(struct)
+        # Try to grab a known (non-default) value from current_resource
+        current_struct = struct.current_resource
+        has_value, value = explicit_current_attribute_value(struct)
         if !has_value
           value = default(parent: struct)
         end
@@ -140,22 +140,22 @@ module Crazytown
       end
 
       #
-      # Ensure the base value of the attribute is loaded and set.
+      # Ensure the current value of the attribute is loaded and set.
       #
       # @param struct The struct we're loading from
-      # @return [Boolean, Value] `true, <value>` if the base_resource exists and has that explicit value, `false, nil` if not
+      # @return [Boolean, Value] `true, <value>` if the current_resource exists and has that explicit value, `false, nil` if not
       # @raise Any error raised by load_value or load will pass through.
       #
-      def base_explicit_value(struct)
-        if !struct.base_resource || !struct.resource_exists?
+      def explicit_current_attribute_value(struct)
+        if !struct.current_resource || !struct.resource_exists?
           return [ false, nil ]
         end
 
-        base_struct = struct.base_resource
+        current_struct = struct.current_resource
 
         # First, check quickly if we already have it.
-        if base_struct.explicit_values.has_key?(attribute_name)
-          return [ true, base_struct.public_send(attribute_name) ]
+        if current_struct.explicit_values.has_key?(attribute_name)
+          return [ true, current_struct.public_send(attribute_name) ]
         end
 
         # Since we were already brought up, we must already be loaded, yet the
@@ -167,14 +167,14 @@ module Crazytown
         struct.log.load_value_started(attribute_name)
 
         begin
-          value = load_value.get(instance: base_struct, instance_eval_by_default: true)
+          value = load_value.get(instance: current_struct, instance_eval_by_default: true)
           # Set the value (if it gets coerced, catch the result)
-          value = base_struct.public_send(attribute_name, value)
+          value = current_struct.public_send(attribute_name, value)
           struct.log.load_value_succeeded(attribute_name)
           return [ true, value ]
         rescue
           # short circuit this from happening again
-          base_struct.explicit_values[attribute_name] = nil
+          current_struct.explicit_values[attribute_name] = nil
           struct.log.load_value_failed(attribute_name, $!)
           raise
         end

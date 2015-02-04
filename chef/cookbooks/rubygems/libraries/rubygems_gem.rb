@@ -18,7 +18,7 @@ Crazytown.resource :rubygems_gem do
 
   recipe do
     converge :owners do
-      current_emails = base_resource.owners.map { |owner| owner.email }
+      current_emails = current_resource.owners.map { |owner| owner.email }
       new_emails = owners.map { |owner| owner.email }
 
       # Add new owners

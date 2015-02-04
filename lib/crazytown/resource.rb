@@ -98,14 +98,14 @@ module Crazytown
   # A Resource generally goes through these phases (represented by resource_state):
   # 1. :created - the Resource object has been created but its identity values are
   #    not yet filled in.  Because the identity is not yet complete,
-  #    `base_resource` cannot be retrieved: defaults and actual loaded values
+  #    `current_resource` cannot be retrieved: defaults and actual loaded values
   #    are unavailable.
   # 2. :identity_defined - The identity of this Resource--the information needed to be
   #    able to retrieve its actual value--is set.  Identity values are now set
-  #    in stone and can no longer be changed.  `base_resource` is now available,
+  #    in stone and can no longer be changed.  `current_resource` is now available,
   #    and the actual value (get) and default values can now be accessed.
   #    Note: even though identity is now readonly on the open Resource object,
-  #    the base_resource can set its *own* identity values during `load`, which
+  #    the current_resource can set its *own* identity values during `load`, which
   #    will become the default for those attributes.
   #
   #    Because the desired value of the Resource is not yet fully known (it
@@ -153,14 +153,14 @@ module Crazytown
     # The first time this is called, it will attempt to load the actual value,
     # caching it or recording the fact that it does not exist.
     #
-    def base_resource(resource=NOT_PASSED)
+    def current_resource(resource=NOT_PASSED)
       if resource != NOT_PASSED
-        @base_resource = resource
+        @current_resource = resource
       else
-        # If this is the first time we've been called, calculate base_resource as
+        # If this is the first time we've been called, calculate current_resource as
         # either the current value, or the default value if there is no current
         # value.
-        if !defined?(@base_resource)
+        if !defined?(@current_resource)
           if resource_state == :created
             raise ResourceStateError.new("Resource cannot be loaded (and defaults cannot be read) until the identity is defined", self)
           end
@@ -168,27 +168,29 @@ module Crazytown
           # Reopen the resource (it's in :identity_defined state) with
           # `identity` values copied over.  We will not grab actual values
           # unless requested.
-          new_base = reopen_resource
+          loading_resource = reopen_resource
 
-          # Explicitly set base_resource to `nil` to avoid base_resource inception.
-          new_base.base_resource = nil unless new_base.instance_eval { defined?(@base_resource) }
+          # Explicitly set current_resource to `nil` to avoid current_resource inception.
+          unless loading_resource.instance_eval { defined?(@current_resource) }
+            loading_resource.current_resource nil
+          end
 
           # Run "load"
           log.load_started
           begin
-            new_base.load
+            loading_resource.load
           rescue
             log.load_failed($!)
             raise
           ensure
-            # Set @base_resource even if we failed, so we can be sure we never
+            # Set @current_resource even if we failed, so we can be sure we never
             # run load again.
-            @base_resource = new_base
+            @current_resource = loading_resource
           end
           log.load_succeeded
         end
 
-        @base_resource
+        @current_resource
       end
     end
 
@@ -208,8 +210,8 @@ module Crazytown
     #
     # Set the actual value.
     #
-    def base_resource=(resource)
-      @base_resource = resource
+    def current_resource=(resource)
+      @current_resource = resource
     end
 
     #
@@ -226,10 +228,10 @@ module Crazytown
       if value == NOT_PASSED
         if defined?(@resource_exists)
           @resource_exists
-        elsif base_resource
-          base_resource.resource_exists?
+        elsif current_resource
+          current_resource.resource_exists?
         else
-          # Defaults to true if there is no base_resource.
+          # Defaults to true if there is no current_resource.
           true
         end
       else

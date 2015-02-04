@@ -41,7 +41,7 @@ Crazytown.resource :rubygems_user do
 
   recipe do
     converge :owned_gems do
-      current_gems = base_resource.owned_gems.map { |gem| gem.name }
+      current_gems = current_resource.owned_gems.map { |gem| gem.name }
       new_gems = owned_gems.map { |gem| gem.name }
       (new_gems - current_gems).each do |add_gem|
         puts <<-EOM

@@ -204,7 +204,7 @@ module Crazytown
     # When load happens, notify Chef that the resource's current state is loaded.
     def load_succeeded
       super
-      resource.events.resource_current_state_loaded(self, action, resource.base_resource)
+      resource.events.resource_current_state_loaded(self, action, resource.current_resource)
     end
 
     # When an update succeeds, we mark the resource
@@ -243,15 +243,15 @@ module Crazytown
     #   end
     # end
     #
-    def resource(name, base_resource_class=nil, class_name: nil, overwrite_resource: false, &override_block)
-      case base_resource_class
+    def resource(name, current_resource_class=nil, class_name: nil, overwrite_resource: false, &override_block)
+      case current_resource_class
       when Class
         # resource_class is a-ok if it's already a Class
       when nil
-        base_resource_class = Chef::Resource::CrazytownBase
+        current_resource_class = Chef::Resource::CrazytownBase
       else
-        resource_class_name = CamelCase.from_snake_case(base_resource_class.to_s)
-        base_resource_class = eval("Chef::Resource::#{resource_class_name}", __FILE__, __LINE__)
+        resource_class_name = CamelCase.from_snake_case(current_resource_class.to_s)
+        current_resource_class = eval("Chef::Resource::#{resource_class_name}", __FILE__, __LINE__)
       end
 
       name = name.to_sym
@@ -266,7 +266,7 @@ module Crazytown
       end
 
       resource_class = Chef::Resource.class_eval <<-EOM, __FILE__, __LINE__+1
-        class #{class_name} < base_resource_class
+        class #{class_name} < current_resource_class
           resource_name #{name.inspect} if resource_name != #{name.inspect}
           crazytown if !(self <= Crazytown::ChefResourceExtensions)
           self

@@ -54,9 +54,9 @@ Future
       # name(..., &override_block) - update idiom
       #
       # NEXT 4: lazy reality (GET+PUT)
-      # "base_resource" instance method for struct and for attributes, called
+      # "current_resource" instance method for struct and for attributes, called
       # instead of default
-      # StructAttribute initializes "base_resource" to "parent_struct.base_resource.name"
+      # StructAttribute initializes "current_resource" to "parent_struct.current_resource.name"
       #
       # NEXT 5: primitive attributes
       # Symbol

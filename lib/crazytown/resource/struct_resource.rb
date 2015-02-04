@@ -29,8 +29,8 @@ module Crazytown
     # p.home_address.city = 'Malarky' # p.address.updates[:city] = 'Malarky'
     # p.update
     # # first does p.home_address.update
-    # # -> sets p.home_address.base_resource.city -> a.city = 'Malarky'
-    # # sets p.base_resource.home_address = p.home_address.base_resource
+    # # -> sets p.home_address.current_resource.city -> a.city = 'Malarky'
+    # # sets p.current_resource.home_address = p.home_address.current_resource
     #
     module StructResource
       include Resource
@@ -234,7 +234,7 @@ module Crazytown
 
             desired_value = type.value_to_s( public_send(name) )
             if exists
-              current_value = type.value_to_s( type.base_attribute_value(self) )
+              current_value = type.value_to_s( type.current_attribute_value(self) )
               if desired_value != current_value
                 h[name] = [ desired_value, current_value ]
               end
@@ -283,10 +283,10 @@ module Crazytown
       #
 
       #
-      # Returns this struct as a hash, including modified attributes and base_resource.
+      # Returns this struct as a hash, including modified attributes and current_resource.
       #
       # @param only_changed Returns only values which have actually changed from
-      #   their base or default value.
+      #   their current or default value.
       # @param only_explicit Returns only values which have been explicitly set
       #   by the user.
       #
@@ -300,8 +300,8 @@ module Crazytown
         elsif only_changed
           result = {}
           explicit_values.each do |name, value|
-            base_attribute_value = self.class.attribute_types[name].base_attribute_value(self)
-            if value != base_attribute_value
+            current_attribute_value = self.class.attribute_types[name].current_attribute_value(self)
+            if value != current_attribute_value
               result[name] = value
             end
           end
@@ -326,7 +326,7 @@ module Crazytown
 
         # Try to rule out differences via explicit_values first (this should
         # handle any identity keys and prevent us from accidentally pulling on
-        # base_resource).
+        # current_resource).
         (explicit_values.keys & other.explicit_values.keys).each do |name|
           return false if public_send(name) != other.public_send(name)
         end

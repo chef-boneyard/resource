@@ -14,11 +14,11 @@ module Crazytown
       attribute :parent_struct
 
       #
-      # The actual value defaults to parent.base_resource.attr_name.  If
-      # parent.base_resource is `nil`, base_resource defaults to `nil`.
+      # The actual value defaults to parent.current_resource.attr_name.  If
+      # parent.current_resource is `nil`, current_resource defaults to `nil`.
       #
-      def base_resource
-        actual_struct = parent_struct.base_resource
+      def current_resource
+        actual_struct = parent_struct.current_resource
         actual_struct.public_send(self.class.attribute_name) if actual_struct
       end
 

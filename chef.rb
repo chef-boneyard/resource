@@ -214,14 +214,14 @@ resource :chef do
         attribute :city, String
       end
       attribute :name, String do
-        def base_resource
+        def current_resource
 
         end
       end
       attribute :ip_address, String
       attribute :name,
 
-      def base_resource
+      def current_resource
         location = chef.node('blah').attributes['chef_provisioning']['location']
         parent.connection.instances[location['instance_id']]
       end
@@ -356,11 +356,11 @@ end
     attribute :name, String, identity: true
     attribute :description, String
 
-    def base_resource
-      @base_resource ||= begin
+    def current_resource
+      @current_resource ||= begin
         REST.get("organizations/#{name}")
       rescue HTTPException
-        @base_resource = nil
+        @current_resource = nil
         raise unless $!.code == 404
       end
     end
@@ -376,7 +376,7 @@ end
     end
 
     attribute :members, Hash[String => User] do
-      def base_resource
+      def current_resource
         REST.get("data/#{data_bag.name}/users").inject({}) do |hash,name|
           result[name] = user(name) # create the user resource
         end

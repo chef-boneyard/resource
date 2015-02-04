@@ -106,8 +106,8 @@ describe "StructResource behavior in different states" do
       def expect_loads(expected_loads: nil, expected_load_values: nil)
         expected_loads       = initial_loads       if initial_loads       > expected_loads
         expected_load_values = initial_load_values if initial_load_values > expected_load_values
-        num_loads = r.instance_eval { @base_resource } ? r.base_resource.num_loads : 0
-        num_load_values = r.instance_eval { @base_resource } ? r.base_resource.num_load_values : 0
+        num_loads = r.instance_eval { @current_resource } ? r.current_resource.num_loads : 0
+        num_load_values = r.instance_eval { @current_resource } ? r.current_resource.num_load_values : 0
         expect(num_loads).to eq expected_loads
         expect(num_load_values >= initial_load_values && num_load_values <= (initial_load_values + expected_load_values)).to be_truthy
       end
@@ -158,7 +158,7 @@ describe "StructResource behavior in different states" do
         end
       end
 
-      let(:base_resource) do
+      let(:current_resource) do
         resource = MyResource.open(
           identity_set: "identity_set",
           identity_set_same_as_default: "identity_set_same_as_default",
@@ -173,7 +173,7 @@ describe "StructResource behavior in different states" do
       end
 
       context "When the resource is open and no values have been read" do
-        let(:r) { base_resource }
+        let(:r) { current_resource }
 
         context "Only normal values can be set" do
           ALL_ATTRIBUTES.each do |name|
@@ -201,7 +201,7 @@ describe "StructResource behavior in different states" do
       end
 
       context "When the resource is open and all values have been read" do
-        let(:r) { base_resource}
+        let(:r) { current_resource}
         before :each do
           ALL_ATTRIBUTES.each do |name|
             expect(r.public_send(name)).to eq name
@@ -214,7 +214,7 @@ describe "StructResource behavior in different states" do
       end
 
       context "When the resource is defined and no values have been read" do
-        let(:r) { base_resource }
+        let(:r) { current_resource }
         before :each do
           r.resource_fully_defined
         end
@@ -234,7 +234,7 @@ describe "StructResource behavior in different states" do
 
       context "When the resource is defined and load decides the value does not exist" do
         let(:r) do
-          base_resource
+          current_resource
         end
         before :each do
           MyResource.class_eval do
@@ -267,7 +267,7 @@ describe "StructResource behavior in different states" do
       end
 
       context "When the resource is updated and no values have been read" do
-        let(:r) { base_resource }
+        let(:r) { current_resource }
         before :each do
           r.resource_fully_defined
         end
@@ -318,7 +318,7 @@ describe "StructResource behavior in different states" do
           ALL_ATTRIBUTES.select do |name|
             # Attributes whose desired identity has been set can be retrieved when
             # in new state.  Other attributes cannot (because they require pulling
-            # on base_resource).
+            # on current_resource).
             if name.index('_set')
               it "#{name} == '#{name}'" do
                 expect(eval("r.#{name}")).to eq name
