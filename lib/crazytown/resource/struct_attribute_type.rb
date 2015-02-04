@@ -167,11 +167,7 @@ module Crazytown
         struct.log.load_value_started(attribute_name)
 
         begin
-          if load_value.is_a?(Crazytown::LazyProc)
-            value = load_value.get(instance: base_struct)
-          else
-            value = base_struct.instance_eval(&load_value)
-          end
+          value = load_value.get(instance: base_struct, instance_eval_by_default: true)
           # Set the value (if it gets coerced, catch the result)
           value = base_struct.public_send(attribute_name, value)
           struct.log.load_value_succeeded(attribute_name)

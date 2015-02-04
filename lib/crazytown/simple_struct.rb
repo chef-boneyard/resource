@@ -1,5 +1,3 @@
-require 'crazytown/lazy_proc'
-
 module Crazytown
   #
   # Lets you create simple attributes of a similar form to Crazytown attributes
@@ -26,7 +24,7 @@ module Crazytown
           elsif value == NOT_PASSED
             if defined?(@#{name})
               if @#{name}.is_a?(LazyProc)
-                value = @#{name}.get(instance: parent)
+                value = @#{name}.get(instance: parent, instance_eval_by_default: true)
               else
                 value = @#{name}
               end
@@ -37,9 +35,6 @@ module Crazytown
               value = #{default}
             end
           elsif value.is_a?(LazyProc)
-            # Flip on instance_eval if it's not set, so you can say
-            # default: lazy { ... } and it does the expected thing.
-            value.instance_eval = true if !value.instance_eval_set?
             @#{name} = value
           else
             @#{name} = #{coerced}
@@ -51,7 +46,8 @@ module Crazytown
     #
     # Create a block attribute.
     #
-    # Call #invoke_block_attribute to invoke the block.
+    # Call <attr_name>.get(instance: instance, args: [...]) if <attr_name>
+    # to invoke the block.
     #
     # Has several setter forms:
     #
@@ -74,7 +70,8 @@ module Crazytown
         end
         def #{name}(value=NOT_PASSED, &block)
           if block
-            @#{name} = LazyProc.new(:instance_eval, &block)
+            value = LazyProc.new(:instance_eval, &block)
+            @#{name} = #{coerced}
           elsif value == NOT_PASSED
             if defined?(@#{name})
               @#{name}
@@ -84,29 +81,15 @@ module Crazytown
               nil
             end
           elsif value.is_a?(LazyProc)
-            # Flip on instance_eval if it's not set, so you can say
-            # default: lazy { ... } and it does the expected thing.
-            value.instance_eval = true if !value.instance_eval_set?
-            @#{name} = value
+            @#{name} = #{coerced}
+          elsif value.is_a?(Proc)
+            value = LazyProc.new(:instance_eval, &value)
+            @#{name} = #{coerced}
           else
             @#{name} = #{coerced}
           end
         end
       EOM
-    end
-
-    #
-    # Invoke the value stored in the given block attribute
-    #
-    # @param value The attribute value to invoke
-    # @param instance The instance to instance_eval on (if any)
-    #
-    def invoke_block_attribute(value, instance: instance)
-      if value.is_a?(LazyProc)
-        value.get(instance: instance)
-      else
-        instance.instance_eval(&value)
-      end
     end
 
     #
@@ -122,3 +105,5 @@ module Crazytown
     end
   end
 end
+
+require 'crazytown/lazy_proc'

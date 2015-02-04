@@ -3,9 +3,10 @@ require 'crazytown/resource/struct_resource_base'
 require 'crazytown/lazy_proc'
 
 describe Crazytown::Type do
-  def self.with_attr(*args, &block)
+  def self.with_attr(type=NOT_PASSED, **args, &block)
+    args[:nullable] = :validate if !args.has_key?(:nullable)
     with_struct do
-      attribute :attr, *args, &block
+      attribute :attr, type, **args, &block
     end
   end
 
@@ -797,8 +798,8 @@ describe Crazytown::Type do
     context "Lazy" do
       context "With a URI attribute with attr_default=c/d and default: Crazytown::LazyProc.new { attr_default }" do
         with_struct do
-          attribute :attr_default, URI
-          attribute :attr, URI, default: Crazytown::LazyProc.new { attr_default }
+          attribute :attr_default, URI, nullable: :validate
+          attribute :attr, URI, default: Crazytown::LazyProc.new { attr_default }, nullable: :validate
         end
         before :each do
           struct.attr_default 'c/d'
@@ -810,8 +811,8 @@ describe Crazytown::Type do
 
       context "With a URI attribute with rel=https://google.com and relative_to: Crazytown::LazyProc.new { rel }" do
         with_struct do
-          attribute :rel, URI
-          attribute :attr, URI, relative_to: Crazytown::LazyProc.new { rel }
+          attribute :rel, URI, nullable: :validate
+          attribute :attr, URI, relative_to: Crazytown::LazyProc.new { rel }, nullable: :validate
         end
         before :each do
           struct.rel = 'https://google.com'
@@ -827,9 +828,9 @@ describe Crazytown::Type do
 
       context "With a URI attribute attr_default=c/d, rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }, and default: Crazytown::LazyProc.new { attr_default }" do
         with_struct do
-          attribute :attr_default, URI
-          attribute :rel, URI
-          attribute :attr, URI, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }
+          attribute :attr_default, URI, nullable: :validate
+          attribute :rel, URI, nullable: :validate
+          attribute :attr, URI, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }, nullable: :validate
         end
         before :each do
           struct.attr_default 'c/d'
@@ -846,7 +847,7 @@ describe Crazytown::Type do
     end
 
     context "With a URI attribute relative to https://google.com/a/b" do
-      with_attr URI, relative_to: 'https://google.com/a/b'
+      with_attr URI, relative_to: 'https://google.com/a/b', nullable: :validate
 
       it "Defaults to nil" do
         expect(struct.attr).to be_nil
@@ -908,7 +909,7 @@ describe Crazytown::Type do
     end
 
     context "With a URI attribute relative to https://google.com/a/b/" do
-      with_attr URI, relative_to: 'https://google.com/a/b/'
+      with_attr URI, relative_to: 'https://google.com/a/b/', nullable: :validate
 
       it "Defaults to nil" do
         expect(struct.attr).to be_nil
@@ -964,7 +965,7 @@ describe Crazytown::Type do
     end
 
     context "With a URI attribute relative to https://google.com" do
-      with_attr URI, relative_to: 'https://google.com'
+      with_attr URI, relative_to: 'https://google.com', nullable: :validate
 
       it "Defaults to nil" do
         expect(struct.attr).to be_nil
@@ -1020,7 +1021,7 @@ describe Crazytown::Type do
     end
 
     context "With a URI attribute relative to https://google.com/" do
-      with_attr URI, relative_to: 'https://google.com/'
+      with_attr URI, relative_to: 'https://google.com/', nullable: :validate
 
       it "Defaults to nil" do
         expect(struct.attr).to be_nil
@@ -1078,7 +1079,7 @@ describe Crazytown::Type do
 
   describe Crazytown::Type::StringType do
     context "With a String attribute" do
-      with_attr String
+      with_attr String, nullable: :validate
 
       it "Can be set to 'blah'" do
         struct.attr = 'blah'
@@ -1101,7 +1102,7 @@ describe Crazytown::Type do
 
   describe Crazytown::Type::SymbolType do
     context "With a Symbol attribute" do
-      with_attr Symbol
+      with_attr Symbol, nullable: :validate
 
       it "Can be set to :blah" do
         struct.attr = :blah

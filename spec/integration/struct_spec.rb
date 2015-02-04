@@ -302,14 +302,18 @@ describe Crazytown::Resource::StructResource do
 
         context "When MyResource has an override that sets must(be between 0 and 10)" do
           with_struct(:MyResource) do
-            attribute :x, Integer do
+            attribute :x, Integer, nullable: true do
               def self.run_count
                 @run_count ||= 0
               end
               def self.run_count=(value)
                 @run_count = value
               end
-              must("be between 0 and 10") { MyResource::X.run_count += 1; self >= 0 && self <= 10 }
+              must("be between 0 and 10") do
+                MyResource::X.run_count += 1
+                puts self
+                self >= 0 && self <= 10
+              end
             end
             attribute :run_count, Integer, default: 0
           end
@@ -331,9 +335,6 @@ describe Crazytown::Resource::StructResource do
         end
       end
     end
-
-    # TODO default value implies required: false
-    # TODO required struct attributes and "created"
 
     describe :default do
       context "When MyResource is a ResourceStruct with attribute :x, default: 15" do
@@ -383,8 +384,9 @@ describe Crazytown::Resource::StructResource do
       with_struct(:MyResource) do
         attribute :a, identity: true
         attribute :b, identity: true
-        attribute :c
-        attribute :d
+        attribute :c, nullable: :validate
+        attribute :d, nullable: :validate
+        nullable :validate
       end
 
       context "multi-arg form" do
@@ -484,10 +486,10 @@ describe Crazytown::Resource::StructResource do
     context "Primitive values" do
       context "With a struct with Integers and Strings" do
         with_struct(:MyResource) do
-          attribute :s1, String, identity: true
-          attribute :n1, Integer, identity: true
-          attribute :s2, String
-          attribute :n2, Integer
+          attribute :s1, String, identity: true, nullable: :validate
+          attribute :n1, Integer, identity: true, nullable: :validate
+          attribute :s2, String, nullable: :validate
+          attribute :n2, Integer, nullable: :validate
         end
 
         it "coerce(nil, s1: 'hi', n1: 1, s2: 'lo', n2: 2) succeeds" do

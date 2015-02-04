@@ -23,7 +23,7 @@ module Crazytown
       # - Is a Resource
       # - Is a Resource even if the actual value does not exist
       # - Can be modified for update
-      # - `self.is_valid?(resource)` is true
+      # - `type.is_valid?(resource, resource)` is true
       #
       def open(&define_identity_block)
         resource = new

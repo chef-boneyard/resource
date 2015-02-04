@@ -67,7 +67,7 @@ module Crazytown
 
           resource
 
-        elsif args.size == 1 && is_valid?(args[0])
+        elsif args.size == 1 && is_valid?(parent, args[0])
           # nil:
           # - MyStruct.coerce(nil) -> nil
           #

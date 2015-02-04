@@ -165,10 +165,10 @@ resource :chef do
         if args.empty?
         value
 
-      elsif is_valid?(value)
+      elsif is_valid?(parent, value)
         value
 
-      elsif JSONValue.is_valid?(value)
+      elsif JSONValue.is_valid?(parent, value)
 
 
       elsif !value.nil?

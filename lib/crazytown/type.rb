@@ -21,7 +21,7 @@ module Crazytown
     # - May have any and all values set (not just identity values, unlike get)
     #
     def coerce(parent, value)
-      validate(value)
+      validate(parent, value)
       value
     end
 
@@ -47,9 +47,9 @@ module Crazytown
     # Returns whether the given value could have been returned by a call to
     # `coerce`, `open` or `get`.
     #
-    def is_valid?(instance)
+    def is_valid?(parent, value)
       begin
-        validate(instance)
+        validate(parent, value)
         true
       rescue ValidationError
         false
@@ -59,22 +59,20 @@ module Crazytown
     #
     # Validates a value against this type.
     #
-    # TODO perhaps autogenerate this in subclasses
     # TODO toss ALL validation errors, not just the one!
     #
-    def validate(value)
+    def validate(parent, value)
       # Handle nullable=true/false
-      if value.nil? && !nullable.nil?
+      if value.nil?
         if nullable?
-          # If nullable is true, we don't run any other validation.
-          return
+          # It's OK for the value to be nulalble, so return.
+          # (Unless nullable? == :validate, in which case we
+          # continue to run validations.)
+          return unless nullable? == :validate
         else
-          raise ValidationError.new("must not be null", value)
+          # If the value is null and isn't supposed to be, raise an error
+          raise MustNotBeNullError.new("must not be null", value)
         end
-      end
-
-      if value.is_a?(LazyProc)
-
       end
 
       # Check must_be_kind_of
@@ -83,7 +81,7 @@ module Crazytown
       end
 
       validators.each do |message, must_be_true|
-        if !value.instance_exec(self, &must_be_true)
+        if !must_be_true.get(instance: value, args: [parent])
           raise ValidationError.new(message, value)
         end
       end
@@ -105,8 +103,10 @@ module Crazytown
     #   end
     # end
     #
-    def must(description, &must_be_true)
-      validators << [ "must #{description}", must_be_true ]
+    def must(description, must_be_true_block=nil, &must_be_true)
+      must_be_true_block ||= must_be_true
+      must_be_true_block = LazyProc.new(:instance_eval, &must_be_true_block) if !must_be_true_block.is_a?(LazyProc)
+      validators << [ "must #{description}", must_be_true_block ]
     end
 
     #
@@ -115,11 +115,11 @@ module Crazytown
     # @param nullable If passed, this sets the value.
     # - If true, validation always succeeds on nil values (and validators are not run).
     # - If false, validation fails on nil values.
-    # - If nil, validation is run on nil values like normal.
+    # - If :validate, validation is run on nil values like normal.
     #
-    # Defaults to true.
+    # Defaults to false unless the value has a `nil` default, in which case it is `true`.
     #
-    boolean_attribute :nullable, default: "true"
+    boolean_attribute :nullable, default: "defined?(@default) && @default.nil?"
 
     #
     # A set of validators that will be run.  An array of pairs [ message, proc ],

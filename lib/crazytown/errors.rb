@@ -7,6 +7,9 @@ module Crazytown
     attr_reader :value
   end
 
+  class MustNotBeNullError < ValidationError
+  end
+
   class ResourceStateError < StandardError
     def initialize(message, resource)
       super(message)
