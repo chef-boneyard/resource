@@ -3,6 +3,7 @@ require 'crazytown/resource/resource_type'
 require 'crazytown/constants'
 require 'crazytown/resource/struct_attribute_type'
 require 'crazytown/camel_case'
+require 'crazytown/simple_struct'
 
 module Crazytown
   module Resource
@@ -248,24 +249,20 @@ module Crazytown
         result
       end
 
+      extend SimpleStruct
+
       #
       # The attribute type for each attribute.
       #
-      # TODO make this an attribute so it's introspectible.
-      def attribute_types
-        @attribute_types ||= begin
-          if is_a?(Class) && superclass.is_a?(StructResourceType)
-            # TODO use real merging in the future.  This carries
-            # danger that someone could modify types on the parent.
-            # But it at least gets us basic inheritance for the
-            # normal case where people are adding new attributes
-            # rather than overriding old ones.
-            superclass.attribute_types.dup
-          else
-            {}
-          end
-        end
-      end
+      # TODO use real merging in the future.  This carries
+      # danger that someone could modify types on the parent.
+      # But it at least gets us basic inheritance for the
+      # normal case where people are adding new attributes
+      # rather than overriding old ones.
+      #
+      attribute :attribute_types,
+        default: "@attribute_types = {}",
+        inherited: "@attribute_types = superclass.attribute_types.dup"
 
       #
       # The list of identity attribute_types (attribute_types with identity=true), in order.

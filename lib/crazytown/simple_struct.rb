@@ -13,33 +13,36 @@ module Crazytown
     # not been set locally.  Also flips on instance_eval automatically for lazy
     # procs.
     #
-    def attribute(name, default: "nil", coerced: "value")
+    def attribute(name, default: "nil", coerced: "value", inherited: "superclass.#{name}")
       module_eval <<-EOM, __FILE__, __LINE__+1
-        def #{name}=(value)
-          #{name} value
-        end
-        def #{name}(value=NOT_PASSED, parent: self, &block)
-          if block
-            @#{name} = Crazytown::LazyProc.new(instance_eval: true, &block)
-          elsif value == NOT_PASSED
-            if defined?(@#{name})
-              if @#{name}.is_a?(LazyProc)
-                value = @#{name}.get(instance: parent, instance_eval_by_default: true)
+        module SimpleStructInterface
+          def #{name}=(value)
+            #{name} value
+          end
+          def #{name}(value=NOT_PASSED, parent: self, &block)
+            if block
+              @#{name} = Crazytown::LazyProc.new(instance_eval: true, &block)
+            elsif value == NOT_PASSED
+              if defined?(@#{name})
+                if @#{name}.is_a?(LazyProc)
+                  value = @#{name}.get(instance: parent, instance_eval_by_default: true)
+                else
+                  value = @#{name}
+                end
+                value = #{coerced}
+              elsif respond_to?(:superclass) && superclass.respond_to?(#{name.inspect})
+                return #{inherited}
               else
-                value = @#{name}
+                value = #{default}
               end
-              value = #{coerced}
-            elsif respond_to?(:superclass) && superclass.respond_to?(#{name.inspect})
-              return superclass.#{name}
+            elsif value.is_a?(LazyProc)
+              @#{name} = value
             else
-              value = #{default}
+              @#{name} = #{coerced}
             end
-          elsif value.is_a?(LazyProc)
-            @#{name} = value
-          else
-            @#{name} = #{coerced}
           end
         end
+        include SimpleStructInterface
       EOM
     end
 
@@ -65,30 +68,33 @@ module Crazytown
     #
     def block_attribute(name, coerced: "value")
       module_eval <<-EOM, __FILE__, __LINE__+1
-        def #{name}=(value)
-          #{name} value
-        end
-        def #{name}(value=NOT_PASSED, &block)
-          if block
-            value = LazyProc.new(:instance_eval, &block)
-            @#{name} = #{coerced}
-          elsif value == NOT_PASSED
-            if defined?(@#{name})
-              @#{name}
-            elsif respond_to?(:superclass) && superclass.respond_to?(#{name.inspect})
-              superclass.#{name}
+        module SimpleStructInterface
+          def #{name}=(value)
+            #{name} value
+          end
+          def #{name}(value=NOT_PASSED, &block)
+            if block
+              value = LazyProc.new(:instance_eval, &block)
+              @#{name} = #{coerced}
+            elsif value == NOT_PASSED
+              if defined?(@#{name})
+                @#{name}
+              elsif respond_to?(:superclass) && superclass.respond_to?(#{name.inspect})
+                superclass.#{name}
+              else
+                nil
+              end
+            elsif value.is_a?(LazyProc)
+              @#{name} = #{coerced}
+            elsif value.is_a?(Proc)
+              value = LazyProc.new(:instance_eval, &value)
+              @#{name} = #{coerced}
             else
-              nil
+              @#{name} = #{coerced}
             end
-          elsif value.is_a?(LazyProc)
-            @#{name} = #{coerced}
-          elsif value.is_a?(Proc)
-            value = LazyProc.new(:instance_eval, &value)
-            @#{name} = #{coerced}
-          else
-            @#{name} = #{coerced}
           end
         end
+        include SimpleStructInterface
       EOM
     end
 
