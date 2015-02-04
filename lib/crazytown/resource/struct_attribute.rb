@@ -1,3 +1,5 @@
+require 'crazytown/simple_struct'
+
 module Crazytown
   module Resource
     #
@@ -8,9 +10,8 @@ module Crazytown
       #
       # The struct containing this attribute.
       #
-      # TODO make parent_struct an actual struct attribute
-      #
-      attr_reader :parent_struct
+      extend SimpleStruct
+      attribute :parent_struct
 
       #
       # The actual value defaults to parent.base_resource.attr_name.  If

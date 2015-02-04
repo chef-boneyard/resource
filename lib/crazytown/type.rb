@@ -59,8 +59,6 @@ module Crazytown
     #
     # Validates a value against this type.
     #
-    # TODO toss ALL validation errors, not just the one!
-    #
     def validate(parent, value)
       # Handle nullable=true/false
       if value.nil?
