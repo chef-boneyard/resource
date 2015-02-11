@@ -30,7 +30,7 @@ module Crazytown
                   value = @#{name}
                 end
                 value = #{coerced}
-              elsif respond_to?(:superclass) && superclass.respond_to?(#{name.inspect})
+              elsif defined?(super)
                 return #{inherited}
               else
                 value = #{default}

@@ -120,75 +120,8 @@ module Crazytown
     #
     # Defaults to false unless the value has a `nil` default, in which case it is `true`.
     #
-    #boolean_attribute :nullable, default: "(puts \"nullable! \#{defined?(@default)}\"; defined?(@default) && @default.nil?)"
-
-    module_eval <<-EOM, __FILE__, __LINE__+1
-      module SimpleStructInterface
-        def nullable=(value)
-          nullable value
-        end
-        def nullable(value=NOT_PASSED, parent: self, &block)
-          if block
-            @nullable = Crazytown::LazyProc.new(instance_eval: true, &block)
-          elsif value == NOT_PASSED
-            if defined?(@nullable)
-              if @nullable.is_a?(LazyProc)
-                value = @nullable.get(instance: parent, instance_eval_by_default: true)
-              else
-                value = @nullable
-              end
-              value = value
-            elsif respond_to?(:superclass) && superclass.respond_to?(:nullable)
-              return superclass.nullable
-            else
-              value = (puts "nullable! #{defined?(@default)}"; defined?(@default) && @default.nil?)
-            end
-          elsif value.is_a?(LazyProc)
-            @nullable = value
-          else
-            @nullable = value
-          end
-        end
-        def nullable?
-          nullable
-        end
-      end
-      include SimpleStructInterface
-    EOM
-
-    # module SimpleStructInterface
-    #   def nullable=(value)
-    #     nullable value
-    #   end
-    #   def nullable(value=NOT_PASSED, parent: self, &block)
-    #     if block
-    #       @nullable = Crazytown::LazyProc.new(instance_eval: true, &block)
-    #     elsif value == NOT_PASSED
-    #       if defined?(@nullable)
-    #         if @nullable.is_a?(LazyProc)
-    #           value = @nullable.get(instance: parent, instance_eval_by_default: true)
-    #         else
-    #           value = @nullable
-    #         end
-    #         value = value
-    #       elsif defined?(super)
-    #         return super
-    #       else
-    #         puts "#{self}.nullable"
-    #         value = (puts "nullable! #{defined?(@default)}"; defined?(@default) && @default.nil?)
-    #       end
-    #     elsif value.is_a?(LazyProc)
-    #       @nullable = value
-    #     else
-    #       @nullable = value
-    #     end
-    #   end
-    #   def nullable?
-    #     nullable
-    #   end
-    # end
-    # include SimpleStructInterface
-
+    # TODO this is wrong: @default does not take into account superclasses
+    boolean_attribute :nullable, default: "defined?(@default) && @default.nil?"
 
     #
     # A set of validators that will be run.  An array of pairs [ message, proc ],
@@ -214,16 +147,15 @@ module Crazytown
     #   must implement.
     #
     attribute :must_be_kind_of
-    alias :orig_must_be_kind_of :must_be_kind_of
 
     def must_be_kind_of(*classes_or_modules)
       case classes_or_modules.size
       when 0
-        @must_be_kind_of ||= (orig_must_be_kind_of || []).dup
+        @must_be_kind_of ||= (super || []).dup
       when 1
-        orig_must_be_kind_of(classes_or_modules[0].is_a?(Array) ? classes_or_modules[0] : classes_or_modules)
+        super(classes_or_modules[0].is_a?(Array) ? classes_or_modules[0] : classes_or_modules)
       else
-        orig_must_be_kind_of(classes_or_modules)
+        super(classes_or_modules)
       end
     end
 
