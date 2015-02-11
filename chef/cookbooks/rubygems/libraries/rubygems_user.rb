@@ -2,33 +2,28 @@ unless Chef::Resource.const_defined?(:RubygemsUser)
 
 require_relative 'rubygems'
 require 'crazytown/chef_dsl/chef_resource'
+require 'net/http'
+require 'uri'
+require 'set'
 
 Crazytown.resource :rubygems_user do
   attribute :rubygems,   :rubygems, identity: true
   attribute :username,   String, identity: true, default: nil
   attribute :email,      String, identity: true, default: nil
-  attribute :owned_gems, Array do
+  attribute :owned_gems, Set do
     load_value do
       rubygems.api.get("api/v1/owners/#{username}/gems.json").map do |gem|
         # TODO there is lots more info we can get here
-        # TODO this is sort of icky ... we don't want to use "rubygems.gem" because
-        # that adds the resource to the resource collection. Figure it out ...
-        user = self
-        build_resource(:rubygems_gem, "", caller[0]) do
-          rubygems user.rubygems
-          name gem['name']
-          # Lock down the resource now that we have filled everything in
-          resource_fully_defined
-        end
-      end
+        gem['name']
+      end.to_set
     end
   end
 
   def load
     if !email
-      profile = HTTP.get("#{host}/profiles/#{username}")
-      if profile !~ /profile__header__email.+mailto:([^"]+)>Email Me</
-        raise "#{host}/profiles/#{username} did not contain email!"
+      profile = Net::HTTP.get(URI("#{rubygems.host}/profiles/#{username}"))
+      if profile !~ /profile__header__email.+mailto:([^"]+).*>Email Me</
+        raise "#{rubygems.host}/profiles/#{username} did not contain email!"
       end
       email $1
     end
@@ -37,6 +32,7 @@ Crazytown.resource :rubygems_user do
     end
   end
 
+  # TODO this isn't even called right now.  Also, doesn't handle "rubygems" attr
   def self.coerce(parent, value)
     if value.is_a?(String)
       if value.index('@')
@@ -51,8 +47,8 @@ Crazytown.resource :rubygems_user do
 
   recipe do
     converge :owned_gems do
-      current_gems = current_resource.owned_gems.map { |gem| gem.name }
-      new_gems = owned_gems.map { |gem| gem.name }
+      current_gems = current_resource.owned_gems
+      new_gems = owned_gems
       (new_gems - current_gems).each do |add_gem|
         puts <<-EOM
           rubygems.api.post("api/v1/gems/#{add_gem}/owners", "email", email)
