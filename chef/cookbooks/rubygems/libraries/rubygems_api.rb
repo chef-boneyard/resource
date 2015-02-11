@@ -2,6 +2,7 @@ unless self.class.const_defined?(:RubygemsAPI)
 
 require 'rubygems/command'
 require 'rubygems/gemcutter_utilities'
+require 'json'
 
 class RubygemsAPI
   include Gem::GemcutterUtilities
@@ -16,7 +17,7 @@ class RubygemsAPI
   attr_reader :api_key
 
   def request(method, path, params: nil)
-    result = rubygems_api_request(method, path, host, allowed_push_host) do |request|
+    rubygems_api_request(method, path, host, allowed_push_host) do |request|
       request.add_field("Authorization", api_key) if api_key
       if params
         params.inject({}) { |h,(key,value)| h[key.to_s] = value.to_s; h }
@@ -30,7 +31,8 @@ class RubygemsAPI
     if params && !params.empty?
       path = "#{path}?#{params.map { |k,v| "#{CGI.escape(k)}=#{CGI.escape(v)}" }.join(';')}"
     end
-    request(:get, path)
+    response = request(:get, path)
+    JSON.parse(response.body)
   end
 
   def put(path, **params)

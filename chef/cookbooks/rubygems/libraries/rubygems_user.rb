@@ -1,6 +1,10 @@
 unless Chef::Resource.const_defined?(:RubygemsUser)
 
 require_relative 'rubygems'
+require 'crazytown/chef_dsl/chef_resource'
+
+# Open Chef::Resource so we have access to Boolean and such
+class Crazytown::ChefDSL::ChefResource
 
 Crazytown.resource :rubygems_user do
   attribute :rubygems,   :rubygems, identity: true
@@ -8,7 +12,7 @@ Crazytown.resource :rubygems_user do
   attribute :email,      String, identity: true, default: nil
   attribute :owned_gems, Array do
     load_value do
-      api.get("api/v1/owners/#{username}/gems.json").map do |owner|
+      rubygems.api.get("api/v1/owners/#{username}/gems.json").map do |owner|
         gem()
       end
     end
@@ -45,20 +49,21 @@ Crazytown.resource :rubygems_user do
       new_gems = owned_gems.map { |gem| gem.name }
       (new_gems - current_gems).each do |add_gem|
         puts <<-EOM
-          api.post("api/v1/gems/#{add_gem}/owners", "email", email)
+          rubygems.api.post("api/v1/gems/#{add_gem}/owners", "email", email)
         EOM
       end
       (current_gems - new_gems).each do |remove_gem|
         puts <<-EOM
-        api.delete("api/v1/gems/#{remove_gem}/owners", "email", email)
+          rubygems.api.delete("api/v1/gems/#{remove_gem}/owners", "email", email)
         EOM
       end
     end
     # converge :owned_gems do |added, removed|
-    #   added.each { |gem| api.delete("api/v1/gems/#{gem.name}/owners", "email", email) }
-    #   removed.each { |gem| api.post("api/v1/gems/#{gem.name}/owners", "email", email) }
+    #   added.each { |gem| rubygems.api.delete("api/v1/gems/#{gem.name}/owners", "email", email) }
+    #   removed.each { |gem| rubygems.api.post("api/v1/gems/#{gem.name}/owners", "email", email) }
     # end
   end
 end
 
+end
 end

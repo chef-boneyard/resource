@@ -236,7 +236,7 @@ module Crazytown
         name = name.to_sym
         result = self.type(name, type, **type_properties) do
           extend StructAttributeType
-          self.attribute_parent_type parent
+          self.attribute_parent_type = parent
           self.attribute_name name
           self.identity identity
           self.default default unless default == NOT_PASSED

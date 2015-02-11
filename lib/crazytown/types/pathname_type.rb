@@ -3,7 +3,7 @@ require 'crazytown/simple_struct'
 require 'pathname'
 
 module Crazytown
-  module Type
+  module Types
     #
     # Type for Paths.  Always stored as Pathname
     #

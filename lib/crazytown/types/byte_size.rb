@@ -1,11 +1,10 @@
 require 'crazytown/type'
 
 module Crazytown
-  module Type
-    class Boolean
+  module Types
+    class ByteSize
       extend Type
-
-      must_be_kind_of TrueClass, FalseClass
+      must_be_kind_of Integer
     end
   end
 end

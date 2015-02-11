@@ -3,7 +3,7 @@ require 'crazytown/simple_struct'
 require 'uri'
 
 module Crazytown
-  module Type
+  module Types
     #
     # Type for URIs.
     #

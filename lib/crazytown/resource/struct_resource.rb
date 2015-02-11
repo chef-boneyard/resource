@@ -279,25 +279,24 @@ module Crazytown
       end
 
       #
-      # Hash-like interface: to_h, ==, [], []=
+      # Hash-like interface: to_h, to_hash, as_json, to_json, ==, [], []=
       #
 
       #
-      # Returns this struct as a hash, including modified attributes and current_resource.
+      # Returns this struct as a hash, including all attributes and their defaults.
       #
-      # @param only_changed Returns only values which have actually changed from
-      #   their current or default value.
-      # @param only_explicit Returns only values which have been explicitly set
-      #   by the user.
+      # @param only [Symbol] Which values to include. Default: `:only_known`. One of:
+      #   - :only_known :: Values explicitly set by the user or current values.
+      #     If the current value has not been loaded, this will NOT load it or
+      #     show any of those values.
+      #   - :only_changed :: Values which the user has set and which have
+      #     actually changed from their current or default value.
+      #   - :only_explicit :: Values explicitly set by the user.
+      #   - :all :: All values, including default values.
       #
-      # TODO when we have a HashResource, return that instead.  Need deep merge
-      # and need to avoid wastefully pulling on values we don't need to pull on
-      #
-      def to_h(only_changed: false, only_explicit: false)
-        if only_explicit
-          explicit_values.dup
-
-        elsif only_changed
+      def to_h(only=:only_known)
+        case only
+        when :only_changed
           result = {}
           explicit_values.each do |name, value|
             current_attribute_value = self.class.attribute_types[name].current_attribute_value(self)
@@ -307,13 +306,53 @@ module Crazytown
           end
           result
 
-        else
+        when :only_explicit
+          explicit_values.dup
+
+        when :all
           result = {}
           self.class.attribute_types.each_key do |name|
             result[name] = public_send(name)
           end
           result
+
+        else
+          if current_resource_loaded?
+            current_resource.explicit_values.merge(explicit_values)
+          else
+            explicit_values.dup
+          end
+
         end
+      end
+
+      #alias :to_hash :to_h
+
+      #
+      # as_json does most of the to_json heavy lifted. It exists here in case activesupport
+      # is loaded. activesupport will call as_json and skip over to_json. This ensure
+      # json is encoded as expected
+      #
+      # @param only_changed Returns only values which have actually changed from
+      #   their current or default value.
+      # @param only_explicit Returns only values which have been explicitly set
+      #   by the user.
+      #
+      def as_json(only_changed: false, only_explicit: false, **options)
+        to_h(only_changed: false, only_explicit: false)
+      end
+
+      #
+      # Serialize this object as a hash
+      #
+      # @param only_changed Returns only values which have actually changed from
+      #   their current or default value.
+      # @param only_explicit Returns only values which have been explicitly set
+      #   by the user.
+      #
+      def to_json(only_changed: false, only_explicit: false, **options)
+        results = as_json(only_changed: only_changed, only_explicit: only_explicit)
+        Chef::JSONCompat.to_json(results, **options)
       end
 
       #

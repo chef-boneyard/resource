@@ -133,24 +133,24 @@ describe "StructResource behavior in different states" do
         end
       end
 
-      shared_context "to_h returns correct data" do
-        it "to_h returns everything including defaults and load is called" do
-          expect(r.to_h).
+      shared_context "to_h(:all) returns correct data" do
+        it "to_h(:all) returns everything including defaults and load is called" do
+          expect(r.to_h(:all)).
             to eq ALL_ATTRIBUTES.
                   inject({}) { |h,name| h[name.to_sym] = name; h }
           expect_loads(expected_loads: 1, expected_load_values: 2)
         end
 
-        it "to_h(only_changed: true) returns everything that isn't modified from its default / actual value and load is called" do
-          expect(r.to_h(only_changed: true)).to eq ({
+        it "to_h(:only_changed) returns everything that isn't modified from its default / actual value and load is called" do
+          expect(r.to_h(:only_changed)).to eq ({
             identity_set: "identity_set",
             normal_set: "normal_set"
           })
           expect_loads(expected_loads: 1, expected_load_values: 1)
         end
 
-        it "to_h(only_explicit: true) returns only explicitly opened values (no default or loaded values) and load is not called" do
-          expect(r.to_h(only_explicit: true)).
+        it "to_h(:only_explicit) returns only explicitly opened values (no default or loaded values) and load is not called" do
+          expect(r.to_h(:only_explicit)).
             to eq ALL_ATTRIBUTES.
                   select { |name| name.start_with?('identity_set') || name.start_with?('normal_set') }.
                   inject({}) { |h,name| h[name.to_sym] = name; h }
@@ -197,7 +197,7 @@ describe "StructResource behavior in different states" do
           end
         end
 
-        it_behaves_like "to_h returns correct data"
+        it_behaves_like "to_h(:all) returns correct data"
       end
 
       context "When the resource is open and all values have been read" do
@@ -210,7 +210,7 @@ describe "StructResource behavior in different states" do
           @initial_load_values = 2
         end
 
-        it_behaves_like "to_h returns correct data"
+        it_behaves_like "to_h(:all) returns correct data"
       end
 
       context "When the resource is defined and no values have been read" do
@@ -229,7 +229,7 @@ describe "StructResource behavior in different states" do
         end
 
         it_behaves_like "All values can be read"
-        it_behaves_like "to_h returns correct data"
+        it_behaves_like "to_h(:all) returns correct data"
       end
 
       context "When the resource is defined and load decides the value does not exist" do
@@ -246,8 +246,8 @@ describe "StructResource behavior in different states" do
           r.resource_fully_defined
         end
 
-        it "to_h returns default values instead of actual" do
-          expect(r.to_h).to eq({
+        it "to_h(:all) returns default values instead of actual" do
+          expect(r.to_h(:all)).to eq({
             identity_set: 'identity_set',
             identity_set_same_as_default: 'identity_set_same_as_default',
             identity_set_same_as_load_value: 'identity_set_same_as_load_value',
@@ -282,7 +282,7 @@ describe "StructResource behavior in different states" do
         end
 
         it_behaves_like "All values can be read"
-        it_behaves_like "to_h returns correct data"
+        it_behaves_like "to_h(:all) returns correct data"
       end
 
       context "When the resource is created (identity is not yet defined)" do
@@ -332,16 +332,16 @@ describe "StructResource behavior in different states" do
           end
         end
 
-        it "to_h fails with a Crazytown::ResourceStateError" do
-          expect { r.to_h }.to raise_error(Crazytown::ResourceStateError)
+        it "to_h(:all) fails with a Crazytown::ResourceStateError" do
+          expect { r.to_h(:all) }.to raise_error(Crazytown::ResourceStateError)
         end
 
-        it "to_h(only_changed: true) fails with a a ResourceStateError" do
-          expect { r.to_h(only_changed: true) }.to raise_error(Crazytown::ResourceStateError)
+        it "to_h(:only_changed) fails with a a ResourceStateError" do
+          expect { r.to_h(:only_changed) }.to raise_error(Crazytown::ResourceStateError)
         end
 
-        it "to_h(only_explicit: true) returns only explicitly opened values (no default or loaded values) and load is not called" do
-          expect(r.to_h(only_explicit: true)).
+        it "to_h(:only_explicit) returns only explicitly opened values (no default or loaded values) and load is not called" do
+          expect(r.to_h(:only_explicit)).
             to eq ALL_ATTRIBUTES.
                   select { |name| name.index('_set') }.
                   inject({}) { |h,name| h[name.to_sym] = name; h }
@@ -379,21 +379,21 @@ describe "StructResource behavior in different states" do
           end
         end
 
-        it "to_h returns all data and does not call load" do
-          expect(r.to_h).to eq ALL_ATTRIBUTES.inject({}) { |h,name| h[name.to_sym] = name; h }
+        it "to_h(:all) returns all data and does not call load" do
+          expect(r.to_h(:all)).to eq ALL_ATTRIBUTES.inject({}) { |h,name| h[name.to_sym] = name; h }
           expect_loads(expected_loads: 0, expected_load_values: 0)
         end
 
-        it "to_h(only_changed: true) returns only changed data and calls load" do
-          expect(r.to_h(only_changed: true)).to eq ({
+        it "to_h(:only_changed) returns only changed data and calls load" do
+          expect(r.to_h(:only_changed)).to eq ({
             identity_set: "identity_set",
             normal_set: "normal_set"
           })
           expect_loads(expected_loads: 1, expected_load_values: 2)
         end
 
-        it "to_h(only_explicit: true) returns all data and does not call load" do
-          expect(r.to_h(only_explicit: true)).to eq ALL_ATTRIBUTES.inject({}) { |h,name| h[name.to_sym] = name; h }
+        it "to_h(:only_explicit) returns all data and does not call load" do
+          expect(r.to_h(:only_explicit)).to eq ALL_ATTRIBUTES.inject({}) { |h,name| h[name.to_sym] = name; h }
           expect_loads(expected_loads: 0, expected_load_values: 0)
         end
       end
@@ -467,7 +467,7 @@ describe "StructResource behavior in different states" do
             expect_loads(expected_loads: 0, expected_load_values: 0)
             r.reset
             expect_loads(expected_loads: 0, expected_load_values: 0)
-            expect(r.to_h).to eq FULL_RESET_VALUE
+            expect(r.to_h(:all)).to eq FULL_RESET_VALUE
             expect_loads(expected_loads: 1, expected_load_values: 3)
           end
 
@@ -477,7 +477,7 @@ describe "StructResource behavior in different states" do
             end
             expect_loads(expected_loads: 1, expected_load_values: 2)
             r.reset
-            expect(r.to_h).to eq FULL_RESET_VALUE
+            expect(r.to_h(:all)).to eq FULL_RESET_VALUE
           end
 
           ALL_ATTRIBUTES.each do |name|
@@ -490,7 +490,7 @@ describe "StructResource behavior in different states" do
                 r.reset(name.to_sym)
                 expected = SET_VALUE.dup
                 expected[name.to_sym] = RESET_VALUE[name.to_sym]
-                expect(r.to_h).to eq expected
+                expect(r.to_h(:all)).to eq expected
               end
             end
           end
@@ -513,13 +513,13 @@ describe "StructResource behavior in different states" do
 
           it "has the right values to start" do
             r.resource_identity_defined
-            expect(r.to_h).to eq SET_VALUE
+            expect(r.to_h(:all)).to eq SET_VALUE
           end
 
           it "reset succeeds" do
             r.reset
             r.resource_identity_defined
-            expect(r.to_h).to eq FULL_RESET_VALUE
+            expect(r.to_h(:all)).to eq FULL_RESET_VALUE
           end
 
           ALL_ATTRIBUTES.each do |name|
@@ -528,7 +528,7 @@ describe "StructResource behavior in different states" do
               expected = SET_VALUE.dup
               expected[name.to_sym] = RESET_VALUE[name.to_sym]
               r.resource_identity_defined
-              expect(r.to_h).to eq expected
+              expect(r.to_h(:all)).to eq expected
             end
           end
         end

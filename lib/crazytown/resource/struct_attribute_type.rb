@@ -92,11 +92,11 @@ module Crazytown
       #
       def set_attribute(struct, *args)
         if identity?
-          if struct.resource_state != :created
+          if struct.resource_state && struct.resource_state != :created
             raise AttributeDefinedError.new("Cannot modify identity attribute #{attribute_name} of #{struct.class}: identity attributes cannot be modified after the resource's identity is defined.  (State: #{struct.resource_state})", struct, self)
           end
         else
-          if struct.resource_state != :created && struct.resource_state != :identity_defined
+          if struct.resource_state && struct.resource_state != :created && struct.resource_state != :identity_defined
             raise AttributeDefinedError.new("Cannot modify attribute #{attribute_name} of #{struct.class}: identity attributes cannot be modified after the resource's identity is defined.  (State: #{struct.resource_state})", struct, self)
           end
         end
@@ -131,7 +131,6 @@ module Crazytown
       #
       def current_attribute_value(struct)
         # Try to grab a known (non-default) value from current_resource
-        current_struct = struct.current_resource
         has_value, value = explicit_current_attribute_value(struct)
         if !has_value
           value = default(parent: struct)

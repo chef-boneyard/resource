@@ -19,8 +19,8 @@ class ChildStruct < MyStruct
 end
 ```
 
-Type::TypeClass
-Type::TypeModule
+Types::TypeClass
+Types::TypeModule
 
 Value
 |-- Array

@@ -26,9 +26,9 @@ describe Crazytown::Type do
 
   let(:struct) { MyStruct.open }
 
-  describe Crazytown::Type::Boolean do
+  describe Crazytown::Types::Boolean do
     context "With a Boolean attribute" do
-      with_attr Crazytown::Type::Boolean
+      with_attr Crazytown::Types::Boolean
 
       it "can be set to true" do
         struct.attr = true
@@ -51,7 +51,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Type::FloatType do
+  describe Crazytown::Types::FloatType do
     context "With a Float attribute" do
       with_attr Float
 
@@ -80,7 +80,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Type::IntegerType do
+  describe Crazytown::Types::IntegerType do
     context "With an Integer attribute" do
       with_attr Integer
 
@@ -150,9 +150,9 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Type::Path do
+  describe Crazytown::Types::Path do
     context "With a Path attribute" do
-      with_attr Crazytown::Type::Path
+      with_attr Crazytown::Types::Path
 
       it "can be set to nil" do
         struct.attr = nil
@@ -197,7 +197,7 @@ describe Crazytown::Type do
     end
 
     context "With a Path attribute with default: '/a/b'" do
-      with_attr Crazytown::Type::Path, default: '/a/b'
+      with_attr Crazytown::Types::Path, default: '/a/b'
       it "Defaults to /a/b" do
         expect(struct.attr).to eq '/a/b'
       end
@@ -206,8 +206,8 @@ describe Crazytown::Type do
     context "Lazy" do
       context "With a Path attribute with attr_default=c/d and default: Crazytown::LazyProc.new { attr_default }" do
         with_struct do
-          attribute :attr_default, Crazytown::Type::Path
-          attribute :attr, Crazytown::Type::Path, default: Crazytown::LazyProc.new { attr_default }
+          attribute :attr_default, Crazytown::Types::Path
+          attribute :attr, Crazytown::Types::Path, default: Crazytown::LazyProc.new { attr_default }
         end
         before :each do
           struct.attr_default 'c/d'
@@ -219,8 +219,8 @@ describe Crazytown::Type do
 
       context "With a Path attribute with rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }" do
         with_struct do
-          attribute :rel, Crazytown::Type::Path
-          attribute :attr, Crazytown::Type::Path, relative_to: Crazytown::LazyProc.new { rel }
+          attribute :rel, Crazytown::Types::Path
+          attribute :attr, Crazytown::Types::Path, relative_to: Crazytown::LazyProc.new { rel }
         end
         before :each do
           struct.rel = '/a/b'
@@ -236,9 +236,9 @@ describe Crazytown::Type do
 
       context "With a Path attribute attr_default=c/d, rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }, and default: Crazytown::LazyProc.new { attr_default }" do
         with_struct do
-          attribute :attr_default, Crazytown::Type::Path
-          attribute :rel, Crazytown::Type::Path
-          attribute :attr, Crazytown::Type::Path, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }
+          attribute :attr_default, Crazytown::Types::Path
+          attribute :rel, Crazytown::Types::Path
+          attribute :attr, Crazytown::Types::Path, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }
         end
         before :each do
           struct.attr_default 'c/d'
@@ -255,7 +255,7 @@ describe Crazytown::Type do
     end
 
     context "With a Path attribute relative to /a/b" do
-      with_attr Crazytown::Type::Path, relative_to: '/a/b'
+      with_attr Crazytown::Types::Path, relative_to: '/a/b'
 
       it "Defaults to nil" do
         expect(struct.attr).to be_nil
@@ -303,7 +303,7 @@ describe Crazytown::Type do
     end
 
     context "With a Path attribute relative to a/b" do
-      with_attr Crazytown::Type::Path, relative_to: 'a/b'
+      with_attr Crazytown::Types::Path, relative_to: 'a/b'
 
       it "Defaults to nil" do
         expect(struct.attr).to be_nil
@@ -351,7 +351,7 @@ describe Crazytown::Type do
     end
 
     context "With a Path attribute relative to a/b/" do
-      with_attr Crazytown::Type::Path, relative_to: 'a/b/'
+      with_attr Crazytown::Types::Path, relative_to: 'a/b/'
 
       it "Defaults to nil" do
         expect(struct.attr).to be_nil
@@ -399,7 +399,7 @@ describe Crazytown::Type do
     end
 
     context "With a Path attribute relative to a" do
-      with_attr Crazytown::Type::Path, relative_to: 'a'
+      with_attr Crazytown::Types::Path, relative_to: 'a'
 
       it "Defaults to nil" do
         expect(struct.attr).to be_nil
@@ -447,7 +447,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Type::PathnameType do
+  describe Crazytown::Types::PathnameType do
     context "With a Pathname attribute" do
       with_attr Pathname
 
@@ -737,7 +737,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Type::URIType do
+  describe Crazytown::Types::URIType do
     context "With a URI attribute" do
       with_attr URI
 
@@ -1076,7 +1076,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Type::StringType do
+  describe Crazytown::Types::StringType do
     context "With a String attribute" do
       with_attr String, nullable: :validate
 
@@ -1099,7 +1099,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Type::SymbolType do
+  describe Crazytown::Types::SymbolType do
     context "With a Symbol attribute" do
       with_attr Symbol, nullable: :validate
 

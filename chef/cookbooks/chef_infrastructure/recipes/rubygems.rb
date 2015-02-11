@@ -6,5 +6,6 @@ rubygems do
       never_remove_owners true
       permission_error_acceptable true
     end
+    break
   end
 end

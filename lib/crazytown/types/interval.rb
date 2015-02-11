@@ -1,7 +1,7 @@
 require 'crazytown/type'
 
 module Crazytown
-  module Type
+  module Types
     #
     # Represents a time interval ("3 seconds", "1 day", etc.).
     #
@@ -14,3 +14,8 @@ module Crazytown
     end
   end
 end
+
+#
+# Put Boolean, Interval and Path into the top level namespace so they can be used
+#
+::Interval = Crazytown::Types::Interval

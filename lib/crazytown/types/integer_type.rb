@@ -1,7 +1,7 @@
 require 'crazytown/type'
 
 module Crazytown
-  module Type
+  module Types
     #
     # Handles Integer types.
     #

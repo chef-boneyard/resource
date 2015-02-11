@@ -4,6 +4,9 @@ require 'rubygems'
 require 'uri'
 require_relative 'rubygems_api'
 
+# Open Chef::Resource so we have access to Boolean and such
+class Crazytown::ChefDSL::ChefResource
+
 Crazytown.resource :rubygems do
   #
   # The Rubygems host the gems are stored on.  Defaults to whatever is in your
@@ -62,12 +65,14 @@ Crazytown.resource :rubygems do
   require_relative 'rubygems_user'
 
   def gem(*args, &block)
-    method_missing(:rubygems_gem, self, *args, &block)
+    rubygems_gem self, *args, &block
   end
 
   def user(*args, &block)
-    method_missing(:rubygems_user, self, *args, &block)
+    rubygems_user self, *args, &block
   end
+end
+
 end
 
 end

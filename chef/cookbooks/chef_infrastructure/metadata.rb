@@ -1,2 +1,2 @@
-name "my_infrastructure"
+name "chef_infrastructure"
 depends "rubygems"

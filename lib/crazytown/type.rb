@@ -68,6 +68,9 @@ module Crazytown
           # continue to run validations.)
           return unless nullable? == :validate
         else
+          # TODO error message sucks.  Needs to include attribute name.  Start
+          # passing parent and self in, and have common methods to print out what
+          # thing needs to not be null.
           # If the value is null and isn't supposed to be, raise an error
           raise MustNotBeNullError.new("must not be null", value)
         end
@@ -117,7 +120,75 @@ module Crazytown
     #
     # Defaults to false unless the value has a `nil` default, in which case it is `true`.
     #
-    boolean_attribute :nullable, default: "defined?(@default) && @default.nil?"
+    #boolean_attribute :nullable, default: "(puts \"nullable! \#{defined?(@default)}\"; defined?(@default) && @default.nil?)"
+
+    module_eval <<-EOM, __FILE__, __LINE__+1
+      module SimpleStructInterface
+        def nullable=(value)
+          nullable value
+        end
+        def nullable(value=NOT_PASSED, parent: self, &block)
+          if block
+            @nullable = Crazytown::LazyProc.new(instance_eval: true, &block)
+          elsif value == NOT_PASSED
+            if defined?(@nullable)
+              if @nullable.is_a?(LazyProc)
+                value = @nullable.get(instance: parent, instance_eval_by_default: true)
+              else
+                value = @nullable
+              end
+              value = value
+            elsif respond_to?(:superclass) && superclass.respond_to?(:nullable)
+              return superclass.nullable
+            else
+              value = (puts "nullable! #{defined?(@default)}"; defined?(@default) && @default.nil?)
+            end
+          elsif value.is_a?(LazyProc)
+            @nullable = value
+          else
+            @nullable = value
+          end
+        end
+        def nullable?
+          nullable
+        end
+      end
+      include SimpleStructInterface
+    EOM
+
+    # module SimpleStructInterface
+    #   def nullable=(value)
+    #     nullable value
+    #   end
+    #   def nullable(value=NOT_PASSED, parent: self, &block)
+    #     if block
+    #       @nullable = Crazytown::LazyProc.new(instance_eval: true, &block)
+    #     elsif value == NOT_PASSED
+    #       if defined?(@nullable)
+    #         if @nullable.is_a?(LazyProc)
+    #           value = @nullable.get(instance: parent, instance_eval_by_default: true)
+    #         else
+    #           value = @nullable
+    #         end
+    #         value = value
+    #       elsif defined?(super)
+    #         return super
+    #       else
+    #         puts "#{self}.nullable"
+    #         value = (puts "nullable! #{defined?(@default)}"; defined?(@default) && @default.nil?)
+    #       end
+    #     elsif value.is_a?(LazyProc)
+    #       @nullable = value
+    #     else
+    #       @nullable = value
+    #     end
+    #   end
+    #   def nullable?
+    #     nullable
+    #   end
+    # end
+    # include SimpleStructInterface
+
 
     #
     # A set of validators that will be run.  An array of pairs [ message, proc ],
@@ -156,16 +227,15 @@ module Crazytown
       end
     end
 
-    extend SimpleStruct
-
     #
     # The default value for things of this type.
     #
     # @param value The default value.  If this is a LazyProc, the block will
     #   be run in the context of the struct (`struct.instance_eval`) unless
-    #   the block is explicitly set to `instance_eval: false`.
+    #   the block is explicitly set to `instance_eval: false`.  If `nil`, the
+    #   type is assumed to be nullable.
     #
-    attribute :default, coerced: "coerce(parent, value)"
+    attribute :default, coerced: "coerce(parent, value)", coerced_set: "value.nil? ? value : coerce(parent, value)"
 
     #
     # Turn the value into a string in just the context of this Type.
@@ -288,12 +358,12 @@ module Crazytown
     # @return The existing type class for the given type.  If none, returns `nil`.
     #
     # @example Symbols
-    #   type(:boolean) #=> Crazytown::Type::Boolean
-    #   type(:rational) #=> Crazytown::Type::NumericType
+    #   type(:boolean) #=> Crazytown::Types::Boolean
+    #   type(:rational) #=> Crazytown::Types::NumericType
     #   type(:my_resource) #=> MyResource
     # @example Primitive types
-    #   type(Fixnum) #=> Crazytown::Type::IntegerType
-    #   type(Rational) #=> Crazytown::Type::NumericType
+    #   type(Fixnum) #=> Crazytown::Types::IntegerType
+    #   type(Rational) #=> Crazytown::Types::NumericType
     #   type(Hash) #=> nil
     # @example Actual type class
     #   type(Blah) #=> Blah
@@ -325,28 +395,28 @@ module Crazytown
     #
     def get_type_for_class(instance_class)
       if instance_class    <= Integer
-        IntegerType
+        Types::IntegerType
 
       elsif instance_class <= Float
-        FloatType
+        Types::FloatType
 
       elsif instance_class <= URI
-        URIType
+        Types::URIType
 
       elsif instance_class <= Pathname
-        PathnameType
+        Types::PathnameType
 
       elsif instance_class <= DateTime
-        DateTimeType
+        Types::DateTimeType
 
       elsif instance_class <= Date
-        DateType
+        Types::DateType
 
       elsif instance_class <= Symbol
-        SymbolType
+        Types::SymbolType
 
       elsif instance_class <= String
-        StringType
+        Types::StringType
 
       else
         nil
@@ -354,16 +424,16 @@ module Crazytown
     end
   end
 
-  require 'crazytown/type/boolean'
-  require 'crazytown/type/interval'
-  require 'crazytown/type/byte_size'
-  require 'crazytown/type/path'
+  require 'crazytown/types/boolean'
+  require 'crazytown/types/interval'
+  require 'crazytown/types/byte_size'
+  require 'crazytown/types/path'
 
-  require 'crazytown/type/integer_type'
-  require 'crazytown/type/float_type'
-  require 'crazytown/type/uri_type'
-  require 'crazytown/type/date_time_type'
-  require 'crazytown/type/date_type'
-  require 'crazytown/type/symbol_type'
-  require 'crazytown/type/string_type'
+  require 'crazytown/types/integer_type'
+  require 'crazytown/types/float_type'
+  require 'crazytown/types/uri_type'
+  require 'crazytown/types/date_time_type'
+  require 'crazytown/types/date_type'
+  require 'crazytown/types/symbol_type'
+  require 'crazytown/types/string_type'
 end

@@ -13,7 +13,7 @@ module Crazytown
     # not been set locally.  Also flips on instance_eval automatically for lazy
     # procs.
     #
-    def attribute(name, default: "nil", coerced: "value", inherited: "superclass.#{name}")
+    def attribute(name, default: "nil", coerced: "value", coerced_set: coerced, inherited: "superclass.#{name}")
       module_eval <<-EOM, __FILE__, __LINE__+1
         module SimpleStructInterface
           def #{name}=(value)
@@ -38,7 +38,7 @@ module Crazytown
             elsif value.is_a?(LazyProc)
               @#{name} = value
             else
-              @#{name} = #{coerced}
+              @#{name} = #{coerced_set}
             end
           end
         end

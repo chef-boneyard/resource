@@ -195,6 +195,17 @@ module Crazytown
     end
 
     #
+    # Whether the current resource has been loaded.
+    #
+    # @return [Boolean] Whether the current resource has been loaded.  This will
+    #   be true if the attempt was made, even if it failed to load or does not
+    #   actually exist.
+    #
+    def current_resource_loaded?
+      defined?(@current_resource)
+    end
+
+    #
     # Get a new copy of the Resource with only identity values set.
     #
     # Note: the Resource remains in :created state, not :identity_defined as

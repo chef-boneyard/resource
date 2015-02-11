@@ -1,7 +1,7 @@
-require 'crazytown/type/pathname_type'
+require 'crazytown/types/pathname_type'
 
 module Crazytown
-  module Type
+  module Types
     #
     # Type for Paths.  Always stored as String.
     #
@@ -32,3 +32,8 @@ module Crazytown
     end
   end
 end
+
+#
+# Put Boolean, Interval and Path into the top level namespace so they can be used
+#
+::Path = Crazytown::Types::Path

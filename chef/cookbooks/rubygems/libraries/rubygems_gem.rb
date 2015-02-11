@@ -2,13 +2,16 @@ unless Chef::Resource.const_defined?(:RubygemsGem)
 
 require_relative 'rubygems'
 
+# Open Chef::Resource so we have access to Boolean and such
+class Crazytown::ChefDSL::ChefResource
+
 Crazytown.resource :rubygems_gem do
   attribute :rubygems, :rubygems, identity: true
   attribute :name, String, identity: true
   attribute :owners, Array do
     load_value do
-      api.get("api/v1/gems/#{name}/owners.json").map do |owner|
-        user(email: owner['email'])
+      rubygems.api.get("api/v1/gems/#{name}/owners.json").map do |owner|
+        rubygems.user(email: owner['email'])
       end
     end
   end
@@ -24,7 +27,7 @@ Crazytown.resource :rubygems_gem do
       # Add new owners
       (new_emails - current_emails).each do |add_email|
         puts <<-EOM
-          api.post("api/v1/gems/#{name}/owners", "email", #{add_email})
+          rubygems.api.post("api/v1/gems/#{name}/owners", "email", #{add_email})
         EOM
       end
 
@@ -32,7 +35,7 @@ Crazytown.resource :rubygems_gem do
       unless never_remove_owners
         (current_emails - new_emails).each do |remove_email|
           puts <<-EOM
-            api.delete("api/v1/gems/#{name}/owners", "email", #{remove_email})
+            rubygems.api.delete("api/v1/gems/#{name}/owners", "email", #{remove_email})
           EOM
         end
       end
@@ -40,4 +43,5 @@ Crazytown.resource :rubygems_gem do
   end
 end
 
+end
 end

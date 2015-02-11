@@ -1,20 +1,11 @@
 Basic Resource (Modifying A Real Thing) Support
 
-- Add `changes` API, distinguish between explicit user desired changes and
-  "loaded values" that may or may not have changed / drifted
 - Make API to change things: converge, if_create, if_change_desired (which is probably where try_change lands)
-- Create the resource tree and resource :name object
-- Add events and printing
-- Add "recipe" (might be handled automatically by resource tree)
-- Type specialization: tests, and merging of "attributes".  Probably best to wait until after resource tree is built.
 - Prevent "attribute" from overwriting non-attribute methods (even on base classes
   or modules)
 - Can we prevent people from screwing up and writing both "load" and "load_value"?
   Or at least tell them when they do it?  It can cause inconsistent results.
-- NOTE: if someone writes a `load` that canonicalizes an identity attribute, the
-  attribute will be marked as changed (and the user's specified value will be
-  the new value).  This is probably the right thing ... but it's sort of weird,
-  too.
+- Get rid of keyword arguments anywhere you find optional arguments
 
 Nesting
 - Add nested structs
@@ -22,6 +13,7 @@ Nesting
 - Add sets
 - Add indexed sets
 - Add arrays
+- Type specialization: tests, and merging of "attributes".  Probably best to wait until after resource tree is built.
 
 Specifics
 - Provisioning: provisioning.machine, aws.sdk, aws.instance, docker.image, docker.container, docker.image
@@ -34,7 +26,7 @@ Specifics
 
 Future
 - Race condition protection?  etcd-content id, by date, by checksum ...
-
+- Reduce stack size and make it even more readable
 ...
 
 - Think about race condition protection / content id / etc.
