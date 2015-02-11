@@ -12,8 +12,17 @@ Crazytown.resource :rubygems_user do
   attribute :email,      String, identity: true, default: nil
   attribute :owned_gems, Array do
     load_value do
-      rubygems.api.get("api/v1/owners/#{username}/gems.json").map do |owner|
-        gem()
+      rubygems.api.get("api/v1/owners/#{username}/gems.json").map do |gem|
+        # TODO there is lots more info we can get here
+        # TODO this is sort of icky ... we don't want to use "rubygems.gem" because
+        # that adds the resource to the resource collection. Figure it out ...
+        user = self
+        build_resource(:rubygems_gem, "", caller[0]) do
+          rubygems user.rubygems
+          name gem['name']
+          # Lock down the resource now that we have filled everything in
+          resource_fully_defined
+        end
       end
     end
   end

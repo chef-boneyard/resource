@@ -71,6 +71,9 @@ Crazytown.resource :rubygems do
   def user(*args, &block)
     rubygems_user self, *args, &block
   end
+
+  recipe do
+  end
 end
 
 end
