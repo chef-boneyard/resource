@@ -3,9 +3,6 @@ unless Chef::Resource.const_defined?(:RubygemsUser)
 require_relative 'rubygems'
 require 'crazytown/chef_dsl/chef_resource'
 
-# Open Chef::Resource so we have access to Boolean and such
-class Crazytown::ChefDSL::ChefResource
-
 Crazytown.resource :rubygems_user do
   attribute :rubygems,   :rubygems, identity: true
   attribute :username,   String, identity: true, default: nil
@@ -74,5 +71,4 @@ Crazytown.resource :rubygems_user do
   end
 end
 
-end
 end

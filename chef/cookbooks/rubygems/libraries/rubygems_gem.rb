@@ -2,9 +2,6 @@ unless Chef::Resource.const_defined?(:RubygemsGem)
 
 require_relative 'rubygems'
 
-# Open Chef::Resource so we have access to Boolean and such
-class Crazytown::ChefDSL::ChefResource
-
 Crazytown.resource :rubygems_gem do
   attribute :rubygems, :rubygems, identity: true
   attribute :name, String, identity: true
@@ -51,5 +48,4 @@ Crazytown.resource :rubygems_gem do
   end
 end
 
-end
 end

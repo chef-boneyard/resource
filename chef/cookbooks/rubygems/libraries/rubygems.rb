@@ -4,9 +4,6 @@ require 'rubygems'
 require 'uri'
 require_relative 'rubygems_api'
 
-# Open Chef::Resource so we have access to Boolean and such
-class Crazytown::ChefDSL::ChefResource
-
 Crazytown.resource :rubygems do
   #
   # The Rubygems host the gems are stored on.  Defaults to whatever is in your
@@ -74,8 +71,6 @@ Crazytown.resource :rubygems do
 
   recipe do
   end
-end
-
 end
 
 end
