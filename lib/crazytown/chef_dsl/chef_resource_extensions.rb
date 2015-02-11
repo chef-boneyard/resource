@@ -33,11 +33,9 @@ module Crazytown
           text << "  #{name.to_s.ljust(results_width)} "
           if value.respond_to?(:to_text)
             lines = value.to_text.lines
-            if lines.empty?
-              text << "\n"
-            else
-              lines.each { |line| text << "  #{line}#{line.end_with?("\n") ? "" : "\n"}" }
-            end
+            text << lines.map do |line|
+              "#{line}#{line.end_with?("\n") ? "" : "\n"}"
+            end.join("  ")
           else
             text << "#{value.inspect}\n"
           end
