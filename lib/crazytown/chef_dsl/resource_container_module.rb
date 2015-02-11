@@ -58,12 +58,20 @@ module Crazytown
           recipe_dsl_module.module_eval <<-EOM, __FILE__, __LINE__+1
             def #{resource_name}(*identity, &update_block)
               # TODO fix Chef: let declare_resource take the resource class
-
-              declare_resource(#{resource_name.inspect}, "", caller[0]) do
-                define_identity(*identity)
-                instance_eval(&update_block) if update_block
-                # Lock down the resource now that we have filled everything in
-                resource_fully_defined
+              if update_block
+                declare_resource(#{resource_name.inspect}, "", caller[0]) do
+                  define_identity(*identity)
+                  instance_eval(&update_block)
+                  # Lock down the resource now that we have filled everything in
+                  resource_fully_defined
+                end
+              else
+                # If you don't pass a block, we assume you just wanted to construct
+                # a resource to use for reading.
+                build_resource(#{resource_name.inspect}, "", caller[0]) do
+                  define_identity(*identity)
+                  resource_fully_defined
+                end
               end
             end
           EOM

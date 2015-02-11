@@ -63,10 +63,10 @@ module Crazytown
       def resource_identity_string
         positionals = []
         named = {}
-        explicit_values.each_key do |name|
-          value = public_send(name)
-          type = self.class.attribute_types[name]
+        self.class.attribute_types.each do |name, type|
+          next if !explicit_values.has_key?(name)
           if type.identity?
+            value = public_send(name)
             if type.required?
               positionals << value
             else
@@ -76,11 +76,9 @@ module Crazytown
         end
         if named.empty?
           if positionals.empty?
-            name ""
-            return
+            return ""
           elsif positionals.size == 1
-            name positionals[0].to_s
-            return
+            return positionals[0].to_s
           end
         end
         (positionals.map { |value| value.inspect } +

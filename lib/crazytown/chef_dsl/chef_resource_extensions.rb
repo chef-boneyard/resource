@@ -159,6 +159,10 @@ module Crazytown
         resource
       end
 
+      def to_s
+        "#{self.class.dsl_name}[#{resource_identity_string}]"
+      end
+
       #
       # For our short_name, we just grab #to_s, which outputs the right notification
       # syntax.
