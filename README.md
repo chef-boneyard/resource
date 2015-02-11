@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/jkeiser/crazytown.png?label=ready&title=Ready)](https://waffle.io/jkeiser/crazytown)
 Crazytown
 =========
 
