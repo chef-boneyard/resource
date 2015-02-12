@@ -5,12 +5,16 @@ require 'set'
 
 Crazytown.resource :rubygems_gem do
   property :rubygems, :rubygems, identity: true
-  property :name,     String, identity: true
+  property :gem_name, String, identity: true
   property :owners,   Set do
     load_value do
-      rubygems.api.get("api/v1/gems/#{name}/owners.json").map do |owner|
+      rubygems.api.get("api/v1/gems/#{gem_name}/owners.json").map do |owner|
         owner['email']
       end.to_set
+    end
+
+    def self.value_to_s(value)
+      value.to_a.to_s
     end
   end
 
@@ -26,9 +30,7 @@ Crazytown.resource :rubygems_gem do
       # Add new owners
       #
       (new_emails - current_emails).each do |add_email|
-        puts <<-EOM
-          rubygems.api.post("api/v1/gems/#{name}/owners", "email", #{add_email})
-        EOM
+        rubygems.api.post("api/v1/gems/#{gem_name}/owners", email: add_email)
       end
 
       #
@@ -37,7 +39,7 @@ Crazytown.resource :rubygems_gem do
       unless never_remove_owners
         (current_emails - new_emails).each do |remove_email|
           puts <<-EOM
-            rubygems.api.delete("api/v1/gems/#{name}/owners", "email", #{remove_email})
+            rubygems.api.delete("api/v1/gems/#{gem_name}/owners", "email", #{remove_email})
           EOM
         end
       end

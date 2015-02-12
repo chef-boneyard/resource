@@ -8,8 +8,8 @@ require 'set'
 
 Crazytown.resource :rubygems_user do
   property :rubygems,   :rubygems, identity: true
-  property :username,   String,    identity: true, default: nil
-  property :email,      String,    identity: true, default: nil
+  property :username,   String,    identity: true, default: nil, nullable: true
+  property :email,      String,    identity: true, default: nil, nullable: true
   property :owned_gems, Set do
     load_value do
       rubygems.api.get("api/v1/owners/#{username}/gems.json").map do |gem|

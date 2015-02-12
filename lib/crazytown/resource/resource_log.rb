@@ -144,7 +144,7 @@ module Crazytown
       #
       def update_failed(error)
         raise "update failed when no update is taking place!" if !current_update
-        raise "update failed when actions are still running!" if !current_action_stack.empty?
+        self.current_action_stack.clear
         self.current_update = nil
       end
 
@@ -179,7 +179,7 @@ module Crazytown
       # @return [String] The description of the action that failed.
       #
       def action_failed(error)
-        raise "action failed when no action was started" if current_action.nil?
+        raise "action failed when no action was started" if current_action_stack.empty?
         original_description, _ = current_action_stack.pop
         original_description
       end
