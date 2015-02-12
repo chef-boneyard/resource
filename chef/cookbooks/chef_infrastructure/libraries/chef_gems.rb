@@ -49,3 +49,5 @@ module ChefGems
     omniauth-opscode
   )
 end
+
+::ALL_CHEF_GEMS = ChefGems::CHEF_CORE + ChefGems::CHEF_PROVISIONING + ChefGems::TEST_KITCHEN + ChefGems::CORE_TOOLS

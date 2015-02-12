@@ -81,14 +81,22 @@ end
 
 
 #
-# Don't clone Crazytown resources
+# Build Crazytown resources all special-like
 #
 
-require 'crazytown/chef_dsl/chef_resource_builder'
-require 'chef/resource_builder'
+require 'crazytown/chef_dsl/chef_recipe_dsl_extensions'
+require 'chef/dsl/recipe'
+require 'chef/recipe'
+require 'chef/resource/lwrp_base'
 
 class Chef
-  class ResourceBuilder
-    prepend Crazytown::ChefDSL::ChefResourceBuilder
+  module DSL::Recipe
+    prepend Crazytown::ChefDSL::ChefRecipeDSLExtensions
+  end
+  class Recipe
+    prepend Crazytown::ChefDSL::ChefRecipeDSLExtensions
+  end
+  class Resource::LWRPBase
+    prepend Crazytown::ChefDSL::ChefRecipeDSLExtensions
   end
 end

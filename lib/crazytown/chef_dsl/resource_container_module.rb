@@ -15,11 +15,11 @@ module Crazytown
         # Go through the constants in the module, trawling for Resources
         seen = []
         const_module.constants.each do |class_name|
-          resource = const_module.const_get(class_name)
-          next if !resource.is_a?(Class)
-          next if !(resource <= Chef::Resource)
+          resource_class = const_module.const_get(class_name)
+          next if !resource_class.is_a?(Class)
+          next if !(resource_class <= Chef::Resource)
 
-          resource_name = resource.dsl_name
+          resource_name = resource_class.dsl_name
 
           seen << resource_name
 
@@ -28,7 +28,7 @@ module Crazytown
           if current_class_name != class_name
             if current_class_name && const_module.const_defined?(current_class_name)
               current_resource = const_module.const_get(current_class_name)
-              if current_resource != resource && current_resource.is_a?(Class) && current_resource <= Chef::Resource && current_resource_name == resource_name
+              if current_resource != resource_class && current_resource.is_a?(Class) && current_resource <= Chef::Resource && current_resource_name == resource_name
                 raise "Both #{current_class_name} and #{class_name} map to #{resource_name}.  Choose a different dsl_name for one of them!"
               end
             end
@@ -39,7 +39,7 @@ module Crazytown
             end
 
             # Create / overwrite the current methods
-            emit_resource_definition_method(resource_name, class_name, resource)
+            emit_resource_definition_method(resource_name, class_name, resource_class)
 
             resource_types[resource_name] = class_name
           end
@@ -59,19 +59,11 @@ module Crazytown
             def #{resource_name}(*identity, &update_block)
               # TODO fix Chef: let declare_resource take the resource class
               if update_block
-                declare_resource(#{resource_name.inspect}, "", caller[0]) do
-                  define_identity(*identity)
-                  instance_eval(&update_block)
-                  # Lock down the resource now that we have filled everything in
-                  resource_fully_defined
-                end
+                declare_resource(#{actual_class.name}, *identity, caller[0], &update_block)
               else
                 # If you don't pass a block, we assume you just wanted to construct
                 # a resource to use for reading.
-                build_resource(#{resource_name.inspect}, "", caller[0]) do
-                  define_identity(*identity)
-                  resource_fully_defined
-                end
+                build_resource(#{actual_class.name}, *identity, caller[0])
               end
             end
           EOM

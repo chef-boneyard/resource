@@ -1,11 +1,13 @@
+DESIRED_OWNERS = %w(jkeiser)
+
 rubygems do
-  add_owners = %w(jkeiser).map { |username| user(username: username).email }
-  chef_gems = ChefGems::CHEF_CORE + ChefGems::CHEF_PROVISIONING + ChefGems::TEST_KITCHEN + ChefGems::CORE_TOOLS
-  chef_gems.each do |name|
+  # Talk to Rubygems and get the email of each user
+  desired_owners = DESIRED_OWNERS.map do |username|
+    user(username).email
+  end
+  ALL_CHEF_GEMS.each do |name|
     gem name do
-      self.owners |= add_owners
-      never_remove_owners true
-      permission_error_acceptable true
+      self.owners += desired_owners
     end
   end
 end

@@ -3,13 +3,22 @@ require 'chef/runner'
 require 'chef/dsl/recipe'
 require 'crazytown/resource/struct_resource'
 require 'crazytown/chef_dsl/chef_resource_log'
+require 'crazytown/chef_dsl/chef_recipe_dsl_extensions'
 require 'crazytown/types'
 
 module Crazytown
   module ChefDSL
     module ChefResourceExtensions
       include Chef::DSL::Recipe
+      include Crazytown::ChefDSL::ChefRecipeDSLExtensions
       include Crazytown::Resource::StructResource
+
+      #
+      # We don't set name, and we expect our run_context to be set elsewhere.
+      #
+      def initialize
+        super(nil, nil)
+      end
 
       #
       # Returns a super-friendly string showing this struct.
@@ -151,11 +160,14 @@ module Crazytown
       # (since Resource requires that).
       #
       def reopen_resource
-        # Create a new Resource of our same type, with just identity values.
-        resource = self.class.new(name, run_context)
-        explicit_values.each do |name,value|
-          resource.explicit_values[name] = value if self.class.property_types[name].identity?
-        end
+        resource = super
+        resource.run_context = run_context
+        resource.cookbook_name = cookbook_name
+        resource.recipe_name = recipe_name
+        resource.source_line = source_line
+        resource.declared_type = declared_type
+        resource.enclosing_provider = enclosing_provider
+        resource.params = params
         resource
       end
 
