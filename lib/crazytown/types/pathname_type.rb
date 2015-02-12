@@ -15,7 +15,7 @@ module Crazytown
 
       class <<self
         extend SimpleStruct
-        attribute :relative_to, coerced: "value.is_a?(String) ? Pathname.new(value) : value"
+        property :relative_to, coerced: "value.is_a?(String) ? Pathname.new(value) : value"
       end
 
       def self.coerce(parent, path)

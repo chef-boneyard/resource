@@ -88,7 +88,7 @@ module Crazytown
       end
 
       #
-      # Fired when load_value for a given attribute starts
+      # Fired when load_value for a given property starts
       #
       def load_value_started(name)
         raise "load_value(#{name}) started twice!" if current_load_values[name]
@@ -96,9 +96,9 @@ module Crazytown
       end
 
       #
-      # Fired when load_value for a given attribute succeeds
+      # Fired when load_value for a given property succeeds
       #
-      # @param name The name of the attribute
+      # @param name The name of the property
       #
       def load_value_succeeded(name)
         raise "load_value(name) succeeded but was never started!" if !current_load_values[name]
@@ -106,9 +106,9 @@ module Crazytown
       end
 
       #
-      # Fired when Resource.load_value for a given attribute fails
+      # Fired when Resource.load_value for a given property fails
       #
-      # @param name The name of the attribute
+      # @param name The name of the property
       # @param error The error that was raised
       #
       def load_value_failed(name, error)

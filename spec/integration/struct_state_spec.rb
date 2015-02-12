@@ -13,48 +13,48 @@ describe "StructResource behavior in different states" do
   end
 
   describe :resource_state do
-    context "When MyResource has set attributes, default attributes, load_value and values set by load" do
+    context "When MyResource has set properties, default properties, load_value and values set by load" do
       with_struct(:MyResource) do
-        attribute :identity_set,
+        property :identity_set,
                   identity:   true,
                   default:    "identity_set DEFAULT"
-        attribute :identity_set_same_as_default,
+        property :identity_set_same_as_default,
                   identity: true,
                   default: "identity_set_same_as_default"
-        attribute :identity_set_same_as_load_value,
+        property :identity_set_same_as_load_value,
                   identity: true,
                   default: "identity_set_same_as_default DEFAULT",
                   load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "identity_set_same_as_load_value" }
-        attribute :identity_set_same_as_load,
+        property :identity_set_same_as_load,
                   identity: true,
                   required: false,
                   default: "identity_set_same_as_default DEFAULT_VALUE"
-        attribute :identity_default,
+        property :identity_default,
                   identity: true,
                   default: "identity_default"
-        attribute :identity_load_value,
+        property :identity_load_value,
                   identity: true,
                   default: "identity_load_value DEFAULT",
                   load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "identity_load_value" }
-        attribute :identity_load,
+        property :identity_load,
                   identity: true,
                   default: "identity_load DEFAULT"
 
-        attribute :normal_set,
+        property :normal_set,
                   default: "normal_set DEFAULT"
-        attribute :normal_set_same_as_default,
+        property :normal_set_same_as_default,
                   default: "normal_set_same_as_default"
-        attribute :normal_set_same_as_load_value,
+        property :normal_set_same_as_load_value,
                   default: "normal_set_same_as_load_value DEFAULT",
                   load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "normal_set_same_as_load_value" }
-        attribute :normal_set_same_as_load,
+        property :normal_set_same_as_load,
                   default: "normal_set_same_as_load LOAD"
-        attribute :normal_default,
+        property :normal_default,
                   default: "normal_default"
-        attribute :normal_load_value,
+        property :normal_load_value,
                   default: "normal_load_value DEFAULT",
                   load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "normal_load_value" }
-        attribute :normal_load,
+        property :normal_load,
                   default: "normal_load DEFAULT"
 
         def load
@@ -86,7 +86,7 @@ describe "StructResource behavior in different states" do
         @initial_load_values || 0
       end
 
-      ALL_ATTRIBUTES = %w(
+      ALL_PROPERTIES = %w(
         identity_set
         identity_set_same_as_default
         identity_set_same_as_load_value
@@ -113,7 +113,7 @@ describe "StructResource behavior in different states" do
       end
 
       shared_context "All values can be read" do
-        ALL_ATTRIBUTES.each do |name|
+        ALL_PROPERTIES.each do |name|
           if name.index('_set')
             it "#{name} == '#{name}'" do
               expect(r.public_send(name)).to eq name
@@ -136,7 +136,7 @@ describe "StructResource behavior in different states" do
       shared_context "to_h(:all) returns correct data" do
         it "to_h(:all) returns everything including defaults and load is called" do
           expect(r.to_h(:all)).
-            to eq ALL_ATTRIBUTES.
+            to eq ALL_PROPERTIES.
                   inject({}) { |h,name| h[name.to_sym] = name; h }
           expect_loads(expected_loads: 1, expected_load_values: 2)
         end
@@ -151,7 +151,7 @@ describe "StructResource behavior in different states" do
 
         it "to_h(:only_explicit) returns only explicitly opened values (no default or loaded values) and load is not called" do
           expect(r.to_h(:only_explicit)).
-            to eq ALL_ATTRIBUTES.
+            to eq ALL_PROPERTIES.
                   select { |name| name.start_with?('identity_set') || name.start_with?('normal_set') }.
                   inject({}) { |h,name| h[name.to_sym] = name; h }
           expect_loads(expected_loads: 0, expected_load_values: 0)
@@ -176,11 +176,11 @@ describe "StructResource behavior in different states" do
         let(:r) { current_resource }
 
         context "Only normal values can be set" do
-          ALL_ATTRIBUTES.each do |name|
+          ALL_PROPERTIES.each do |name|
             if name.start_with?('identity_')
-              it "#{name} = 'hi' fails with Crazytown::AttributeDefinedError" do
-                expect { eval("r.#{name} = 'hi'") }.to raise_error Crazytown::AttributeDefinedError
-                expect { eval("r.#{name} 'hi'")}.to raise_error Crazytown::AttributeDefinedError
+              it "#{name} = 'hi' fails with Crazytown::PropertyDefinedError" do
+                expect { eval("r.#{name} = 'hi'") }.to raise_error Crazytown::PropertyDefinedError
+                expect { eval("r.#{name} 'hi'")}.to raise_error Crazytown::PropertyDefinedError
               end
             else
               it "#{name} = 'hi' succeeds" do
@@ -203,7 +203,7 @@ describe "StructResource behavior in different states" do
       context "When the resource is open and all values have been read" do
         let(:r) { current_resource}
         before :each do
-          ALL_ATTRIBUTES.each do |name|
+          ALL_PROPERTIES.each do |name|
             expect(r.public_send(name)).to eq name
           end
           @initial_loads = 1
@@ -220,10 +220,10 @@ describe "StructResource behavior in different states" do
         end
 
         context "Values cannot be set" do
-          ALL_ATTRIBUTES.each do |name|
-            it "#{name} = 'hi' fails with Crazytown::AttributeDefinedError" do
-              expect { eval("r.#{name} = 'hi'") }.to raise_error Crazytown::AttributeDefinedError
-              expect { eval("r.#{name} 'hi'")}.to raise_error Crazytown::AttributeDefinedError
+          ALL_PROPERTIES.each do |name|
+            it "#{name} = 'hi' fails with Crazytown::PropertyDefinedError" do
+              expect { eval("r.#{name} = 'hi'") }.to raise_error Crazytown::PropertyDefinedError
+              expect { eval("r.#{name} 'hi'")}.to raise_error Crazytown::PropertyDefinedError
             end
           end
         end
@@ -273,10 +273,10 @@ describe "StructResource behavior in different states" do
         end
 
         context "Values cannot be set" do
-          ALL_ATTRIBUTES.each do |name|
-            it "#{name} = 'hi' fails with Crazytown::AttributeDefinedError" do
-              expect { eval("r.#{name} = 'hi'") }.to raise_error Crazytown::AttributeDefinedError
-              expect { eval("r.#{name} 'hi'")}.to raise_error Crazytown::AttributeDefinedError
+          ALL_PROPERTIES.each do |name|
+            it "#{name} = 'hi' fails with Crazytown::PropertyDefinedError" do
+              expect { eval("r.#{name} = 'hi'") }.to raise_error Crazytown::PropertyDefinedError
+              expect { eval("r.#{name} 'hi'")}.to raise_error Crazytown::PropertyDefinedError
             end
           end
         end
@@ -299,8 +299,8 @@ describe "StructResource behavior in different states" do
           resource
         end
 
-        context "All attributes can be set" do
-          ALL_ATTRIBUTES.each do |name|
+        context "All properties can be set" do
+          ALL_PROPERTIES.each do |name|
             it "#{name} = 'hi' succeeds" do
               eval("r.#{name} = 'hi'")
               expect(eval("r.#{name}")).to eq 'hi'
@@ -315,9 +315,9 @@ describe "StructResource behavior in different states" do
         end
 
         context "Only explicitly set values can be read" do
-          ALL_ATTRIBUTES.select do |name|
-            # Attributes whose desired identity has been set can be retrieved when
-            # in new state.  Other attributes cannot (because they require pulling
+          ALL_PROPERTIES.select do |name|
+            # Properties whose desired identity has been set can be retrieved when
+            # in new state.  Other properties cannot (because they require pulling
             # on current_resource).
             if name.index('_set')
               it "#{name} == '#{name}'" do
@@ -342,7 +342,7 @@ describe "StructResource behavior in different states" do
 
         it "to_h(:only_explicit) returns only explicitly opened values (no default or loaded values) and load is not called" do
           expect(r.to_h(:only_explicit)).
-            to eq ALL_ATTRIBUTES.
+            to eq ALL_PROPERTIES.
                   select { |name| name.index('_set') }.
                   inject({}) { |h,name| h[name.to_sym] = name; h }
           expect_loads(expected_loads: 0, expected_load_values: 0)
@@ -371,7 +371,7 @@ describe "StructResource behavior in different states" do
         end
 
         context "All values can be read" do
-          ALL_ATTRIBUTES.each do |name|
+          ALL_PROPERTIES.each do |name|
             it "#{name} == '#{name}'" do
               expect(r.public_send(name)).to eq name
               expect_loads(expected_loads: 0, expected_load_values: 0)
@@ -380,7 +380,7 @@ describe "StructResource behavior in different states" do
         end
 
         it "to_h(:all) returns all data and does not call load" do
-          expect(r.to_h(:all)).to eq ALL_ATTRIBUTES.inject({}) { |h,name| h[name.to_sym] = name; h }
+          expect(r.to_h(:all)).to eq ALL_PROPERTIES.inject({}) { |h,name| h[name.to_sym] = name; h }
           expect_loads(expected_loads: 0, expected_load_values: 0)
         end
 
@@ -393,7 +393,7 @@ describe "StructResource behavior in different states" do
         end
 
         it "to_h(:only_explicit) returns all data and does not call load" do
-          expect(r.to_h(:only_explicit)).to eq ALL_ATTRIBUTES.inject({}) { |h,name| h[name.to_sym] = name; h }
+          expect(r.to_h(:only_explicit)).to eq ALL_PROPERTIES.inject({}) { |h,name| h[name.to_sym] = name; h }
           expect_loads(expected_loads: 0, expected_load_values: 0)
         end
       end
@@ -472,7 +472,7 @@ describe "StructResource behavior in different states" do
           end
 
           it "reset succeeds after all values have been read" do
-            ALL_ATTRIBUTES.each do |name|
+            ALL_PROPERTIES.each do |name|
               expect(r.public_send(name)).to eq SET_VALUE[name.to_sym]
             end
             expect_loads(expected_loads: 1, expected_load_values: 2)
@@ -480,10 +480,10 @@ describe "StructResource behavior in different states" do
             expect(r.to_h(:all)).to eq FULL_RESET_VALUE
           end
 
-          ALL_ATTRIBUTES.each do |name|
+          ALL_PROPERTIES.each do |name|
             if name.start_with?('identity_')
-              it "reset(:#{name}) fails with Crazytown::AttributeDefinedError" do
-                expect { r.reset(name.to_sym) }.to raise_error Crazytown::AttributeDefinedError
+              it "reset(:#{name}) fails with Crazytown::PropertyDefinedError" do
+                expect { r.reset(name.to_sym) }.to raise_error Crazytown::PropertyDefinedError
               end
             else
               it "reset(:#{name}) succeeds" do
@@ -522,7 +522,7 @@ describe "StructResource behavior in different states" do
             expect(r.to_h(:all)).to eq FULL_RESET_VALUE
           end
 
-          ALL_ATTRIBUTES.each do |name|
+          ALL_PROPERTIES.each do |name|
             it "reset(:#{name}) succeeds" do
               r.reset(name.to_sym)
               expected = SET_VALUE.dup

@@ -14,7 +14,7 @@ module Crazytown
       # @param name [Symbol,String] The name of the resource (e.g. :my_resource)
       # @param base_resource_class [Class,Symbol,String] The base resource class.
       #   The new resource will derive from this base resource, and will have
-      #   all the same attributes.  If a symbol or a string is passed, the name
+      #   all the same properties.  If a symbol or a string is passed, the name
       #   (e.g. `:resource_name`) is searched for under Chef::Resource.
       # @param class_name [Symbol,String] The name of the class to create under
       #   Chef::Resource. If not specified, `name` is converted to a class name
@@ -24,7 +24,7 @@ module Crazytown
       #   exists, it will be removed and re-created according to the new resource
       #   definition.  Defaults to false.
       # @param override_block A block that will be run in the context of the new
-      #   class, allowing you to type `attribute :name ...` and `recipe do`,
+      #   class, allowing you to type `property :name ...` and `recipe do`,
       #   as well as `def self.blah` and `def blah`.
       #
       # @raise If the resource class already exists and `overwrite_resource` is
@@ -33,7 +33,7 @@ module Crazytown
       # @example
       #
       # resource :resource_name, Chef::Resource::File do
-      #   attribute :mode, Fixnum, default: 0666
+      #   property :mode, Fixnum, default: 0666
       # end
       #
       def resource(name, base_resource_class=nil, class_name: nil, overwrite_resource: false, &override_block)
@@ -78,7 +78,7 @@ module Crazytown
       def defaults(name, **defaults)
         resource(name, name, overwrite_resource: true) do
           defaults.each do |name, value|
-            attribute name, default: value
+            property name, default: value
           end
         end
         # class_eval <<-EOM, __FILE__, __LINE__+1
@@ -102,10 +102,10 @@ module Crazytown
       def define(name, *identity_params, overwrite_resource: true, **params, &recipe_block)
         resource name do
           identity_params.each do |name|
-            attribute name, identity: true
+            property name, identity: true
           end
           params.each do |name, value|
-            attribute name, default: value
+            property name, default: value
           end
           recipe(&recipe_block)
         end

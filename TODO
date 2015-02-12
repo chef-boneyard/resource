@@ -1,7 +1,7 @@
 Basic Resource (Modifying A Real Thing) Support
 
 - Make API to change things: converge, if_create, if_change_desired (which is probably where try_change lands)
-- Prevent "attribute" from overwriting non-attribute methods (even on base classes
+- Prevent "property" from overwriting non-property methods (even on base classes
   or modules)
 - Can we prevent people from screwing up and writing both "load" and "load_value"?
   Or at least tell them when they do it?  It can cause inconsistent results.
@@ -13,7 +13,7 @@ Nesting
 - Add sets
 - Add indexed sets
 - Add arrays
-- Type specialization: tests, and merging of "attributes".  Probably best to wait until after resource tree is built.
+- Type specialization: tests, and merging of "properties".  Probably best to wait until after resource tree is built.
 
 Specifics
 - Provisioning: provisioning.machine, aws.sdk, aws.instance, docker.image, docker.container, docker.image
@@ -39,24 +39,24 @@ Future
       #
       # NEXT 3: nested struct changesets
       # Make override block work at class level, not just block level
-      # Struct attributes modify the parent "changes" hash on update
-      # StructAttribute
-      # This should make defaults writeable as well; StructAttribute is created
+      # Struct properties modify the parent "changes" hash on update
+      # Structproperty
+      # This should make defaults writeable as well; Structproperty is created
       # *on top of* the default.
       # name(..., &override_block) - update idiom
       #
       # NEXT 4: lazy reality (GET+PUT)
-      # "current_resource" instance method for struct and for attributes, called
+      # "current_resource" instance method for struct and for properties, called
       # instead of default
-      # StructAttribute initializes "current_resource" to "parent_struct.current_resource.name"
+      # Structproperty initializes "current_resource" to "parent_struct.current_resource.name"
       #
-      # NEXT 5: primitive attributes
+      # NEXT 5: primitive properties
       # Symbol
       # String/Integer (non-modified types)
       #
       # NEXT 6: proper inheritance
-      # Make inheritance bring over parent identity attributes
-      # Make "attribute :x" specialize parent attribute :x if there is one
+      # Make inheritance bring over parent identity properties
+      # Make "property :x" specialize parent property :x if there is one
       # address(Address.open) create another layer of address vs. ref (value vs. ref)
       #
       # NEXT 6: events, logging

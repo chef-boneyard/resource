@@ -46,7 +46,7 @@ module Crazytown
 
       class <<self
         extend SimpleStruct
-        attribute :base
+        property :base
       end
     end
   end

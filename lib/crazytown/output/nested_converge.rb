@@ -9,8 +9,8 @@ module Crazytown
       class NestedConverge < StructResource
         include ResourceEvents
 
-        attribute :indent_step, default: 2
-        attribute :styles, Styles, default: {
+        property :indent_step, default: 2
+        property :styles, Styles, default: {
           default nil
           updated :green
           warn  [ :timestamp, :gray ]
@@ -19,19 +19,19 @@ module Crazytown
         }
 
         class Styles < StructResource
-          attribute :default
-          attribute :identity_defined         { default }
-          attribute :fully_defined        { default }
-          attribute :updating     { default }
-          attribute :updated        { default }
-          attribute :not_updated    { default }
-          attribute :updated      { default }
-          attribute :update_failed  { default }
-          attribute :debug          { default }
-          attribute :info           { default }
-          attribute :warn           { default }
-          attribute :error          { default }
-          attribute :fatal          { default }
+          property :default
+          property :identity_defined         { default }
+          property :fully_defined        { default }
+          property :updating     { default }
+          property :updated        { default }
+          property :not_updated    { default }
+          property :updated      { default }
+          property :update_failed  { default }
+          property :debug          { default }
+          property :info           { default }
+          property :warn           { default }
+          property :error          { default }
+          property :fatal          { default }
         end
 
         def open_resources

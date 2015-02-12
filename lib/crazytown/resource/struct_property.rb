@@ -3,15 +3,15 @@ require 'crazytown/simple_struct'
 module Crazytown
   module Resource
     #
-    # Struct attributes all create a class for each attribute.  This is
-    # included in that class, and StructAttributeType is extended in that class.
+    # Struct properties all create a class for each property.  This is
+    # included in that class, and StructPropertyType is extended in that class.
     #
-    module StructAttribute
+    module StructProperty
       #
-      # The struct containing this attribute.
+      # The struct containing this property.
       #
       extend SimpleStruct
-      attribute :parent_struct
+      property :parent_struct
 
       #
       # The actual value defaults to parent.current_resource.attr_name.  If
@@ -19,11 +19,11 @@ module Crazytown
       #
       def current_resource
         actual_struct = parent_struct.current_resource
-        actual_struct.public_send(self.class.attribute_name) if actual_struct
+        actual_struct.public_send(self.class.property_name) if actual_struct
       end
 
       #
-      # This attribute exists if its parent does.
+      # This property exists if its parent does.
       #
       def resource_exists?
         parent_struct.resource_exists?

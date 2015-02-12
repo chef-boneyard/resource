@@ -4,9 +4,9 @@ require_relative 'rubygems'
 require 'set'
 
 Crazytown.resource :rubygems_gem do
-  attribute :rubygems, :rubygems, identity: true
-  attribute :name,     String, identity: true
-  attribute :owners,   Set do
+  property :rubygems, :rubygems, identity: true
+  property :name,     String, identity: true
+  property :owners,   Set do
     load_value do
       rubygems.api.get("api/v1/gems/#{name}/owners.json").map do |owner|
         owner['email']
@@ -14,8 +14,8 @@ Crazytown.resource :rubygems_gem do
     end
   end
 
-  attribute :never_remove_owners,         Boolean, default: false, load_value: false
-  attribute :permission_error_acceptable, Boolean, default: false, load_value: false
+  property :never_remove_owners,         Boolean, default: false, load_value: false
+  property :permission_error_acceptable, Boolean, default: false, load_value: false
 
   recipe do
     converge :owners do

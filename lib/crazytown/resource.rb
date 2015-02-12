@@ -11,8 +11,8 @@ module Crazytown
   # You may make modifications to this value (append to it, set properties,
   # etc.), and then call `update` at the end to save your changes.
   #
-  # Resources are initialized with `YourResource.open(<identity attributes>)`.
-  # After this, the Resource object will have methods and attributes that get
+  # Resources are initialized with `YourResource.open(<identity properties>)`.
+  # After this, the Resource object will have methods and properties that get
   # you the actual value.  If you want to update the value, the Resource object
   # lets you modify the values as well; then you call `update` with no
   # parameters to actually perform the update.
@@ -39,8 +39,8 @@ module Crazytown
   # The simplest way to create a new Resource is with Struct:
   #
   # class MyFile < Crazytown::StructResource
-  #   attribute :path,    Path,   identity: true
-  #   attribute :content, String
+  #   property :path,    Path,   identity: true
+  #   property :content, String
   #   def load
   #     File.exist?(path) ? IO.read(content) : nil
   #   end
@@ -106,7 +106,7 @@ module Crazytown
   #    and the actual value (get) and default values can now be accessed.
   #    Note: even though identity is now readonly on the open Resource object,
   #    the current_resource can set its *own* identity values during `load`, which
-  #    will become the default for those attributes.
+  #    will become the default for those properties.
   #
   #    Because the desired value of the Resource is not yet fully known (it
   #    can still be set), `update` cannot be called in this state.
@@ -286,9 +286,9 @@ module Crazytown
     # - :created - has been created, but not fully opened (still initializing).
     #   Only identity values are writeable in this state.
     # - :identity_defined - has been opened (has enough data to retrieve the actual value)
-    #   Identity attributes are readonly in this state.
-    # - :fully_defined - has been fully defined (attributes are now readonly)
-    #   All attributes are readonly in this state.
+    #   Identity properties are readonly in this state.
+    # - :fully_defined - has been fully defined (properties are now readonly)
+    #   All properties are readonly in this state.
     #
     def resource_state
       @resource_state
@@ -296,8 +296,8 @@ module Crazytown
 
     #
     # Notify the resource that it has been created (and is now open to write
-    # identity attributes).  This happens automatically during initialize and
-    # before any identity attributes are set.
+    # identity properties).  This happens automatically during initialize and
+    # before any identity properties are set.
     #
     def resource_created
       @resource_state = :created
@@ -307,7 +307,7 @@ module Crazytown
     #
     # Notify the resource that it is fully opened and ready to read and write.
     #
-    # Identity attributes are readonly in this state.
+    # Identity properties are readonly in this state.
     #
     def resource_identity_defined
       case resource_state

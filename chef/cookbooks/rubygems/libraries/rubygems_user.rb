@@ -7,10 +7,10 @@ require 'uri'
 require 'set'
 
 Crazytown.resource :rubygems_user do
-  attribute :rubygems,   :rubygems, identity: true
-  attribute :username,   String, identity: true, default: nil
-  attribute :email,      String, identity: true, default: nil
-  attribute :owned_gems, Set do
+  property :rubygems,   :rubygems, identity: true
+  property :username,   String, identity: true, default: nil
+  property :email,      String, identity: true, default: nil
+  property :owned_gems, Set do
     load_value do
       rubygems.api.get("api/v1/owners/#{username}/gems.json").map do |gem|
         # TODO there is lots more info we can get here

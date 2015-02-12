@@ -1,19 +1,19 @@
 class Bar < Crazytown::Struct
-  attribute :x, Integer do
+  property :x, Integer do
     def self.default
       20
     end
   end
 end
 class Foo < Crazytown::Struct
-  attribute :bar, Bar do
+  property :bar, Bar do
     def self.default
       {}
     end
   end
 end
 class X < Crazytown::Struct
-  attribute :foo, Foo do
+  property :foo, Foo do
     def self.default
       {}
     end

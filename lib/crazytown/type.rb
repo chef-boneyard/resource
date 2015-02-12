@@ -27,7 +27,7 @@ module Crazytown
 
     #
     # Take the raw (stored) value and coerce it to a value (used when the user
-    # asks for an attribute or other value).  The default implementation simply
+    # asks for a property or other value).  The default implementation simply
     # delazifies the value (and coerces/validates it if it is lazy).
     #
     # @return A value which:
@@ -68,7 +68,7 @@ module Crazytown
           # continue to run validations.)
           return unless nullable? == :validate
         else
-          # TODO error message sucks.  Needs to include attribute name.  Start
+          # TODO error message sucks.  Needs to include property name.  Start
           # passing parent and self in, and have common methods to print out what
           # thing needs to not be null.
           # If the value is null and isn't supposed to be, raise an error
@@ -99,14 +99,14 @@ module Crazytown
     #
     # @example
     # class MyStruct < StructResource
-    #   attribute :x, Integer do
+    #   property :x, Integer do
     #     must "be between 0 and 10" { self >= 0 && self <= 10 }
     #   end
     # end
     #
     def must(description, must_be_true_block=nil, &must_be_true)
       must_be_true_block ||= must_be_true
-      must_be_true_block = LazyProc.new(:instance_eval, &must_be_true_block) if !must_be_true_block.is_a?(LazyProc)
+      must_be_true_block = LazyProc.new(:should_instance_eval, &must_be_true_block) if !must_be_true_block.is_a?(LazyProc)
       validators << [ "must #{description}", must_be_true_block ]
     end
 
@@ -121,7 +121,7 @@ module Crazytown
     # Defaults to false unless the value has a `nil` default, in which case it is `true`.
     #
     # TODO this is wrong: @default does not take into account superclasses
-    boolean_attribute :nullable, default: "defined?(@default) && @default.nil?"
+    boolean_property :nullable, default: "defined?(@default) && @default.nil?"
 
     #
     # A set of validators that will be run.  An array of pairs [ message, proc ],
@@ -146,12 +146,12 @@ module Crazytown
     #   or modules (or a single class or module) which values of this type
     #   must implement.
     #
-    attribute :must_be_kind_of
+    property :must_be_kind_of, default: "[]"
 
     def must_be_kind_of(*classes_or_modules)
       case classes_or_modules.size
       when 0
-        @must_be_kind_of ||= (super || []).dup
+        @must_be_kind_of ||= super.dup
       when 1
         super(classes_or_modules[0].is_a?(Array) ? classes_or_modules[0] : classes_or_modules)
       else
@@ -164,10 +164,10 @@ module Crazytown
     #
     # @param value The default value.  If this is a LazyProc, the block will
     #   be run in the context of the struct (`struct.instance_eval`) unless
-    #   the block is explicitly set to `instance_eval: false`.  If `nil`, the
+    #   the block is explicitly set to `should_instance_eval: false`.  If `nil`, the
     #   type is assumed to be nullable.
     #
-    attribute :default, coerced: "coerce(parent, value)", coerced_set: "value.nil? ? value : coerce(parent, value)"
+    property :default, coerced: "coerce(parent, value)", coerced_set: "value.nil? ? value : coerce(parent, value)"
 
     #
     # Turn the value into a string in just the context of this Type.

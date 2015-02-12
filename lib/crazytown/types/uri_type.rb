@@ -30,7 +30,7 @@ module Crazytown
 
       class <<self
         extend SimpleStruct
-        attribute :relative_to, coerced: "value.is_a?(String) ? URI.parse(value) : value"
+        property :relative_to, coerced: "value.is_a?(String) ? URI.parse(value) : value"
       end
     end
   end

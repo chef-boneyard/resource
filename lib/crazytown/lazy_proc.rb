@@ -6,22 +6,26 @@ module Crazytown
     #
     # Create a new LazyProc
     #
-    # @param switches A list of switches to turn on.  Presently only :instance_eval
-    #   is supported.
-    # @param instance_eval Turn instance_eval on or off
+    # @param switches A list of switches to turn on.
+    #   - :should_instance_eval: true if instance_eval is expected, false if
+    #     disallowed.  Default: false, except for type attributes like "default"
+    #     where it gets flipped to true.
+    # @param should_instance_eval [Boolean] true if instance_eval is expected, false if
+    #     disallowed.  Default: false, except for type attributes like "default"
+    #     where it gets flipped to true.
     # @param block The block to run on get()
     #
-    def initialize(*switches, instance_eval: NOT_PASSED, &block)
+    def initialize(*switches, should_instance_eval: NOT_PASSED, &block)
       super(&block)
       switches.each do |switch|
         case switch
-        when :instance_eval
-          @instance_eval = true
+        when :should_instance_eval
+          @should_instance_eval = true
         else
           raise ArgumentError, "Unrecognized argument #{switch.inspect}"
         end
       end
-      @instance_eval = instance_eval if instance_eval != NOT_PASSED
+      @should_instance_eval = should_instance_eval if should_instance_eval != NOT_PASSED
     end
 
     extend SimpleStruct
@@ -31,7 +35,7 @@ module Crazytown
     #
     # Defaults to `false`.
     #
-    boolean_attribute :instance_eval, default: "false"
+    boolean_property :should_instance_eval, default: "false"
 
     #
     # Get the value of this LazyProc.
@@ -51,10 +55,10 @@ module Crazytown
     # @return The computed value
     #
     def get(instance: nil, args: nil, instance_eval_by_default: NOT_PASSED)
-      if instance_eval_by_default != NOT_PASSED && !defined?(@instance_eval)
+      if instance_eval_by_default != NOT_PASSED && !defined?(@should_instance_eval)
         should_instance_eval = instance_eval_by_default
       else
-        should_instance_eval = instance_eval?
+        should_instance_eval = self.should_instance_eval?
       end
 
       if should_instance_eval

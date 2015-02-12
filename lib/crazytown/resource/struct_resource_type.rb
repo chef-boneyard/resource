@@ -1,7 +1,7 @@
 require 'crazytown/errors'
 require 'crazytown/resource/resource_type'
 require 'crazytown/constants'
-require 'crazytown/resource/struct_attribute_type'
+require 'crazytown/resource/struct_property_type'
 require 'crazytown/camel_case'
 require 'crazytown/simple_struct'
 
@@ -16,11 +16,11 @@ module Crazytown
       #
       # Coerce the input into a struct of this type.
       #
-      # Constructor form: required identity parameters first, and then non-required attributes in a hash.
-      # - MyStruct.coerce(identity_attr, identity_attr2, ..., { attr1: value, attr2: value, ... }) -> open(identity1, identity2, ... { identity attributes }), and set non-identity attributes afterwards
+      # Constructor form: required identity parameters first, and then non-required properties in a hash.
+      # - MyStruct.coerce(identity_attr, identity_attr2, ..., { attr1: value, attr2: value, ... }) -> open(identity1, identity2, ... { identity properties }), and set non-identity properties afterwards
       #
       # Hash form: a hash with names and values representing struct names and values.
-      # - MyStruct.coerce({ identity_attr: value, attr1: value, attr2: value, ... }) -> open({ identity attributes }), and set non-identity attributes afterwards
+      # - MyStruct.coerce({ identity_attr: value, attr1: value, attr2: value, ... }) -> open({ identity properties }), and set non-identity properties afterwards
       #
       # nil:
       # - MyStruct.coerce(nil) -> nil
@@ -39,27 +39,27 @@ module Crazytown
       def coerce(parent, *args)
         if args[-1].is_a?(Hash)
           #
-          # Constructor form: required identity parameters first, and then non-required attributes in a hash.
-          # - MyStruct.coerce(identity_attr, identity_attr2, ..., { attr1: value, attr2: value, ... }) -> open(identity1, identity2, ... { identity attributes }), and set non-identity attributes afterwards
+          # Constructor form: required identity parameters first, and then non-required properties in a hash.
+          # - MyStruct.coerce(identity_attr, identity_attr2, ..., { attr1: value, attr2: value, ... }) -> open(identity1, identity2, ... { identity properties }), and set non-identity properties afterwards
           #
           # Hash form: a hash with names and values representing struct names and values.
-          # - MyStruct.coerce({ identity_attr: value, attr1: value, attr2: value, ... }) -> open({ identity attributes }), and set non-identity attributes afterwards
+          # - MyStruct.coerce({ identity_attr: value, attr1: value, attr2: value, ... }) -> open({ identity properties }), and set non-identity properties afterwards
           #
 
-          # Split the identity attributes from normal so we can call open() with
-          # just identity attributes
+          # Split the identity properties from normal so we can call open() with
+          # just identity properties
           explicit_values = args[-1]
           identity_values = {}
           explicit_values.each_key do |name|
-            type = attribute_types[name]
-            raise ValidationError, "#{self.class}.coerce was passed attribute #{name}, but #{name} is not an attribute on #{self.class}." if !type
+            type = property_types[name]
+            raise ValidationError, "#{self.class}.coerce was passed property #{name}, but #{name} is not a property on #{self.class}." if !type
             identity_values[name] = explicit_values.delete(name) if type.identity?
           end
 
           # open the resource
           resource = open(*args[0..-2], identity_values)
 
-          # Set the non-identity attributes before returning
+          # Set the non-identity properties before returning
           explicit_values.each do |name, value|
             resource.public_send(name, value)
           end
@@ -87,20 +87,20 @@ module Crazytown
       end
 
       #
-      # Struct.open() takes the identity attributes of the struct and opens it up.
+      # Struct.open() takes the identity properties of the struct and opens it up.
       # Supports these forms:
       #
       # - open(identity1, identity2[, { identity3: value, identity4: value } ])
       # - open({ identity1: value, identity2: value, identity3: value, identity4: value })
-      # - open() (if no identity attributes)
+      # - open() (if no identity properties)
       #
       #
       # @example
       #   class MyStruct
       #     include Crazytown::Resource::StructResource
       #     extend Crazytown::Resource::StructResourceType
-      #     attribute :x, identity: true
-      #     attribute :y, identity: true
+      #     property :x, identity: true
+      #     property :y, identity: true
       #   end
       #
       #   # Allows these statements to work:
@@ -118,32 +118,32 @@ module Crazytown
       end
 
       #
-      # Struct definition: MyStruct.attribute
+      # Struct definition: MyStruct.property
       #
 
       #
-      # Create an attribute on this struct.
+      # Create a property on this struct.
       #
       # Makes three method calls available to the struct:
       # - `struct.name` - Get the value of `name`.
       # - `struct.name <value...>` - Set `name`.
       # - `struct.name = <value>` - Set `name`.
       #
-      # If the attribute is marked as an identity attribute, it also modifies
+      # If the property is marked as an identity property, it also modifies
       # `Struct.open()` to take it as a named parameter.  Multiple identity
-      # attribute_types means multiple parameters to `open()`.
+      # property_types means multiple parameters to `open()`.
       #
-      # @param name [String] The name of the attribute.
-      # @param type [Class] The type of the attribute.  If passed, the attribute
+      # @param name [String] The name of the property.
+      # @param type [Class] The type of the property.  If passed, the property
       #   will use `type.open()`
       # @param identity [Boolean] `true` if this is an identity
-      #   attribute.  Default: `false`
+      #   property.  Default: `false`
       # @param required [Boolean] `true` if this is a required parameter.
-      #   Defaults to `true`.  Non-identity attribute_types do not support `required`
-      #   and will ignore it.  Non-required identity attribute_types will not be
+      #   Defaults to `true`.  Non-identity property_types do not support `required`
+      #   and will ignore it.  Non-required identity property_types will not be
       #   available as positioned arguments in ResourceClass.open(); they can
       #   only be specified by name (ResourceClass.open(x: 1))
-      # @param default [Object] The value to return if the user asks for the attribute
+      # @param default [Object] The value to return if the user asks for the property
       #   when it has not been set.  `nil` is a valid value for this.
       # @param default [Proc] An optional block that will be called when
       #   the user asks for a value that has not been set.  Called in the
@@ -151,30 +151,30 @@ module Crazytown
       #   properties of the struct to compute the value.  Value is *not* cached,
       #   but rather is called every time.
       #
-      # @example Attribute referencing a resource type by "snake case name"
+      # @example Property referencing a resource type by "snake case name"
       #   class MyResource < StructResourceBase
-      #     attribute :blah, :my_resource
+      #     property :blah, :my_resource
       #   end
-      # @example Typeless, optionless attribute.
+      # @example Typeless, optionless property.
       #   class MyResource < StructResourceBase
-      #     attribute :simple
+      #     property :simple
       #   end
       #   x = MyResource.open
       #   puts x.simple # nil
       #   x.simple = 10
       #   puts x.simple # 10
       #
-      # @example Attribute with default
+      # @example Property with default
       #   class MyResource < StructResourceBase
-      #     attribute :b, default: 10
+      #     property :b, default: 10
       #   end
       #   x = MyResource.open
       #   puts x.b # 10
       #
-      # @example Attribute with default block
+      # @example Property with default block
       #   class MyResource < StructResourceBase
-      #     attribute :a, default: 3
-      #     attribute :b do
+      #     property :a, default: 3
+      #     property :b do
       #       a * 2
       #     end
       #   end
@@ -183,17 +183,17 @@ module Crazytown
       #   x.a = 10
       #   puts x.b # 20
       #
-      # @example Attribute with identity
+      # @example Property with identity
       #   class MyResource < StructResourceBase
-      #     attribute :a, identity: true
+      #     property :a, identity: true
       #   end
       #   x = MyResource.new(10)
       #   puts x.a # 10
       #
-      # @example Attribute with multiple identity
+      # @example Property with multiple identity
       #   class MyResource < StructResourceBase
-      #     attribute :a, identity: true
-      #     attribute :b, identity: true
+      #     property :a, identity: true
+      #     property :b, identity: true
       #   end
       #   x = MyResource.open(10, 20)
       #   puts x.a # 10
@@ -208,67 +208,67 @@ module Crazytown
       #   puts x.a # 1
       #   puts x.b # nil
       #
-      # @example Attribute with non-required identity
+      # @example Property with non-required identity
       #   class MyResource < StructResourceBase
-      #     attribute :a, identity: true, required: false
-      #     attribute :b, identity: true
+      #     property :a, identity: true, required: false
+      #     property :b, identity: true
       #   end
       #   x = MyResource.open(1)
       #   x.a # nil
       #   x.b # 1
       #
-      # @example Attribute with struct typed attribute
+      # @example Property with struct typed property
       #   class Address < StructResourceBase
-      #     attribute :street
-      #     attribute :city
-      #     attribute :state
-      #     attribute :zip
+      #     property :street
+      #     property :city
+      #     property :state
+      #     property :zip
       #   end
       #   class Person < StructResourceBase
-      #     attribute :name
-      #     attribute :home_address, Address
+      #     property :name
+      #     property :home_address, Address
       #   end
       #   p = Person.open
       #   p.home_address = Address.open
       #
-      def attribute(name, type=nil, identity: nil, default: NOT_PASSED, required: NOT_PASSED, load_value: NOT_PASSED, **type_properties, &override_block)
+      def property(name, type=nil, identity: nil, default: NOT_PASSED, required: NOT_PASSED, load_value: NOT_PASSED, **type_properties, &override_block)
         parent = self
         name = name.to_sym
         result = self.type(name, type, **type_properties) do
-          extend StructAttributeType
-          self.attribute_parent_type = parent
-          self.attribute_name name
+          extend StructPropertyType
+          self.property_parent_type = parent
+          self.property_name name
           self.identity identity
           self.default default unless default == NOT_PASSED
           self.required required unless required == NOT_PASSED
           self.load_value load_value unless load_value == NOT_PASSED
           instance_eval(&override_block) if override_block
         end
-        attribute_types[result.attribute_name] = result
-        result.emit_attribute_methods
+        property_types[result.property_name] = result
+        result.emit_property_methods
         result
       end
 
       extend SimpleStruct
 
       #
-      # The attribute type for each attribute.
+      # The property type for each property.
       #
       # TODO use real merging in the future.  This carries
       # danger that someone could modify types on the parent.
       # But it at least gets us basic inheritance for the
-      # normal case where people are adding new attributes
+      # normal case where people are adding new properties
       # rather than overriding old ones.
       #
-      attribute :attribute_types,
-        default: "@attribute_types = {}",
-        inherited: "@attribute_types = superclass.attribute_types.dup"
+      property :property_types,
+        default: "@property_types = {}",
+        inherited: "@property_types = superclass.property_types.dup"
 
       #
-      # The list of identity attribute_types (attribute_types with identity=true), in order.
+      # The list of identity property types (property types with identity=true), in order.
       #
-      def identity_attribute_types
-        attribute_types.values.select { |attr| attr.identity? }
+      def identity_property_types
+        property_types.values.select { |attr| attr.identity? }
       end
     end
   end

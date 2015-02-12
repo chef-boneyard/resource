@@ -15,12 +15,12 @@ describe Crazytown::Resource::StructResource do
   describe :inheritance do
     context "When A < B, and A has x and B has y" do
       class A < Crazytown::Resource::StructResourceBase
-        attribute :x, identity: true do
+        property :x, identity: true do
           default { y*2 }
         end
       end
       class B < A
-        attribute :y, identity: true do
+        property :y, identity: true do
           default { x*2 }
         end
       end
@@ -38,11 +38,11 @@ describe Crazytown::Resource::StructResource do
   end
 
   describe :reset do
-    context "When MyResource has both a set and not-set attribute" do
+    context "When MyResource has both a set and not-set property" do
       with_struct(:MyResource) do
-        attribute :identity_set, identity: true
-        attribute :normal_set, default: 20
-        attribute :normal_not_set, default: 30
+        property :identity_set, identity: true
+        property :normal_set, default: 20
+        property :normal_not_set, default: 30
       end
       let(:r) { r = MyResource.open(1); r.normal_set = 2; r }
       it "explicit_values is missing values" do
@@ -68,7 +68,7 @@ describe Crazytown::Resource::StructResource do
         expect(r.normal_set).to eq 20
         expect(r.normal_not_set).to eq 30
       end
-      it "reset() resets normal but not identity attributes" do
+      it "reset() resets normal but not identity properties" do
         r.reset
         expect(r.to_h(:only_explicit)).to eq({ identity_set: 1 })
         expect(r.normal_set).to eq 20
@@ -87,16 +87,16 @@ describe Crazytown::Resource::StructResource do
     end
   end
 
-  describe :attribute do
-    context "When MyResource is a ResourceStruct with two attributes" do
+  describe :property do
+    context "When MyResource is a ResourceStruct with two properties" do
       with_struct(:MyResource) do
-        attribute :x
-        attribute :y
+        property :x
+        property :y
       end
       it "You can create a new MyResource" do
         expect(MyResource.open).to be_kind_of(MyResource)
       end
-      it "You can set and get attributes" do
+      it "You can set and get properties" do
         r = MyResource.open
         expect(r.x).to be_nil
         expect(r.y).to be_nil
@@ -108,10 +108,10 @@ describe Crazytown::Resource::StructResource do
     end
 
     describe :type do
-      context "When MyResource is a ResourceStruct with attribute :x, ResourceStruct (resource struct reference)" do
+      context "When MyResource is a ResourceStruct with property :x, ResourceStruct (resource struct reference)" do
         with_struct(:MyResource) do
-          attribute :x, MyResource
-          attribute :y
+          property :x, MyResource
+          property :y
         end
         it "x and y can be set to a resource" do
           r = MyResource.open
@@ -127,10 +127,10 @@ describe Crazytown::Resource::StructResource do
     end
 
     describe :identity do
-      context "When MyResource has attribute :x, identity: true" do
+      context "When MyResource has property :x, identity: true" do
         with_struct(:MyResource) do
-          attribute :x, identity: true
-          attribute :y
+          property :x, identity: true
+          property :y
         end
         it "open() fails with 'x is required'" do
           expect { MyResource.open() }.to raise_error ArgumentError
@@ -150,10 +150,10 @@ describe Crazytown::Resource::StructResource do
         end
       end
 
-      context "When MyResource has attribute :x, identity: true, default: 10" do
+      context "When MyResource has property :x, identity: true, default: 10" do
         with_struct(:MyResource) do
-          attribute :x, identity: true, default: 10
-          attribute :y
+          property :x, identity: true, default: 10
+          property :y
         end
         it "open() succeeds with x = 10" do
           expect(r = MyResource.open()).to be_kind_of(MyResource)
@@ -173,10 +173,10 @@ describe Crazytown::Resource::StructResource do
         end
       end
 
-      context "When MyResource has attribute :x, identity: true, required: false" do
+      context "When MyResource has property :x, identity: true, required: false" do
         with_struct(:MyResource) do
-          attribute :x, identity: true, required: false
-          attribute :y
+          property :x, identity: true, required: false
+          property :y
         end
         it "open() creates a MyResource where x = nil" do
           expect(r = MyResource.open()).to be_kind_of(MyResource)
@@ -193,11 +193,11 @@ describe Crazytown::Resource::StructResource do
         end
       end
 
-      context "When MyResource has attribute :x and :y, identity: true" do
+      context "When MyResource has property :x and :y, identity: true" do
         with_struct(:MyResource) do
-          attribute :x, identity: true
-          attribute :y, identity: true
-          attribute :z
+          property :x, identity: true
+          property :y, identity: true
+          property :z
         end
         it "open() fails with 'x is required'" do
           expect { MyResource.open() }.to raise_error ArgumentError
@@ -228,10 +228,10 @@ describe Crazytown::Resource::StructResource do
         end
       end
 
-      context "When MyResource has identity attributes x and y, and x is not required" do
+      context "When MyResource has identity properties x and y, and x is not required" do
         with_struct(:MyResource) do
-          attribute :x, identity: true, required: false
-          attribute :y, identity: true
+          property :x, identity: true, required: false
+          property :y, identity: true
         end
         it "open() fails with y is required" do
           expect { MyResource.open() }.to raise_error ArgumentError
@@ -253,10 +253,10 @@ describe Crazytown::Resource::StructResource do
     end
 
     describe :override_block do
-      context "attribute overrides" do
-        context "When MyResource has a primitive attribute that overrides coerce" do
+      context "property overrides" do
+        context "When MyResource has a primitive property that overrides coerce" do
           with_struct(:MyResource) do
-            attribute :x, String do
+            property :x, String do
               def self.coerce(parent, value)
                 "#{value} is awesome"
               end
@@ -267,9 +267,9 @@ describe Crazytown::Resource::StructResource do
           end
         end
 
-        context "When MyResource has an untyped attribute that overrides coerce" do
+        context "When MyResource has an untyped property that overrides coerce" do
           with_struct(:MyResource) do
-            attribute :x do
+            property :x do
               def self.coerce(parent, value)
                 "#{value} is awesome"
               end
@@ -280,9 +280,9 @@ describe Crazytown::Resource::StructResource do
           end
         end
 
-        context "When MyResource has a resource typed attribute that overrides coerce" do
+        context "When MyResource has a resource typed property that overrides coerce" do
           with_struct(:MyResource) do
-            attribute :x, MyResource do
+            property :x, MyResource do
               def self.coerce(parent, value)
                 if value.is_a?(Integer)
                   x = value
@@ -302,7 +302,7 @@ describe Crazytown::Resource::StructResource do
 
         context "When MyResource has an override that sets must(be between 0 and 10)" do
           with_struct(:MyResource) do
-            attribute :x, Integer, nullable: true do
+            property :x, Integer, nullable: true do
               def self.run_count
                 @run_count ||= 0
               end
@@ -314,7 +314,7 @@ describe Crazytown::Resource::StructResource do
                 self >= 0 && self <= 10
               end
             end
-            attribute :run_count, Integer, default: 0
+            property :run_count, Integer, default: 0
           end
           it "MyResource.coerce(nil, {x: 1}) succeeds" do
             expect(MyResource.coerce(nil, { x: 1 }).to_h(:only_explicit)).to eq({ x: 1 })
@@ -336,9 +336,9 @@ describe Crazytown::Resource::StructResource do
     end
 
     describe :default do
-      context "When MyResource is a ResourceStruct with attribute :x, default: 15" do
+      context "When MyResource is a ResourceStruct with property :x, default: 15" do
         with_struct(:MyResource) do
-          attribute :x, default: 15
+          property :x, default: 15
         end
         it "x returns the default if not set" do
           r = MyResource.open
@@ -352,10 +352,10 @@ describe Crazytown::Resource::StructResource do
         end
       end
 
-      context "When MyResource is a ResourceStruct with attribute :x, 15 and attribute :y { x*2 } (default block)" do
+      context "When MyResource is a ResourceStruct with property :x, 15 and property :y { x*2 } (default block)" do
         with_struct(:MyResource) do
-          attribute :x, default: 15
-          attribute :y, default: Crazytown::LazyProc.new { x*2 }
+          property :x, default: 15
+          property :y, default: Crazytown::LazyProc.new { x*2 }
         end
         it "x and y return the default if not set" do
           r = MyResource.open
@@ -381,10 +381,10 @@ describe Crazytown::Resource::StructResource do
   describe :coerce do
     context "With a struct with x, y and z" do
       with_struct(:MyResource) do
-        attribute :a, identity: true
-        attribute :b, identity: true
-        attribute :c, nullable: :validate
-        attribute :d, nullable: :validate
+        property :a, identity: true
+        property :b, identity: true
+        property :c, nullable: :validate
+        property :d, nullable: :validate
         nullable :validate
       end
 
@@ -420,10 +420,10 @@ describe Crazytown::Resource::StructResource do
   describe :load do
     context "When load sets y to x*2 and z to x*3" do
       with_struct(:MyResource) do
-        attribute :x, identity: true
-        attribute :y
-        attribute :z
-        attribute :num_loads
+        property :x, identity: true
+        property :y
+        property :z
+        property :num_loads
         def load
           y x*2
           z x*3
@@ -453,10 +453,10 @@ describe Crazytown::Resource::StructResource do
 
     context "When load sets y to x*2 and z has its own load that does x*3" do
       with_struct(:MyResource) do
-        attribute :x, identity: true
-        attribute :y
-        attribute :z, load_value: Crazytown::LazyProc.new { self.num_loads += 1; x*3 }
-        attribute :num_loads, default: 0
+        property :x, identity: true
+        property :y
+        property :z, load_value: Crazytown::LazyProc.new { self.num_loads += 1; x*3 }
+        property :num_loads, default: 0
         def load
           y x*2
           self.num_loads += 1
@@ -485,10 +485,10 @@ describe Crazytown::Resource::StructResource do
     context "Primitive values" do
       context "With a struct with Integers and Strings" do
         with_struct(:MyResource) do
-          attribute :s1, String, identity: true, nullable: :validate
-          attribute :n1, Integer, identity: true, nullable: :validate
-          attribute :s2, String, nullable: :validate
-          attribute :n2, Integer, nullable: :validate
+          property :s1, String, identity: true, nullable: :validate
+          property :n1, Integer, identity: true, nullable: :validate
+          property :s2, String, nullable: :validate
+          property :n2, Integer, nullable: :validate
         end
 
         it "coerce(nil, s1: 'hi', n1: 1, s2: 'lo', n2: 2) succeeds" do
@@ -519,54 +519,54 @@ describe Crazytown::Resource::StructResource do
           def self.x
             "outside.x"
           end
-          attribute :x, default: "instance.x" do
+          property :x, default: "instance.x" do
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
-          attribute :default_no_params, default: Crazytown::LazyProc.new { "#{x} lazy_default" } do
+          property :default_no_params, default: Crazytown::LazyProc.new { "#{x} lazy_default" } do
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
-          attribute :default_instance_eval_symbol, default: Crazytown::LazyProc.new(:instance_eval) { "#{x} lazy_default" } do
+          property :default_instance_eval_symbol, default: Crazytown::LazyProc.new(:should_instance_eval) { "#{x} lazy_default" } do
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
-          attribute :default_instance_eval_true, default: Crazytown::LazyProc.new(instance_eval: true) { "#{x} lazy_default" } do
+          property :default_instance_eval_true, default: Crazytown::LazyProc.new(should_instance_eval: true) { "#{x} lazy_default" } do
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
-          attribute :default_instance_eval_false, default: Crazytown::LazyProc.new(instance_eval: false) { "#{x} lazy_default" } do
+          property :default_instance_eval_false, default: Crazytown::LazyProc.new(should_instance_eval: false) { "#{x} lazy_default" } do
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
-          attribute :default_block do
+          property :default_block do
             default { "#{x} lazy_default" }
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
 
-          attribute :z, default: "instance.z"
+          property :z, default: "instance.z"
         end
 
         it "lazy default does instance_eval and coerces" do
           r = MyResource.open
           expect(r.default_no_params).to eq "coerce(coerce(instance.x) lazy_default)"
         end
-        it "lazy default with :instance_eval does instance_eval and coerces" do
+        it "lazy default with :should_instance_eval does instance_eval and coerces" do
           r = MyResource.open
           expect(r.default_instance_eval_symbol).to eq "coerce(coerce(instance.x) lazy_default)"
         end
-        it "lazy default with instance_eval: true does instance_eval and coerces" do
+        it "lazy default with should_instance_eval: true does instance_eval and coerces" do
           r = MyResource.open
           expect(r.default_instance_eval_true).to eq "coerce(coerce(instance.x) lazy_default)"
         end
-        it "lazy default with instance_eval: false does not do instance_eval, and coerces" do
+        it "lazy default with should_instance_eval: false does not do instance_eval, and coerces" do
           r = MyResource.open
           expect(r.default_instance_eval_false).to eq "coerce(outside.x lazy_default)"
         end
@@ -584,19 +584,19 @@ describe Crazytown::Resource::StructResource do
           r.x Crazytown::LazyProc.new { "#{z} set_lazy" }
           expect(r.x).to eq "coerce(outside.z set_lazy)"
         end
-        it "lazy on x with :instance_eval does instance_eval and coerces" do
+        it "lazy on x with :should_instance_eval does instance_eval and coerces" do
           r = MyResource.open
-          r.x Crazytown::LazyProc.new(:instance_eval) { "#{z} set_lazy" }
+          r.x Crazytown::LazyProc.new(:should_instance_eval) { "#{z} set_lazy" }
           expect(r.x).to eq "coerce(instance.z set_lazy)"
         end
-        it "lazy on x with instance_eval: true does instance_eval and coerces" do
+        it "lazy on x should_instance_eval: true does instance_eval and coerces" do
           r = MyResource.open
-          r.x Crazytown::LazyProc.new(instance_eval: true) { "#{z} set_lazy" }
+          r.x Crazytown::LazyProc.new(:should_instance_eval) { "#{z} set_lazy" }
           expect(r.x).to eq "coerce(instance.z set_lazy)"
         end
-        it "lazy on x with instance_eval: false does instance_eval and coerces" do
+        it "lazy on x with should_instance_eval: false does instance_eval and coerces" do
           r = MyResource.open
-          r.x Crazytown::LazyProc.new(instance_eval: false) { "#{z} set_lazy" }
+          r.x Crazytown::LazyProc.new(should_instance_eval: false) { "#{z} set_lazy" }
           expect(r.x).to eq "coerce(outside.z set_lazy)"
         end
 

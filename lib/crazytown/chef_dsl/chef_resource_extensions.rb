@@ -154,7 +154,7 @@ module Crazytown
         # Create a new Resource of our same type, with just identity values.
         resource = self.class.new(name, run_context)
         explicit_values.each do |name,value|
-          resource.explicit_values[name] = value if self.class.attribute_types[name].identity?
+          resource.explicit_values[name] = value if self.class.property_types[name].identity?
         end
         resource
       end

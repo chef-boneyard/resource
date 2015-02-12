@@ -4,18 +4,18 @@ Strong typing
 
 ```ruby
 class MyStruct < Crazytown::StructBase
-  attribute :b, Struct do
+  property :b, Struct do
     default { x: 1, y: 2 }
-    attributes = {
-      x: Attribute.new :x, Type.new(default: 10)
-      y: Attribute.new :y, Type.new(default: 20)
+    propertys = {
+      x: property.new :x, Type.new(default: 10)
+      y: property.new :y, Type.new(default: 20)
     }
   end
 
-  attributes[:b] = Attribute.new(name: :b, )
+  propertys[:b] = property.new(name: :b, )
 end
 class ChildStruct < MyStruct
-  attributes[:a] = attributes[:a].specialize_raw(default: { x: 3, z: 4 })
+  propertys[:a] = propertys[:a].specialize_raw(default: { x: 3, z: 4 })
 end
 ```
 
@@ -44,7 +44,7 @@ Value
 |   |-- StructClass                         +StructBase .+StructType
 
 Accessor                                    +StructBase .+StructType
-|-- StructAttribute                                     .+StructType
+|-- Structproperty                                     .+StructType
 |-- ArrayElement                                        .+StructType
 |-- HashValue                                           .+StructType
 |-- SetItem                                             .+StructType

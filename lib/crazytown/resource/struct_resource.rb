@@ -4,7 +4,7 @@ require 'crazytown/resource'
 module Crazytown
   module Resource
     #
-    # A Resource with attribute_types and named getter/setters.
+    # A Resource with property_types and named getter/setters.
     #
     # The corresponding Type is
     #
@@ -12,15 +12,15 @@ module Crazytown
     # class Address
     #   include Crazytown::Resource::StructResource
     #   extend Crazytown::Resource::StructResourceType
-    #   attribute :street
-    #   attribute :city
-    #   attribute :state
+    #   property :street
+    #   property :city
+    #   property :state
     # end
     # class Person
     #   include Crazytown::Resource::StructResource
     #   extend Crazytown::Resource::StructResourceType
-    #   attribute :name
-    #   attribute :home_address, Address
+    #   property :name
+    #   property :home_address, Address
     # end
     #
     # p = Person.open
@@ -52,7 +52,7 @@ module Crazytown
         # Create a new Resource of our same type, with just identity values.
         resource = self.class.new
         explicit_values.each do |name,value|
-          resource.explicit_values[name] = value if self.class.attribute_types[name].identity?
+          resource.explicit_values[name] = value if self.class.property_types[name].identity?
         end
         resource
       end
@@ -63,7 +63,7 @@ module Crazytown
       def resource_identity_string
         positionals = []
         named = {}
-        self.class.attribute_types.each do |name, type|
+        self.class.property_types.each do |name, type|
           next if !explicit_values.has_key?(name)
           if type.identity?
             value = public_send(name)
@@ -102,9 +102,9 @@ module Crazytown
         if args[-1].is_a?(Hash)
           named_args = args.pop
           named_args.each do |name, value|
-            type = self.class.attribute_types[name]
-            raise ArgumentError, "Attribute #{name} was passed to #{self.class}.define_identity, but does not exist on #{self.class}!" if !type
-            raise ArgumentError, "#{self.class}.open only takes identity attributes, and #{name} is not an identity attribute on #{self.class}!" if !type.identity?
+            type = self.class.property_types[name]
+            raise ArgumentError, "Property #{name} was passed to #{self.class}.define_identity, but does not exist on #{self.class}!" if !type
+            raise ArgumentError, "#{self.class}.open only takes identity properties, and #{name} is not an identity property on #{self.class}!" if !type.identity?
             public_send(name, value)
           end
         end
@@ -112,24 +112,24 @@ module Crazytown
         #
         # Process positional arguments - open(1, 2, 3, ...)
         #
-        required_identity_attributes = self.class.attribute_types.values.
+        required_identity_properties = self.class.property_types.values.
           select { |attr| attr.identity? && attr.required? }.
-          map { |attr| attr.attribute_name }
+          map { |attr| attr.property_name }
 
-        if args.size > required_identity_attributes.size
-          raise ArgumentError, "Too many arguments to #{self.class}.define_identity! (#{args.size} for #{required_identity_attributes.size})!"
+        if args.size > required_identity_properties.size
+          raise ArgumentError, "Too many arguments to #{self.class}.define_identity! (#{args.size} for #{required_identity_properties.size})!"
         end
-        required_identity_attributes.each_with_index do |name, index|
+        required_identity_properties.each_with_index do |name, index|
           if args.size > index
             # If the argument was passed positionally (open(a, b, c ...)) set it from that.
             if named_args && named_args.has_key?(name)
-              raise ArgumentError, "Attribute #{name} specified twice in #{self}.define_identity!  Both as argument ##{index} and as a named argument."
+              raise ArgumentError, "Property #{name} specified twice in #{self}.define_identity!  Both as argument ##{index} and as a named argument."
             end
             public_send(name, args[index])
           else
             # If the argument wasn't passed positionally, check whether it was passed in the hash.  If not, error.
             if !named_args || !named_args.has_key?(name)
-              raise ArgumentError, "Required attribute #{name} not passed to #{self}.define_identity!"
+              raise ArgumentError, "Required property #{name} not passed to #{self}.define_identity!"
             end
           end
         end
@@ -140,36 +140,36 @@ module Crazytown
         instance_eval(&define_identity_block) if define_identity_block
 
         #
-        # Freeze the identity attributes
+        # Freeze the identity properties
         #
         resource_identity_defined
       end
 
       #
-      # Reset changes to this struct (or to an attribute).
+      # Reset changes to this struct (or to a property).
       #
-      # Reset without parameters never resets identity attributes--only normal
-      # attributes.
+      # Reset without parameters never resets identity properties--only normal
+      # properties.
       #
-      # @param name Reset the attribute named `name`.  If not passed, resets
-      #    all attributes.
-      # @raise AttributeDefinedError if the named attribute being referenced is
+      # @param name Reset the property named `name`.  If not passed, resets
+      #    all properties.
+      # @raise PropertyDefinedError if the named property being referenced is
       #   defined (i.e. we are in identity_defined or fully_defined state).
       # @raise ResourceStateError if we are in fully_defined state.
       #
       def reset(name=nil)
         if name
-          attribute_type = self.class.attribute_types[name]
-          if !attribute_type
-            raise ArgumentError, "#{self.class} does not have attribute #{name}, cannot reset!"
+          property_type = self.class.property_types[name]
+          if !property_type
+            raise ArgumentError, "#{self.class} does not have property #{name}, cannot reset!"
           end
-          if attribute_type.identity?
+          if property_type.identity?
             if resource_state != :created
-              raise AttributeDefinedError.new("Identity attribute #{self.class}.#{name} cannot be reset after open() or get() has been called (after the identity has been fully defined).  Current sate: #{resource_state}", self, attribute_type)
+              raise PropertyDefinedError.new("Identity property #{self.class}.#{name} cannot be reset after open() or get() has been called (after the identity has been fully defined).  Current sate: #{resource_state}", self, property_type)
             end
           else
             if ![:created, :identity_defined].include?(resource_state)
-              raise AttributeDefinedError.new("Attribute #{self.class}.#{name} cannot be reset after the resource is fully defined.", self, attribute_type)
+              raise PropertyDefinedError.new("Property #{self.class}.#{name} cannot be reset after the resource is fully defined.", self, property_type)
             end
           end
 
@@ -179,7 +179,7 @@ module Crazytown
           if ![:created, :identity_defined].include?(resource_state)
             raise ResourceStateError.new("#{self.class} cannot be reset after it is fully defined", self)
           end
-          explicit_values.keep_if { |name,value| self.class.attribute_types[name].identity? }
+          explicit_values.keep_if { |name,value| self.class.property_types[name].identity? }
         end
       end
 
@@ -195,7 +195,7 @@ module Crazytown
       # actually changed from their real values.  Their real values are obtained
       # via `load` and `load_value`.
       #
-      # @param *names [Symbol] A list of attribute names which must be different
+      # @param *names [Symbol] A list of property names which must be different
       #   from their actual / default value in order to set them.  If the last parameter is a String, it
       #   is treated as the description of the update.
       # @yield [new_values] a Set containing the list of keys whose values have
@@ -217,7 +217,7 @@ module Crazytown
         #
         if names.empty?
           change_header = ""
-          names = self.class.attribute_types.keys if names.empty?
+          names = self.class.property_types.keys if names.empty?
         else
           change_header = "#{Crazytown.english_list(*names)}"
         end
@@ -228,11 +228,11 @@ module Crazytown
         exists = resource_exists?
         changed_names = names.inject({}) do |h, name|
           if explicit_values.has_key?(name)
-            type = self.class.attribute_types[name]
+            type = self.class.property_types[name]
 
             desired_value = public_send(name)
             if exists
-              current_value = type.current_attribute_value(self)
+              current_value = type.current_property_value(self)
               if desired_value != current_value
                 h[name] = [ type.value_to_s(desired_value), type.value_to_s(current_value) ]
               end
@@ -281,7 +281,7 @@ module Crazytown
       #
 
       #
-      # Returns this struct as a hash, including all attributes and their defaults.
+      # Returns this struct as a hash, including all properties and their defaults.
       #
       # @param only [Symbol] Which values to include. Default: `:only_known`. One of:
       #   - :only_known :: Values explicitly set by the user or current values.
@@ -297,8 +297,8 @@ module Crazytown
         when :only_changed
           result = {}
           explicit_values.each do |name, value|
-            current_attribute_value = self.class.attribute_types[name].current_attribute_value(self)
-            if value != current_attribute_value
+            current_property_value = self.class.property_types[name].current_property_value(self)
+            if value != current_property_value
               result[name] = value
             end
           end
@@ -309,7 +309,7 @@ module Crazytown
 
         when :all
           result = {}
-          self.class.attribute_types.each_key do |name|
+          self.class.property_types.each_key do |name|
             result[name] = public_send(name)
           end
           result
@@ -378,19 +378,19 @@ module Crazytown
       end
 
       #
-      # Get the value of the given attribute from the struct
+      # Get the value of the given property from the struct
       #
       def [](name)
         name = name.to_sym
-        if !attribute_types.has_key?(name)
-          raise ArgumentError, "#{name} is not an attribute of #{self.class}."
+        if !property_types.has_key?(name)
+          raise ArgumentError, "#{name} is not a property of #{self.class}."
         end
 
         public_send(name)
       end
 
       #
-      # Set the value of the given attribute in the struct
+      # Set the value of the given property in the struct
       #
       def []=(name, value)
         public_send(name.to_sym, value)

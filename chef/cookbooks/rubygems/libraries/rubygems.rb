@@ -12,7 +12,7 @@ Crazytown.resource :rubygems do
   # @example
   #   rubygems(host: 'https://rubygems.org')
   #
-  attribute :host, URI, identity: true do
+  property :host, URI, identity: true do
     default { RubygemsAPI.new.host }
   end
 
@@ -36,7 +36,7 @@ Crazytown.resource :rubygems do
   #   owners << 'jkeiser'
   # end
   #
-  attribute :api_key, String do
+  property :api_key, String do
     must("be a 32-character Rubygems API key") { |value| value =~ /^[0-9a-fA-F]{32}$/ }
     default { Gem.configuration.rubygems_api_key }
 

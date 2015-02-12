@@ -10,11 +10,11 @@ end
 
 resource :machine do
   resource :entry do
-    attribute :path, Path, identity: true
-    attribute :mode, Integer do
+    property :path, Path, identity: true
+    property :mode, Integer do
     end
-    attribute :owner, User
-    attribute :group, Group
+    property :owner, User
+    property :group, Group
 
     def load
       stat = File.stat(path)
@@ -54,7 +54,7 @@ resource :machine do
   end
 
   resource :directory, entry do
-    attribute :children, IndexedSet[entry] do
+    property :children, IndexedSet[entry] do
       def load
         replace(File.entries(path).map { |child_path| entry.open(child_path) })
       end
@@ -68,7 +68,7 @@ resource :machine do
   end
 
   resource :file, entry do
-    attribute :content, String do
+    property :content, String do
       def load
         IO.read(parent_struct.path)
       end
@@ -83,7 +83,7 @@ resource :machine do
   end
 
   resource :symlink, entry do
-    attribute :to, entry do
+    property :to, entry do
       def load
         entry.open(File.linktarget(path))
       end
@@ -100,12 +100,12 @@ resource :machine do
   def root_directory
     directory '/'
   end
-  attribute :users,  IndexedSet[User, :uid] do
+  property :users,  IndexedSet[User, :uid] do
     def by_name(name)
       each { |user| user.name == name }.first
     end
   end
-  attribute :groups, IndexedSet[Group, :gid] do
+  property :groups, IndexedSet[Group, :gid] do
     def by_name(name)
       each { |group| group.name == name }.first
     end
@@ -114,8 +114,8 @@ end
 
 resource :formats do
   resource :json do
-    attribute :content, Content, identity: true
-    attribute :value,   json_value
+    property :content, Content, identity: true
+    property :value,   json_value
 
     def load
       value JSON.parse(content.read)
@@ -153,7 +153,7 @@ resource :chef do
   # chef etcd_source('http://127.0.0.1:3030') do
   #   node 'blah' # -> etcd_source.open('nodes/blah')
   # end
-  attribute :source, PathSource[JSONValue], identity: true do
+  property :source, PathSource[JSONValue], identity: true do
     def connection
     end
 
@@ -194,7 +194,7 @@ resource :chef do
     end
 
     resource :vpc do
-      attribute :vpc_id, Integer
+      property :vpc_id, Integer
     end
 
     vpc 'vpc2324397' do
@@ -208,21 +208,21 @@ resource :chef do
     m.update
 
     machine 'blah' do
-      attribute :vpc, VPC
-      attribute :billing_address do
-        attribute :street, String
-        attribute :city, String
+      property :vpc, VPC
+      property :billing_address do
+        property :street, String
+        property :city, String
       end
-      attribute :name, String do
+      property :name, String do
         def current_resource
 
         end
       end
-      attribute :ip_address, String
-      attribute :name,
+      property :ip_address, String
+      property :name,
 
       def current_resource
-        location = chef.node('blah').attributes['chef_provisioning']['location']
+        location = chef.node('blah').propertys['chef_provisioning']['location']
         parent.connection.instances[location['instance_id']]
       end
     end
@@ -252,7 +252,7 @@ resource :chef do
   end
 
   resource :old_driver do
-    attribute :driver_url, String, identity: true
+    property :driver_url, String, identity: true
 
     resource :machine, chef_provisioning.machine do
 
@@ -263,26 +263,26 @@ resource :chef do
 
 
   resource :aws do
-    attribute :aws_url, Uri, identity: true, default:
-    attribute :profile_name, String, identity: true, default:
-    attribute :region, identity: true, required: false
-    attribute :account_id, String, identity: true
+    property :aws_url, Uri, identity: true, default:
+    property :profile_name, String, identity: true, default:
+    property :region, identity: true, required: false
+    property :account_id, String, identity: true
 
 
     resource :machine, chef_provisioning.machine do
 
     end
 
-  # Defining an actual value on an attribute
+  # Defining an actual value on an property
 class ChefAPI
   class User < StructResource
-    attribute :chef_server,       Uri,    identity: true, default: proc { Config.chef_server_url }
-    attribute :chef_client_name,  String, identity: true, default: proc { Config.node_name }
-    attribute :chef_client_key,   String, identity: true, default: proc { Config.client_key }
+    property :chef_server,       Uri,    identity: true, default: proc { Config.chef_server_url }
+    property :chef_client_name,  String, identity: true, default: proc { Config.node_name }
+    property :chef_client_key,   String, identity: true, default: proc { Config.client_key }
 
-    attribute :username,          String, identity: true
-    attribute :name,        String
-    attribute :public_key,  RSA::PublicKey
+    property :username,          String, identity: true
+    property :name,        String
+    property :public_key,  RSA::PublicKey
 
     def load
       chef_rest = REST.new(chef_server, chef_client_name, chef_client_key)
@@ -316,18 +316,18 @@ class ChefAPI
 end
 
 resource :chef
-  attribute :chef_server_url,   Uri,    identity: true, default: proc { Config.chef_server_url }
-  attribute :chef_client_name,  String, identity: true, default: proc { Config.node_name }
-  attribute :chef_client_key,   String, identity: true, default: proc { Config.client_key }
+  property :chef_server_url,   Uri,    identity: true, default: proc { Config.chef_server_url }
+  property :chef_client_name,  String, identity: true, default: proc { Config.node_name }
+  property :chef_client_key,   String, identity: true, default: proc { Config.client_key }
 
   def chef_rest
     @chef_rest ||= REST.new(chef_server_url, chef_client_name, chef_client_key)
   end
 
   resource :user do
-    attribute :username,    String, identity: true
-    attribute :name,        String
-    attribute :public_key,  RSA::PublicKey
+    property :username,    String, identity: true
+    property :name,        String
+    property :public_key,  RSA::PublicKey
 
     def load
       json = parent.chef_rest.get("users/#{name}")
@@ -353,8 +353,8 @@ resource :chef
 end
 
   resource :organization do
-    attribute :name, String, identity: true
-    attribute :description, String
+    property :name, String, identity: true
+    property :description, String
 
     def current_resource
       @current_resource ||= begin
@@ -375,7 +375,7 @@ end
       end
     end
 
-    attribute :members, Hash[String => User] do
+    property :members, Hash[String => User] do
       def current_resource
         REST.get("data/#{data_bag.name}/users").inject({}) do |hash,name|
           result[name] = user(name) # create the user resource
@@ -383,7 +383,7 @@ end
       end
     end
 
-    attribute :nodes, Array[Node] do
+    property :nodes, Array[Node] do
     end
   end
 end

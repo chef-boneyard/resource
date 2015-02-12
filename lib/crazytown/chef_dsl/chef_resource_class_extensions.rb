@@ -7,10 +7,10 @@ require 'chef/resource'
 module Crazytown
   module ChefDSL
     #
-    # Define attributes on the type itself
+    # Define properties on the type itself
     #
     module ChefResourceClassExtensions
-      # We are a StructResource (so that we can use "attribute" for properties
+      # We are a StructResource (so that we can use "property" for properties
       # of the ChefResource class itself) and a StructResourceType (because
       # Chef Resources are traditionally structs).
       include Crazytown::Resource::StructResource

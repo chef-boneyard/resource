@@ -18,27 +18,27 @@ module Crazytown
         #
         # The parent region
         #
-        attribute :parent
+        property :parent
 
         #
         # The top y coordinate of the region
         #
-        attribute :top
+        property :top
 
         #
         # The left hand coordinate of the region
         #
-        attribute :height
+        property :height
 
         #
         # The width of the region.
         #
-        attribute :width
+        property :width
 
         #
         # The height of the region
         #
-        attribute :height
+        property :height
       end
 
       #
@@ -75,7 +75,7 @@ module Crazytown
       # |-- Machine Batch: web
       # |   |-- Machine web1
       # |   |   |-- Node web1
-      # |   |   |   |-- Attribute apache2.port changed from 80 to 8080
+      # |   |   |   |-- Property apache2.port changed from 80 to 8080
       # |   |-- Machine web2 - Updated
       # |-- Header3
       # |-- Header4

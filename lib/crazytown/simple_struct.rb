@@ -1,27 +1,27 @@
 module Crazytown
   #
-  # Lets you create simple attributes of a similar form to Crazytown attributes
+  # Lets you create simple properties of a similar form to Crazytown properties
   # (with the right getters and setters), without the type system.  Largely used
   # to create the structs in the type system itself.
   #
   module SimpleStruct
     #
-    # Create an attribute with getter (struct.name), setter (struct.name value)
+    # Create a property with getter (struct.name), setter (struct.name value)
     # and equal setter (struct.name = value).
     #
     # Supports lazy values and asks for the superclass's value if the value has
     # not been set locally.  Also flips on instance_eval automatically for lazy
     # procs.
     #
-    def attribute(name, default: "nil", coerced: "value", coerced_set: coerced, inherited: "superclass.#{name}")
+    def property(name, default: "nil", coerced: "value", coerced_set: coerced, inherited: "superclass.#{name}")
       module_eval <<-EOM, __FILE__, __LINE__+1
-        module SimpleStructInterface
+        module SimpleStructProperties
           def #{name}=(value)
             #{name} value
           end
           def #{name}(value=NOT_PASSED, parent: self, &block)
             if block
-              @#{name} = Crazytown::LazyProc.new(instance_eval: true, &block)
+              @#{name} = Crazytown::LazyProc.new(:should_instance_eval, &block)
             elsif value == NOT_PASSED
               if defined?(@#{name})
                 if @#{name}.is_a?(LazyProc)
@@ -31,7 +31,10 @@ module Crazytown
                 end
                 value = #{coerced}
               elsif defined?(super)
-                return #{inherited}
+                return super
+              # Go to extraordinary lengths to get the superclass's value (inheritance)
+              elsif respond_to?(:superclass) && superclass.respond_to?(#{name.inspect})
+                #{inherited}
               else
                 value = #{default}
               end
@@ -42,12 +45,12 @@ module Crazytown
             end
           end
         end
-        include SimpleStructInterface
+        include SimpleStructProperties
       EOM
     end
 
     #
-    # Create a block attribute.
+    # Create a block property.
     #
     # Call <attr_name>.get(instance: instance, args: [...]) if <attr_name>
     # to invoke the block.
@@ -58,7 +61,7 @@ module Crazytown
     #   attr do
     #     # do stuff here
     #   end
-    #   # This form sets attr to a LazyProc with :instance_eval enabled.
+    #   # This form sets attr to a LazyProc with :should_instance_eval enabled.
     # @example Proc setter: sets attr to a proc that will NOT be instance_eval'd
     #   attr proc { do stuff here }
     # @example LazyProc setter: sets attr to a proc that will be instance_eval'd unless instance_eval is already set on the LazyProc (in which case it is obeyed).
@@ -66,15 +69,15 @@ module Crazytown
     #   struct.attr = proc { do stuff here }
     #   struct.attr = lazy { do stuff here }
     #
-    def block_attribute(name, coerced: "value")
+    def block_property(name, coerced: "value")
       module_eval <<-EOM, __FILE__, __LINE__+1
-        module SimpleStructInterface
+        module SimpleStructProperties
           def #{name}=(value)
             #{name} value
           end
           def #{name}(value=NOT_PASSED, &block)
             if block
-              value = LazyProc.new(:instance_eval, &block)
+              value = LazyProc.new(:should_instance_eval, &block)
               @#{name} = #{coerced}
             elsif value == NOT_PASSED
               if defined?(@#{name})
@@ -87,26 +90,29 @@ module Crazytown
             elsif value.is_a?(LazyProc)
               @#{name} = #{coerced}
             elsif value.is_a?(Proc)
-              value = LazyProc.new(:instance_eval, &value)
+              value = LazyProc.new(:should_instance_eval, &value)
               @#{name} = #{coerced}
             else
               @#{name} = #{coerced}
             end
           end
         end
-        include SimpleStructInterface
+        include SimpleStructProperties
       EOM
     end
 
     #
-    # Create a boolean attribute with getter, setter and getter?.
+    # Create a boolean property with getter, setter and getter?.
     #
-    def boolean_attribute(name, default: "nil", coerced: "value")
-      attribute(name, default: default, coerced: coerced)
+    def boolean_property(name, default: "nil", coerced: "value")
+      property(name, default: default, coerced: coerced)
       module_eval <<-EOM, __FILE__, __LINE__+1
-        def #{name}?
-          #{name}
+        module SimpleStructProperties
+          def #{name}?
+            #{name}
+          end
         end
+        include SimpleStructProperties
       EOM
     end
   end

@@ -1,10 +1,10 @@
 crazytown
 
-attribute :path, identity: true
-attribute :mode
-attribute :gid
-attribute :uid
-attribute :content
+property :path, identity: true
+property :mode
+property :gid
+property :uid
+property :content
 
 recipe do
   converge do

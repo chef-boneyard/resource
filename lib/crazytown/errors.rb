@@ -21,11 +21,11 @@ module Crazytown
   class ResourceCannotBeOpenedError < ResourceStateError
   end
 
-  class AttributeDefinedError < ResourceStateError
-    def initialize(message, resource, attribute_type)
+  class PropertyDefinedError < ResourceStateError
+    def initialize(message, resource, property_type)
       super(message, resource)
-      @attribute_type = attribute_type
+      @property_type = property_type
     end
-    attr_reader :attribute_type
+    attr_reader :property_type
   end
 end
