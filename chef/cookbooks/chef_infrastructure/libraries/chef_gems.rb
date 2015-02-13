@@ -29,6 +29,8 @@ module ChefGems
     knife-ec2
     knife-google
     knife-hp
+    knife-linode
+    knife-opc
     knife-openstack
     knife-rackspace
   )
