@@ -37,7 +37,9 @@ Crazytown.resource :rubygems_gem do
       # Add new owners
       #
       (new_emails - current_emails).each do |add_email|
-        rubygems.api.post("api/v1/gems/#{gem_name}/owners", log, email: add_email)
+        take_action "Add #{add_email} as owner of #{gem_name}" do
+          rubygems.api.post("api/v1/gems/#{gem_name}/owners", log, email: add_email)
+        end
       end
 
       #
@@ -45,11 +47,11 @@ Crazytown.resource :rubygems_gem do
       #
       (current_emails - new_emails).each do |remove_email|
         if purge
-          rubygems.api.delete("api/v1/gems/#{gem_name}/owners", log, email: remove_email)
+          take_action "remove #{remove_email}'s ownership of #{gem_name}" do
+            rubygems.api.delete("api/v1/gems/#{gem_name}/owners", log, email: remove_email)
+          end
         else
-          puts <<-EOM
-            rubygems.api.delete("api/v1/gems/#{gem_name}/owners", log, email: #{remove_email})
-          EOM
+          log.info "Would remove #{remove_email}'s ownership of #{gem_name}, but purge is off"
         end
       end
     end

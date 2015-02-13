@@ -17,7 +17,16 @@ Crazytown.resource :rubygems_user do
         gem['name']
       end.to_set
     end
+
+    def self.coerce(parent, value)
+      value.to_set
+    end
+
+    def self.value_to_s(value)
+      value.to_a.to_s
+    end
   end
+  property :purge, Boolean
 
   def load
     if !email
@@ -41,18 +50,22 @@ Crazytown.resource :rubygems_user do
       # Add new owners
       #
       (new_gems - current_gems).each do |add_gem|
-        puts <<-EOM
-          rubygems.api.post("api/v1/gems/#{add_gem}/owners", "email", email)
-        EOM
+        take_action "Add #{email} to #{add_gem}" do
+          rubygems.api.post("api/v1/gems/#{add_gem}/owners", email: email)
+        end
       end
 
       #
       # Remove missing owners
       #
       (current_gems - new_gems).each do |remove_gem|
-        puts <<-EOM
-          rubygems.api.delete("api/v1/gems/#{remove_gem}/owners", "email", email)
-        EOM
+        if purge
+          take_action "remove #{email}'s ownership of #{remove_gem}" do
+            rubygems.api.delete("api/v1/gems/#{remove_gem}/owners", email: email)
+          end
+        else
+          log.info "Would remove #{email} from ownership of #{add_gem}, but purge is off"
+        end
       end
     end
   end

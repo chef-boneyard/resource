@@ -7,7 +7,7 @@
 
 rubygems do
   # Talk to Rubygems and get the email of each user
-  %w(knife-essentials).each do |name|
+  %w(chef-provisioning-lxc).each do |name|
     gem name do
       purge true
       owners Permissions.rubygem_owners(name)
