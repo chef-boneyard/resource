@@ -84,6 +84,19 @@
   groups:
   - chef-admins
   - chef-employees
+- name: Nathan Smith
+  rubygems_username: nlsmith
+  rubygems_email:    nlloyds@gmail.com
+  groups:
+  - chef-admins
+  - chef-employees
+- name: Ryan Cragun
+  rubygems_username: ryancragun
+  rubygems_email:    me@ryan.ec
+  groups:
+  - chef-employees
+  rubygems:
+  - knife-ec-backup
 - name: Serdar Sutay
   rubygems_username: sersut
   rubygems_email:    serdar@opscode.com
@@ -113,6 +126,7 @@
   rubygems_email:    sethvargo@gmail.com
   rubygems:
   - test-kitchen
+  - dep_selector
 - name: Steven Danna
   rubygems_username: sdanna
   rubygems_email:    steve@opscode.com
@@ -122,6 +136,12 @@
 - name: Tyler Ball
   rubygems_username: tyleraball
   rubygems_email:    tyleraball@gmail.com
+  groups:
+  - chef-admins
+  - chef-employees
+- name: Yvonne Lam
+  rubygems_username: yzl
+  rubygems_email:    yvonne.z.lam@gmail.com
   groups:
   - chef-admins
   - chef-employees
