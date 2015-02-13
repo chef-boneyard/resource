@@ -86,6 +86,16 @@ module Crazytown
       end
 
       #
+      # Tell whether a particular attribute is set.
+      #
+      # @param name [Symbol] The name of the attribute
+      # @return [Boolean] Whether the attribute is set
+      #
+      def is_set?(name)
+        explicit_values.has_key?(name)
+      end
+
+      #
       # Define the identity of this struct, based on the given arguments and
       # block.  After this method, the identity is frozen.
       #
