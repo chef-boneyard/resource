@@ -9,13 +9,24 @@ require 'set'
 Crazytown.resource :rubygems_gem do
   property :rubygems, :rubygems, identity: true
   property :gem_name, String, identity: true
-  property :owners,   Array do
+  property :owners,   Set do
     load_value do
       rubygems.api.get("api/v1/gems/#{gem_name}/owners.json", log).map do |owner|
         owner['email']
-      end
+      end.to_set
+    end
+
+    def self.coerce(parent, value)
+      value.to_set
+    end
+
+    def self.value_to_s(value)
+      value.to_a.to_s
     end
   end
+
+  # Whether to purge owners
+  property :purge, Boolean
 
   recipe do
     converge :owners do
@@ -33,9 +44,13 @@ Crazytown.resource :rubygems_gem do
       # Remove missing owners
       #
       (current_emails - new_emails).each do |remove_email|
-        puts <<-EOM
+        if purge
           rubygems.api.delete("api/v1/gems/#{gem_name}/owners", log, email: remove_email)
-        EOM
+        else
+          puts <<-EOM
+            rubygems.api.delete("api/v1/gems/#{gem_name}/owners", log, email: #{remove_email})
+          EOM
+        end
       end
     end
   end

@@ -1,12 +1,21 @@
 module ChefGems
   CHEF_CORE = %w(
     chef
+    chef-zero
+    dep_selector
+    dep-selector-libgecode
     mixlib-authentication
     mixlib-cli
     mixlib-config
     mixlib-log
     mixlib-shellout
     ohai
+  )
+  # Not sure which category these belong to, but they are ours.
+  CHEF_SOMETHING_SOMETHING = %w(
+    appbundler
+    omnibus
+    wmi-lite
   )
   CHEF_PROVISIONING = %w(
     chef-provisioning
@@ -31,7 +40,8 @@ module ChefGems
     knife-openstack
     knife-rackspace
   )
-  OLD_CHEF_SERVER = %w(
+  DEPRECATED = %w(
+    knife-essentials
     chef-expander
     chef-server
     chef-server-api
@@ -52,4 +62,4 @@ module ChefGems
   )
 end
 
-::ALL_CHEF_GEMS = ChefGems::CHEF_CORE + ChefGems::CHEF_PROVISIONING + ChefGems::TEST_KITCHEN + ChefGems::CORE_TOOLS
+::ALL_CHEF_GEMS = ChefGems::CHEF_CORE + ChefGems::CHEF_PROVISIONING + ChefGems::TEST_KITCHEN + ChefGems::CORE_TOOLS + ChefGems::CHEF_SOMETHING_SOMETHING + ChefGems::DEPRECATED
