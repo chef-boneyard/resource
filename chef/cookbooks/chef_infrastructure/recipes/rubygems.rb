@@ -1,13 +1,12 @@
-DESIRED_OWNERS = %w(jkeiser adam@opscode.com)
+# Manage permissions for our rubygems.
 
+puts ::PEOPLE.map { |p| p['rubygems_email']}.inspect
 rubygems do
   # Talk to Rubygems and get the email of each user
-  desired_owners = DESIRED_OWNERS.map do |username|
-    user(username).email
-  end
   %w(knife-essentials).each do |name|
     gem name do
-      self.owners += desired_owners
+      self.owners |= ::PEOPLE.map { |p| p['rubygems_email']}
     end
+    break
   end
 end

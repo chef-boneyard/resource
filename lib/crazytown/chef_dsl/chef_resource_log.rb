@@ -8,7 +8,7 @@ module Crazytown
     #
     class ChefResourceLog < Crazytown::Resource::ResourceLog
       def log(level, str)
-        Chef::Log.public_send(level, "[#{resource.resource_short_name}] str")
+        Chef::Log.public_send(level, "#{resource.resource_short_name} #{str}")
       end
 
       def action

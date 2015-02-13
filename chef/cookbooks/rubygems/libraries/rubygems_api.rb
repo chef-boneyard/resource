@@ -27,7 +27,8 @@ class RubygemsAPI
       response = rubygems_api_request(method, path, host, allowed_push_host) do |request|
         request.add_field("Authorization", api_key) if api_key
         if params
-          params.inject({}) { |h,(key,value)| h[key.to_s] = value.to_s; h }
+          params = params.inject({}) { |h,(key,value)| h[key.to_s] = value.to_s; h }
+          log.debug("Form parameters: #{params.map { |key,value| "#{key}=#{value}" }.join(', ')}")
           request.set_form_data(params)
         end
       end
