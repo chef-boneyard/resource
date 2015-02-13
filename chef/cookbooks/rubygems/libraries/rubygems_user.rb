@@ -12,7 +12,7 @@ Crazytown.resource :rubygems_user do
   property :email,      String,    identity: true, default: nil, nullable: true
   property :owned_gems, Set do
     load_value do
-      rubygems.api.get("api/v1/owners/#{username}/gems.json").map do |gem|
+      rubygems.api.get("api/v1/owners/#{username}/gems.json", log).map do |gem|
         # TODO there is lots more info we can get here
         gem['name']
       end.to_set
@@ -21,7 +21,7 @@ Crazytown.resource :rubygems_user do
 
   def load
     if !email
-      profile = Net::HTTP.get(URI("#{rubygems.host}/profiles/#{username}"))
+      profile = rubygems.api.get_raw("profiles/#{username}", log)
       if profile !~ /profile__header__email.+mailto:([^"]+).*>Email Me</
         raise "#{rubygems.host}/profiles/#{username} did not contain email!"
       end
