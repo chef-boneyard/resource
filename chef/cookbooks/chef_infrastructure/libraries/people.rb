@@ -48,6 +48,12 @@
   groups:
   - chef-admins
   - chef-employees
+- name: JJ Asghar
+  rubygems_username: jjasghar
+  rubygems_email:    jjasghar@gmail.com
+  groups:
+  - chef-admins
+  - chef-employees
 - name: John Keiser
   rubygems_username: jkeiser
   rubygems_email:    john@johnkeiser.com
@@ -72,6 +78,12 @@
   groups:
   - chef-admins
   - chef-employees
+- name: Matt Ray
+  rubygems_username: mattray
+  rubygems_email:    matthewhray@gmail.com
+  groups:
+  - chef-admins
+  - chef-employees
 - name: Serdar Sutay
   rubygems_username: sersut
   rubygems_email:    serdar@opscode.com
@@ -87,6 +99,12 @@
 - name: Seth Falcon
   rubygems_username: sfalcon
   rubygems_email:    seth@opscode.com
+  groups:
+  - chef-admins
+  - chef-employees
+- name: Seth Thomas
+  rubygems_username: cheeseplus
+  rubygems_email:    sthomas@chef.io
   groups:
   - chef-admins
   - chef-employees

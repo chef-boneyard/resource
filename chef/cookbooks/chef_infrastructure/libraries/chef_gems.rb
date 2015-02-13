@@ -29,7 +29,6 @@ module ChefGems
     knife-ec2
     knife-google
     knife-hp
-    knife-maas
     knife-openstack
     knife-rackspace
   )
@@ -46,6 +45,8 @@ module ChefGems
     appbundler
     omnibus
     wmi-lite
+    knife-acl
+    knife-ec-backup
   )
   # We have not decided yet whether these get the same treatment.
   TEST_KITCHEN = %w(
