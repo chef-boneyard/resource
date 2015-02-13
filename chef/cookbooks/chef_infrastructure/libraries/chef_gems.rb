@@ -31,6 +31,7 @@ module ChefGems
     knife-hp
     knife-openstack
     knife-rackspace
+    knife-vcair
   )
   CHEF_DEPRECATED = %w(
     knife-essentials
