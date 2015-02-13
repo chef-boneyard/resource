@@ -32,6 +32,7 @@ module ChefGems
     knife-maas
     knife-openstack
     knife-rackspace
+    knife-vcair
   )
   CHEF_DEPRECATED = %w(
     knife-essentials
