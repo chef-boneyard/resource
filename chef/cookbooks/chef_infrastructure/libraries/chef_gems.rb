@@ -39,6 +39,8 @@ module ChefGems
     chef-server-webui
     chef-solr
   )
+  # Not doing anything with these yet, but they are on Adam's account and I
+  # haven't identified their purpose
   MISC_ADAMJACOB = %w(
     dynect_rest
     curve_fit
