@@ -197,6 +197,28 @@ module Crazytown
       def load_from(*args)
         raise NotImplementedError, "load_from is not implemented on Crazytown resources."
       end
+
+      #
+      # Take an action that will update the resource.
+      #
+      # @param description [String] The action being taken.
+      # @yield A block that will perform the actual update.
+      # @raise Any error raised by the block is passed through.
+      #
+      def take_action(description, &action_block)
+        if Chef::Config[:why_run]
+          log.action_skipped(description)
+        else
+          log.action_started(description)
+          begin
+            instance_eval(&action_block)
+          rescue
+            log.action_failed($!)
+            raise
+          end
+          log.action_succeeded
+        end
+      end
     end
   end
 end

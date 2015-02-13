@@ -149,6 +149,15 @@ module Crazytown
       end
 
       #
+      # Fired when an action is skipped due to why-run.
+      #
+      # @param description [String] A description of the action being taken.
+      #
+      def action_skipped(description, update_guaranteed: true)
+        raise "action started when no update is taking place!" if !current_update
+      end
+
+      #
       # Fired when an action starts.
       #
       # @param description [String] A description of the action being taken.

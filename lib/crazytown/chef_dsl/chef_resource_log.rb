@@ -32,6 +32,14 @@ module Crazytown
         end
       end
 
+      def action_skipped(description, update_guaranteed: true)
+        super
+        if update_guaranteed
+          resource.events.resource_update_applied(self, action, description)
+          resource.updated_by_last_action true
+        end
+      end
+
       # When an action succeeds, we mark the resource updated if it did anything.
       def action_succeeded(**args)
         description, updated = super
