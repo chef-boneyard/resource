@@ -11,11 +11,9 @@ module ChefGems
     mixlib-shellout
     ohai
   )
-  # Not sure which category these belong to, but they are ours.
-  CHEF_SOMETHING_SOMETHING = %w(
-    appbundler
-    omnibus
-    wmi-lite
+  CHEFDK = %w(
+    chef-dk
+    cookbook-omnifetch
   )
   CHEF_PROVISIONING = %w(
     chef-provisioning
@@ -26,40 +24,54 @@ module ChefGems
     chef-provisioning-lxc
     chef-provisioning-vagrant
   )
-  TEST_KITCHEN = %w(
-    busser-rspec
-    guard-kitchen
-    kitchen-libvirtlxc
-  )
-  CORE_TOOLS = %w(
-    chef-dk
+  KNIFE_PLUGINS = %w(
     knife-azure
     knife-ec2
-    knife-eucalyptus
     knife-google
+    knife-hp
+    knife-maas
     knife-openstack
     knife-rackspace
   )
-  DEPRECATED = %w(
+  CHEF_DEPRECATED = %w(
     knife-essentials
     chef-expander
     chef-server
     chef-server-api
-    chef-server-slice
     chef-server-webui
     chef-solr
+  )
+  # Not sure which category these belong to, but they are ours.
+  CHEF_OTHER = %w(
+    appbundler
+    omnibus
+    wmi-lite
+  )
+  # We have not decided yet whether these get the same treatment.
+  TEST_KITCHEN = %w(
+    test-kitchen
+    busser-rspec
+    guard-kitchen
+    kitchen-libvirtlxc
   )
   # Not doing anything with these yet, but they are on Adam's account and I
   # haven't identified their purpose
   MISC_ADAMJACOB = %w(
+    knife-eucalyptus
     dynect_rest
     curve_fit
     circonus-munin
     mixlib-json
     chef_handler_splunk
     chef-datadog
+    chef-server-slice
     omniauth-opscode
   )
 end
 
-::ALL_CHEF_GEMS = ChefGems::CHEF_CORE + ChefGems::CHEF_PROVISIONING + ChefGems::TEST_KITCHEN + ChefGems::CORE_TOOLS + ChefGems::CHEF_SOMETHING_SOMETHING + ChefGems::DEPRECATED
+::ALL_CHEF_GEMS = ChefGems::CHEF_CORE +
+                  ChefGems::CHEFDK +
+                  ChefGems::CHEF_PROVISIONING +
+                  ChefGems::KNIFE_PLUGINS +
+                  ChefGems::CHEF_OTHER +
+                  ChefGems::CHEF_DEPRECATED

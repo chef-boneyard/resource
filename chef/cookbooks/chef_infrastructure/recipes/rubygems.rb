@@ -1,15 +1,21 @@
 # Manage permissions for our rubygems.
 
-# puts ::PEOPLE.map { |p| p['rubygems_email'] }.inspect
-# dan = rubygems.user(::PEOPLE.select { |p| p['name'] == 'Daniel DeLeo' }.first['rubygems_username'])
-# puts (dan.owned_gems - ::ALL_CHEF_GEMS).inspect
-#
-
 rubygems do
-  # Talk to Rubygems and get the email of each user
-  ChefGems::CHEF_PROVISIONING.each do |name|
+  # ::ALL_CHEF_GEMS.each do |name|
+  #   gem = rubygems.gem(name)
+  #   if !gem.owners.include?("john@johnkeiser.com")
+  #     if gem.owners.include?("danielsdeleo@mac.com")
+  #       puts "gem owner #{name} -a john@johnkeiser.com"
+  #     else
+  #       puts "Find an owner for #{name}: #{gem.owners.inspect}"
+  #     end
+  #   end
+  # end
+
+  ::ALL_CHEF_GEMS.each do |name|
     gem name do
       owners Permissions.rubygem_owners(name)
+      ignore_failure true
     end
   end
 end
