@@ -101,9 +101,9 @@ module Crazytown
           end
         end
         if args.size == 1 && args[0].is_a?(Crazytown::LazyProc)
-          struct.explicit_values[property_name] = args[0]
+          struct.explicit_property_values[property_name] = args[0]
         else
-          struct.explicit_values[property_name] = coerce(struct, *args)
+          struct.explicit_property_values[property_name] = coerce(struct, *args)
         end
       end
 
@@ -116,7 +116,7 @@ module Crazytown
       # there, it runs default.
       #
       def get_property(struct)
-        value = struct.explicit_values.fetch(property_name) do
+        value = struct.explicit_property_values.fetch(property_name) do
           return current_property_value(struct)
         end
         coerce_to_user(struct, value)
@@ -153,7 +153,7 @@ module Crazytown
         end
 
         # First, check quickly if we already have it.
-        if current_struct.explicit_values.has_key?(property_name)
+        if current_struct.explicit_property_values.has_key?(property_name)
           return [ true, current_struct.public_send(property_name) ]
         end
 
@@ -174,7 +174,7 @@ module Crazytown
             return [ true, value ]
           rescue
             # short circuit this from happening again
-            current_struct.explicit_values[property_name] = nil
+            current_struct.explicit_property_values[property_name] = nil
             struct.log.load_value_failed(property_name, $!)
             raise
           end

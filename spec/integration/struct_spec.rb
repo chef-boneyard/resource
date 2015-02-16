@@ -45,7 +45,7 @@ describe Crazytown::Resource::StructResource do
         property :normal_not_set, default: 30
       end
       let(:r) { r = MyResource.open(1); r.normal_set = 2; r }
-      it "explicit_values is missing values" do
+      it "explicit_property_values is missing values" do
         expect(r.to_h(:only_explicit)).to eq({ identity_set: 1, normal_set: 2 })
         expect(r.normal_set).to eq 2
         expect(r.normal_not_set).to eq 30

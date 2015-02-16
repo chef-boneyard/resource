@@ -36,7 +36,7 @@ module Crazytown
       include Resource
 
       #
-      # Resource read/modify interface: reopen, identity, explicit_values
+      # Resource read/modify interface: reopen, identity, explicit_property_values
       #
 
       #
@@ -51,8 +51,8 @@ module Crazytown
       def reopen_resource
         # Create a new Resource of our same type, with just identity values.
         resource = self.class.new
-        explicit_values.each do |name,value|
-          resource.explicit_values[name] = value if self.class.property_types[name].identity?
+        explicit_property_values.each do |name,value|
+          resource.explicit_property_values[name] = value if self.class.property_types[name].identity?
         end
         resource
       end
@@ -64,7 +64,7 @@ module Crazytown
         positionals = []
         named = {}
         self.class.property_types.each do |name, type|
-          next if !explicit_values.has_key?(name)
+          next if !explicit_property_values.has_key?(name)
           if type.identity?
             value = public_send(name)
             if type.required?
@@ -92,7 +92,7 @@ module Crazytown
       # @return [Boolean] Whether the attribute is set
       #
       def is_set?(name)
-        explicit_values.has_key?(name)
+        explicit_property_values.has_key?(name)
       end
 
       #
@@ -183,21 +183,21 @@ module Crazytown
             end
           end
 
-          explicit_values.delete(name)
+          explicit_property_values.delete(name)
         else
           # We only ever reset non-identity values
           if ![:created, :identity_defined].include?(resource_state)
             raise ResourceStateError.new("#{self.class} cannot be reset after it is fully defined", self)
           end
-          explicit_values.keep_if { |name,value| self.class.property_types[name].identity? }
+          explicit_property_values.keep_if { |name,value| self.class.property_types[name].identity? }
         end
       end
 
       #
       # A hash of the changes the user has made to keys
       #
-      def explicit_values
-        @explicit_values ||= {}
+      def explicit_property_values
+        @explicit_property_values ||= {}
       end
 
       #
@@ -237,7 +237,7 @@ module Crazytown
         #
         exists = resource_exists?
         changed_names = names.inject({}) do |h, name|
-          if explicit_values.has_key?(name)
+          if explicit_property_values.has_key?(name)
             type = self.class.property_types[name]
 
             desired_value = public_send(name)
@@ -306,7 +306,7 @@ module Crazytown
         case only
         when :only_changed
           result = {}
-          explicit_values.each do |name, value|
+          explicit_property_values.each do |name, value|
             current_property_value = self.class.property_types[name].current_property_value(self)
             if value != current_property_value
               result[name] = value
@@ -315,7 +315,7 @@ module Crazytown
           result
 
         when :only_explicit
-          explicit_values.dup
+          explicit_property_values.dup
 
         when :all
           result = {}
@@ -326,9 +326,9 @@ module Crazytown
 
         else
           if current_resource_loaded?
-            current_resource.explicit_values.merge(explicit_values)
+            current_resource.explicit_property_values.merge(explicit_property_values)
           else
-            explicit_values.dup
+            explicit_property_values.dup
           end
 
         end
@@ -370,19 +370,19 @@ module Crazytown
       def ==(other)
         return false if !other.is_a?(self.class)
 
-        # Try to rule out differences via explicit_values first (this should
+        # Try to rule out differences via explicit_property_values first (this should
         # handle any identity keys and prevent us from accidentally pulling on
         # current_resource).
-        (explicit_values.keys & other.explicit_values.keys).each do |name|
+        (explicit_property_values.keys & other.explicit_property_values.keys).each do |name|
           return false if public_send(name) != other.public_send(name)
         end
 
         # If one struct has more desired (set) values than the other, compare
         # the values to the current/default on the other.
-        (explicit_values.keys - other.explicit_values.keys).each do |name|
+        (explicit_property_values.keys - other.explicit_property_values.keys).each do |name|
           return false if public_send(name) != other.public_send(name)
         end
-        (other.explicit_values.keys - explicit_values.keys).each do |attr|
+        (other.explicit_property_values.keys - explicit_property_values.keys).each do |attr|
           return false if public_send(name) != other.public_send(name)
         end
       end

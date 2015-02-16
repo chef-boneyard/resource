@@ -48,19 +48,19 @@ module Crazytown
 
           # Split the identity properties from normal so we can call open() with
           # just identity properties
-          explicit_values = args[-1]
+          explicit_property_values = args[-1]
           identity_values = {}
-          explicit_values.each_key do |name|
+          explicit_property_values.each_key do |name|
             type = property_types[name]
             raise ValidationError, "#{self.class}.coerce was passed property #{name}, but #{name} is not a property on #{self.class}." if !type
-            identity_values[name] = explicit_values.delete(name) if type.identity?
+            identity_values[name] = explicit_property_values.delete(name) if type.identity?
           end
 
           # open the resource
           resource = open(*args[0..-2], identity_values)
 
           # Set the non-identity properties before returning
-          explicit_values.each do |name, value|
+          explicit_property_values.each do |name, value|
             resource.public_send(name, value)
           end
 
