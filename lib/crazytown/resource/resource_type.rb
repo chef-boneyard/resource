@@ -67,7 +67,7 @@ module Crazytown
         resource = open(*args)
         resource.instance_eval(&update_block)
         resource.resource_fully_defined
-        resource.update
+        resource.update_resource
       end
     end
   end

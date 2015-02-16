@@ -113,7 +113,7 @@ module Crazytown
           @run_context = temp_run_context
           @run_context.resource_collection = Chef::ResourceCollection.new
 
-          update
+          update_resource
 
           Chef::Runner.new(@run_context).converge
         rescue

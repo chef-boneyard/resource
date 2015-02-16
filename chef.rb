@@ -26,7 +26,7 @@ resource :machine do
     # - create (actual !exists)
     # - change[columns] (all columns if actual exists)
     # - change[]
-    def update
+    def update_resource
       handle_create { File.write(path, content) }
       handle_update :mode { File.chmod(mode, path) }
       end
@@ -59,10 +59,10 @@ resource :machine do
         replace(File.entries(path).map { |child_path| entry.open(child_path) })
       end
 
-      def update
-        each_added    { |added|    added.update }
-        each_modified { |modified| modified.update }
-        each_removed  { |removed|  removed.delete }
+      def update_resource
+        each_added    { |added|    added.update_resource }
+        each_modified { |modified| modified.update_resource }
+        each_removed  { |removed|  removed.delete_resource }
       end
     end
   end
@@ -74,7 +74,7 @@ resource :machine do
       end
     end
 
-    def update
+    def update_resource
       converge :content do
         IO.write(path, content)
       end
@@ -89,7 +89,7 @@ resource :machine do
       end
     end
 
-    def update
+    def update_resource
       converge :to do
         File.symlink(path, to.path)
       end
@@ -121,7 +121,7 @@ resource :formats do
       value JSON.parse(content.read)
     end
 
-    def update
+    def update_resource
       if_updated :value { content.write(value) }
     end
   end
@@ -205,7 +205,7 @@ resource :chef do
     m.instance_eval do
       vpc 'vpc-120394812'
     end
-    m.update
+    m.update_resource
 
     machine 'blah' do
       property :vpc, VPC
@@ -338,7 +338,7 @@ resource :chef
       public_key json['public_key']
     end
 
-    def update
+    def update_resource
       converge do
         json = JSON.to_json {
           username: username,
@@ -365,7 +365,7 @@ end
       end
     end
 
-    def update
+    def update_resource
       converge :name, :description do
         if exists?
           REST.put("organizations/#{name}", to_h)

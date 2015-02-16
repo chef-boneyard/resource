@@ -127,7 +127,7 @@ module Crazytown
     #
     # Updates the real resource with desired changes
     #
-    def update
+    def update_resource
       raise NotImplementedError, "#{self.class}.update"
     end
 
@@ -180,7 +180,6 @@ module Crazytown
             raise ResourceStateError.new("Resource cannot be loaded (and defaults cannot be read) until the identity is defined", self)
           end
 
-          puts "Gonna load ..."
           @current_resource = load_current_resource
         end
 
