@@ -1,5 +1,6 @@
 require 'crazytown'
 require 'crazytown/resource/resource_log'
+require 'crazytown/simple_struct'
 
 module Crazytown
   #
@@ -23,6 +24,7 @@ module Crazytown
   # - MUST reflect any changes on the Resource itself--i.e. if you set
   #   file.mode = 0664, then file.mode should == 0664, even if you haven't
   #   called `update` yet and the actual file has mode `0777`.
+  # - MAY cache actual values on first retrieve for efficiency reasons.
   # - MUST NOT make any changes to the actual Resource until `update` is called.
   # - MUST make all user-requested changes in `update`, or raise an error if
   #   they cannot be fulfilled.
@@ -143,6 +145,18 @@ module Crazytown
     # The remaining methods you don't generally have to explicitly override.
     #
 
+    extend Crazytown::SimpleStruct
+
+    #
+    # Indicates whether this is the "current resource," an instance loaded in
+    # by accessing `current_resource` on a Resource.
+    #
+    # This affects loading behavior: if the user asks for a value on `current_resource`
+    # that needs to be loaded with `load_value`, it will load the value onto
+    # the current resource if this is set.
+    #
+    boolean_property :is_current_resource
+
     #
     # The underlying value of this resource.  Any values the user has not
     # filled in will be based on this.
@@ -160,38 +174,48 @@ module Crazytown
         # If this is the first time we've been called, calculate current_resource as
         # either the current value, or the default value if there is no current
         # value.
-        if !defined?(@current_resource)
+        if !defined?(@current_resource) && !is_current_resource?
+
           if resource_state == :created
             raise ResourceStateError.new("Resource cannot be loaded (and defaults cannot be read) until the identity is defined", self)
           end
 
-          # Reopen the resource (it's in :identity_defined state) with
-          # `identity` values copied over.  We will not grab actual values
-          # unless requested.
-          loading_resource = reopen_resource
-
-          # Explicitly set current_resource to `nil` to avoid current_resource inception.
-          unless loading_resource.instance_eval { defined?(@current_resource) }
-            loading_resource.current_resource nil
-          end
-
-          # Run "load"
-          log.load_started
-          begin
-            loading_resource.load
-          rescue
-            log.load_failed($!)
-            raise
-          ensure
-            # Set @current_resource even if we failed, so we can be sure we never
-            # run load again.
-            @current_resource = loading_resource
-          end
-          log.load_succeeded
+          puts "Gonna load ..."
+          @current_resource = load_current_resource
         end
 
         @current_resource
       end
+    end
+
+    #
+    # Loads the current actual value of this Resources into a new struct, storing
+    # the resulting value in `current_resource`.
+    #
+    # The default implementation calls `reopen_resource` and then calls `load`
+    # on the new Resource object.
+    #
+    def load_current_resource
+      # Reopen the resource (it's in :identity_defined state) with
+      # `identity` values copied over.
+      loading_resource = reopen_resource
+
+      loading_resource.is_current_resource = true
+
+      # Run "load"
+      log.load_started
+      begin
+        loading_resource.load
+        log.load_succeeded
+      rescue
+        log.load_failed($!)
+        raise
+      ensure
+        # Set @current_resource even if we failed, so we can be sure we never
+        # run load again.
+        @current_resource = loading_resource
+      end
+      @current_resource
     end
 
     #

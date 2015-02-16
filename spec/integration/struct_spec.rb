@@ -451,7 +451,7 @@ describe Crazytown::Resource::StructResource do
       end
     end
 
-    context "When load sets y to x*2 and z has its own load that does x*3" do
+    context "When load sets y to x*2 and z has its own load_value that does x*3" do
       with_struct(:MyResource) do
         property :x, identity: true
         property :y
@@ -468,6 +468,11 @@ describe Crazytown::Resource::StructResource do
         expect(r.x).to eq 1
         expect(r.y).to eq 2
         expect(r.z).to eq 3
+      end
+
+      it "current_resource.z yields x*3" do
+        r = MyResource.open(1)
+        expect(r.current_resource.z).to eq 3
       end
 
       it "load is only called twice" do

@@ -146,36 +146,38 @@ module Crazytown
       # @raise Any error raised by load_value or load will pass through.
       #
       def explicit_current_property_value(struct)
-        if !struct.current_resource || !struct.resource_exists?
+        # First get current_struct
+        current_struct = struct.is_current_resource? ? struct : struct.current_resource
+        if !current_struct
           return [ false, nil ]
         end
-
-        current_struct = struct.current_resource
 
         # First, check quickly if we already have it.
         if current_struct.explicit_values.has_key?(property_name)
           return [ true, current_struct.public_send(property_name) ]
         end
 
-        # Since we were already brought up, we must already be loaded, yet the
-        # property isn't there.  Use load_value if it has it.
-        if !load_value
-          return [ false, nil ]
-        end
+        if current_struct.resource_exists?
+          # Since we were already brought up, we must already be loaded, yet the
+          # property isn't there.  Use load_value if it has it.
+          if !load_value
+            return [ false, nil ]
+          end
 
-        struct.log.load_value_started(property_name)
+          struct.log.load_value_started(property_name)
 
-        begin
-          value = load_value.get(instance: current_struct, instance_eval_by_default: true)
-          # Set the value (if it gets coerced, catch the result)
-          value = current_struct.public_send(property_name, value)
-          struct.log.load_value_succeeded(property_name)
-          return [ true, value ]
-        rescue
-          # short circuit this from happening again
-          current_struct.explicit_values[property_name] = nil
-          struct.log.load_value_failed(property_name, $!)
-          raise
+          begin
+            value = load_value.get(instance: current_struct, instance_eval_by_default: true)
+            # Set the value (if it gets coerced, catch the result)
+            value = current_struct.public_send(property_name, value)
+            struct.log.load_value_succeeded(property_name)
+            return [ true, value ]
+          rescue
+            # short circuit this from happening again
+            current_struct.explicit_values[property_name] = nil
+            struct.log.load_value_failed(property_name, $!)
+            raise
+          end
         end
       end
     end
