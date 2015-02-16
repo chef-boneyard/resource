@@ -128,7 +128,7 @@ module Crazytown
     # Updates the real resource with desired changes
     #
     def update_resource
-      raise NotImplementedError, "#{self.class}.update"
+      raise NotImplementedError, "#{self.class}.update_resource"
     end
 
     #
@@ -187,6 +187,7 @@ module Crazytown
       end
     end
 
+
     #
     # Loads the current actual value of this Resources into a new struct, storing
     # the resulting value in `current_resource`.
@@ -198,6 +199,7 @@ module Crazytown
       # Reopen the resource (it's in :identity_defined state) with
       # `identity` values copied over.
       loading_resource = reopen_resource
+      @current_resource = loading_resource
 
       loading_resource.is_current_resource = true
 
@@ -206,15 +208,12 @@ module Crazytown
       begin
         loading_resource.load
         log.load_succeeded
+        @current_resource
+
       rescue
         log.load_failed($!)
         raise
-      ensure
-        # Set @current_resource even if we failed, so we can be sure we never
-        # run load again.
-        @current_resource = loading_resource
       end
-      @current_resource
     end
 
     #

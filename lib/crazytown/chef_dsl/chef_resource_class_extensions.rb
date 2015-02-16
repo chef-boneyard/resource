@@ -23,7 +23,7 @@ module Crazytown
       # end
       #
       def recipe(&recipe_block)
-        define_method(:update, &recipe_block)
+        define_method(:update_resource, &recipe_block)
       end
     end
   end
