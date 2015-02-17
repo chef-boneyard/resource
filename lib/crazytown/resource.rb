@@ -199,9 +199,9 @@ module Crazytown
       # Reopen the resource (it's in :identity_defined state) with
       # `identity` values copied over.
       loading_resource = reopen_resource
-      @current_resource = loading_resource
-
       loading_resource.is_current_resource = true
+      # We store it as soon as we have it, to ensure loops can't happen.
+      @current_resource = loading_resource
 
       # Run "load"
       log.load_started
