@@ -1,6 +1,8 @@
 docs/work
 docs/examples/nodes
 docs/examples/clients
+chef/nodes
+chef/clients
 work
 pkg
 doc
