@@ -1,5 +1,9 @@
-require 'chef_resource/chef_dsl/chef_resource'
+require 'chef_resource/chef_dsl/chef_resource_extensions'
+require 'chef_resource/chef_dsl/chef_resource_class_extensions'
+require 'chef_resource/chef_dsl/chef_resource_base'
 require 'chef_resource/camel_case'
+require 'chef_resource/resource'
+require 'chef/dsl/recipe'
 require 'chef/resource'
 
 module ChefResource
@@ -113,7 +117,7 @@ module ChefResource
           # resource_class is a-ok if it's already a Class
           base_resource_class
         when nil
-          ChefResource::ChefDSL::ChefResource
+          ChefResource::ChefDSL::ChefResourceBase
         else
           resource_class_name = CamelCase.from_snake_case(base_resource_class.to_s)
           eval("Chef::Resource::#{resource_class_name}")

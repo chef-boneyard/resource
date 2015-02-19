@@ -16,12 +16,12 @@ Chef.send(:remove_const, :DelayedEvaluator)
 Chef.const_set(:DelayedEvaluator, ChefResource::LazyProc)
 
 #
-# Add "ChefResource.define", "ChefResource.resource" and "ChefResource.defaults"
+# Add "ChefResource.define", "Chef.resource" and "ChefResource.defaults"
 #
 
 require 'chef_resource/chef_dsl/resource_definition_dsl'
 
-module ChefResource
+class Chef
   extend ChefResource::ChefDSL::ResourceDefinitionDSL
 end
 

@@ -27,9 +27,9 @@ depends "resource"
 ```
 
 ChefResource is now loaded in, and the following features are available:
-- `ChefResource.resource`, `ChefResource.define` and `ChefResource.defaults` will define and customize resources
+- `Chef.resource`, `ChefResource.define` and `ChefResource.defaults` will define and customize resources
 - All recipes everywhere can call ChefResource resources
-- The `resources` directory in your cookbook now creates ChefResource resources (via `ChefResource.resource`).
+- The `resources` directory in your cookbook now creates ChefResource resources (via `Chef.resource`).
 - Recipes in your cookbook have `resource`, `define` and `defaults` available (which call the `ChefResource.` equivalent)
 
 NOTE: cookbooks that depend on your cookbook will *not* automatically be ChefResourceed.  Only cookbooks that explicitly depend on the resource cookbook will be transformed.
@@ -167,7 +167,7 @@ Some features here:
 - `relative_to: '/home'` is a modifier for `Path` saying "when the user says `home_dir 'jkeiser2'`, set `home_dir` to `/home/jkeiser2`."
 - `default { username }` is a *computed default*: if the user does not set `home_dir`, `home_dir` will be `/home/<username>`
 
-NOTE: you can define a resource *anywhere* by writing `ChefResource.resource :name do ... end`, and writing `property` and `recipe` statements inside.  You can do this in `libraries`, `recipes` or even outside Chef.
+NOTE: you can define a resource *anywhere* by writing `Chef.resource :name do ... end`, and writing `property` and `recipe` statements inside.  You can do this in `libraries`, `recipes` or even outside Chef.
 
 Building Primitive Resources: Load and Converge
 -----------------------------------------------

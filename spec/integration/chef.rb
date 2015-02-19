@@ -8,7 +8,7 @@ module Cheffish
   end
 end
 
-ChefResource.resource :simple_resource do
+Chef.resource :simple_resource do
   property :hi
   attr_reader :did_it
   recipe do
@@ -16,7 +16,7 @@ ChefResource.resource :simple_resource do
   end
 end
 
-ChefResource.resource :compound_resource do
+Chef.resource :compound_resource do
   property :lo
   attr_reader :did_it
   attr_reader :f
@@ -32,7 +32,7 @@ ChefResource.resource :compound_resource do
   end
 end
 
-ChefResource.resource :resource_with_error do
+Chef.resource :resource_with_error do
   property :lo
   recipe do
     blarghfile 'wow.txt' do

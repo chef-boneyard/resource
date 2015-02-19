@@ -26,7 +26,7 @@ module ChefResource
           begin
             Chef::Log.debug("Loading cookbook #{cookbook_name}'s resources from #{filename}")
             resource_name = Chef::Mixin::ConvertToClassName.filename_to_qualified_string(cookbook_name, filename)
-            resource_class = ChefResource.resource resource_name do
+            resource_class = Chef.resource resource_name do
               class_eval IO.read(filename), filename
             end
             Chef::Log.debug("Loaded contents of #{filename} into a resource named #{resource_name} defined in #{resource_class.name}")

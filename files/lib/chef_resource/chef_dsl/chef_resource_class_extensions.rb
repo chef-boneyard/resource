@@ -9,7 +9,7 @@ module ChefResource
     #
     # Define properties on the type itself
     #
-    module ChefDSLClassExtensions
+    module ChefResourceClassExtensions
       # We are a StructResource (so that we can use "property" for properties
       # of the ChefResource class itself) and a StructResourceType (because
       # Chef Resources are traditionally structs).

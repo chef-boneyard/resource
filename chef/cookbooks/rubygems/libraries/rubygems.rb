@@ -4,7 +4,7 @@ require 'rubygems'
 require 'uri'
 require_relative 'rubygems_api'
 
-ChefResource.resource :rubygems do
+Chef.resource :rubygems do
   #
   # The Rubygems host the gems are stored on.  Defaults to whatever is in your
   # current gem configuration.

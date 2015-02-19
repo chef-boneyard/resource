@@ -8,7 +8,7 @@ require 'chef_resource/types'
 
 module ChefResource
   module ChefDSL
-    module ChefDSLExtensions
+    module ChefResourceExtensions
       include Chef::DSL::Recipe
       include ChefResource::ChefDSL::ChefRecipeDSLExtensions
       include ChefResource::Resource::StructResource

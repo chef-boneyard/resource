@@ -5,6 +5,7 @@ chef/nodes
 chef/clients
 chef/cookbooks/resource/files/lib
 chef/.chef
+chef/.oldchef
 work
 pkg
 doc

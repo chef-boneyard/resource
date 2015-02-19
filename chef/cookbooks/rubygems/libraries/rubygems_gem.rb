@@ -6,7 +6,7 @@ require 'set'
 
 
 
-ChefResource.resource :rubygems_gem do
+Chef.resource :rubygems_gem do
   property :rubygems, :rubygems, identity: true
   property :gem_name, String, identity: true
   property :owners,   Set do
