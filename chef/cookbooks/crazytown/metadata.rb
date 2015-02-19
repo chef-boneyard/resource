@@ -1,2 +1,3 @@
 name "crazytown"
-version "0.1" # TODO grab this from version
+require_relative 'files/lib/crazytown/version'
+version Crazytown::VERSION
