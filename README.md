@@ -3,6 +3,8 @@
 Crazytown
 =========
 
+[![Join the chat at https://gitter.im/jkeiser/crazytown](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jkeiser/crazytown?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  Crazytown aims to change that.
 
 Crazytown is an attempt to make Chef Resources significantly easier and more fun to create, while being even more powerful.  It does this by:
