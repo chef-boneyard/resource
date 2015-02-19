@@ -1,7 +1,7 @@
 Resource Cookbook CHANGELOG
 ===========================
 
-0.1 (2/19/2015)
+0.2 (2/19/2015)
 ---------------
 
 - Initial publication
