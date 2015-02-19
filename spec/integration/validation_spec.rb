@@ -1,12 +1,12 @@
 require 'support/spec_support'
-require 'crazytown/resource/struct_resource_base'
-require 'crazytown/errors'
+require 'chef_dsl/resource/struct_resource_base'
+require 'chef_dsl/errors'
 
-describe Crazytown::Resource::StructResource do
+describe ChefDSL::Resource::StructResource do
   def self.with_struct(name, &block)
     before :each do
       Object.send(:remove_const, name) if Object.const_defined?(name, false)
-      eval "class ::#{name} < Crazytown::Resource::StructResourceBase; end"
+      eval "class ::#{name} < ChefDSL::Resource::StructResourceBase; end"
       Object.const_get(name).class_eval(&block)
     end
     after :each do
@@ -38,7 +38,7 @@ describe Crazytown::Resource::StructResource do
         expect(r.x).to eq 1
       end
       it "Cannot be set to -1" do
-        expect { r.x -1 }.to raise_error(Crazytown::ValidationError)
+        expect { r.x -1 }.to raise_error(ChefDSL::ValidationError)
       end
     end
 
@@ -58,14 +58,14 @@ describe Crazytown::Resource::StructResource do
         expect(r.x).to eq 10
       end
       it "Cannot be set to nil" do
-        expect { r.x nil }.to raise_error(Crazytown::MustNotBeNullError)
+        expect { r.x nil }.to raise_error(ChefDSL::MustNotBeNullError)
       end
       it "Can be set to 1" do
         r.x 1
         expect(r.x).to eq 1
       end
       it "Cannot be set to -1" do
-        expect { r.x -1 }.to raise_error(Crazytown::ValidationError)
+        expect { r.x -1 }.to raise_error(ChefDSL::ValidationError)
       end
     end
 
@@ -92,7 +92,7 @@ describe Crazytown::Resource::StructResource do
         expect(r.x).to eq 1
       end
       it "Cannot be set to -1" do
-        expect { r.x -1 }.to raise_error(Crazytown::ValidationError)
+        expect { r.x -1 }.to raise_error(ChefDSL::ValidationError)
       end
     end
 
@@ -120,7 +120,7 @@ describe Crazytown::Resource::StructResource do
         expect(r.x).to eq 1
       end
       it "Cannot be set to -1" do
-        expect { r.x -1 }.to raise_error(Crazytown::ValidationError)
+        expect { r.x -1 }.to raise_error(ChefDSL::ValidationError)
       end
     end
 
@@ -146,7 +146,7 @@ describe Crazytown::Resource::StructResource do
         expect(r.x).to eq 1
       end
       it "Cannot be set to -1" do
-        expect { MyResource.open(x: -1) }.to raise_error(Crazytown::ValidationError)
+        expect { MyResource.open(x: -1) }.to raise_error(ChefDSL::ValidationError)
       end
     end
 
@@ -166,14 +166,14 @@ describe Crazytown::Resource::StructResource do
         expect(r.x).to eq 10
       end
       it "Cannot be set to nil" do
-        expect { r.x nil }.to raise_error(Crazytown::MustNotBeNullError)
+        expect { r.x nil }.to raise_error(ChefDSL::MustNotBeNullError)
       end
       it "Can be set to 1" do
         r.x 1
         expect(r.x).to eq 1
       end
       it "Cannot be set to -1" do
-        expect { r.x -1 }.to raise_error(Crazytown::ValidationError)
+        expect { r.x -1 }.to raise_error(ChefDSL::ValidationError)
       end
     end
 
@@ -193,14 +193,14 @@ describe Crazytown::Resource::StructResource do
         expect(r.x).to be_nil
       end
       it "Cannot be set to nil" do
-        expect { r.x nil }.to raise_error(Crazytown::MustNotBeNullError)
+        expect { r.x nil }.to raise_error(ChefDSL::MustNotBeNullError)
       end
       it "Can be set to 1" do
         r.x 1
         expect(r.x).to eq 1
       end
       it "Cannot be set to -1" do
-        expect { r.x -1 }.to raise_error(Crazytown::ValidationError)
+        expect { r.x -1 }.to raise_error(ChefDSL::ValidationError)
       end
     end
   end

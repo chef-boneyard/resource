@@ -1,1 +1,1 @@
-require 'crazytown/chef'
+require 'chef_dsl/chef'

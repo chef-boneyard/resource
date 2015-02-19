@@ -1,18 +1,18 @@
-class Bar < Crazytown::Struct
+class Bar < ChefDSL::Struct
   property :x, Integer do
     def self.default
       20
     end
   end
 end
-class Foo < Crazytown::Struct
+class Foo < ChefDSL::Struct
   property :bar, Bar do
     def self.default
       {}
     end
   end
 end
-class X < Crazytown::Struct
+class X < ChefDSL::Struct
   property :foo, Foo do
     def self.default
       {}

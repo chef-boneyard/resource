@@ -1,5 +1,3 @@
-crazytown
-
 property :path, identity: true
 property :mode
 property :gid

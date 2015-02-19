@@ -1,12 +1,12 @@
 unless Chef::Resource.const_defined?(:RubygemsUser)
 
 require_relative 'rubygems'
-require 'crazytown/chef_dsl/chef_resource'
+require 'chef_dsl/chef_dsl/chef_resource'
 require 'net/http'
 require 'uri'
 require 'set'
 
-Crazytown.resource :rubygems_user do
+ChefDSL.resource :rubygems_user do
   property :rubygems,   :rubygems, identity: true
   property :username,   String,    identity: true, default: nil
   property :email,      String,    identity: true, default: nil

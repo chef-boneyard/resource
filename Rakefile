@@ -4,7 +4,7 @@ require 'pathname'
 
 project_root     = Pathname.new(__FILE__) + '..'
 chef_repo_path   = project_root   + 'chef'
-cookbook_path    = chef_repo_path + 'cookbooks/crazytown'
+cookbook_path    = chef_repo_path + 'cookbooks/resource'
 files_path       = cookbook_path  + 'files'
 lib_path         = files_path     + 'lib'
 project_lib_path = project_root   + 'lib'
@@ -39,8 +39,8 @@ task :publish do
       File.link(project_lib_path.to_s, lib_path.to_s)
     end
 
-    puts "cd #{chef_repo_path} && knife cookbook site share crazytown Other ..."
-    system "cd #{chef_repo_path} && knife cookbook site share crazytown Other"
+    puts "cd #{chef_repo_path} && knife cookbook site share resource Other ..."
+    system "cd #{chef_repo_path} && knife cookbook site share resource Other"
 
   ensure
     if linked || !lib_path.exist?

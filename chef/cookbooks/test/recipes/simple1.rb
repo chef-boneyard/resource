@@ -1,4 +1,4 @@
-Crazytown.define :user_bundle, :username, primary_group: 'staff' do
+ChefDSL.define :user_bundle, :username, primary_group: 'staff' do
   user username do
     group primary_group
   end

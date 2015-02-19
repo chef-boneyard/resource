@@ -1,14 +1,14 @@
 require 'cheffish/basic_chef_client'
-require 'crazytown/chef'
+require 'chef_dsl/chef'
 require 'tempfile'
 
 module Cheffish
   class BasicChefClient
-    prepend Crazytown::ChefDSL::ChefRecipeDSLExtensions
+    prepend ChefDSL::ChefDSL::ChefRecipeDSLExtensions
   end
 end
 
-Crazytown.resource :simple_crazytown_resource do
+ChefDSL.resource :simple_resource do
   property :hi
   attr_reader :did_it
   recipe do
@@ -16,7 +16,7 @@ Crazytown.resource :simple_crazytown_resource do
   end
 end
 
-Crazytown.resource :compound_crazytown_resource do
+ChefDSL.resource :compound_resource do
   property :lo
   attr_reader :did_it
   attr_reader :f
@@ -25,14 +25,14 @@ Crazytown.resource :compound_crazytown_resource do
     file @f.path do
       content 'hi'
     end
-    simple_crazytown_resource do
+    simple_resource do
       hi 10
     end
     @did_it = true
   end
 end
 
-Crazytown.resource :crazytown_resource_with_error do
+ChefDSL.resource :resource_with_error do
   property :lo
   recipe do
     blarghfile 'wow.txt' do
@@ -43,22 +43,22 @@ end
 
 
 describe 'Chef integration' do
-  context "When simple_crazytown_resource is a Crazytown resource" do
+  context "When simple_resource is a ChefDSL resource" do
     it "a recipe can run the resource" do
       x = nil
       Cheffish::BasicChefClient.converge_block do
-        x = simple_crazytown_resource do
+        x = simple_resource do
           hi 10
         end
       end
       expect(x.did_it).to be_truthy
     end
   end
-  context "When compound_crazytown_resource has a file and a simple_crazytown_resource in it" do
+  context "When compound_resource has a file and a simple_resource in it" do
     it "a recipe can run the resource and both sub-resources run" do
       x = nil
       Cheffish::BasicChefClient.converge_block do
-        x = compound_crazytown_resource do
+        x = compound_resource do
           lo 100
         end
       end
@@ -66,11 +66,11 @@ describe 'Chef integration' do
       expect(IO.read(x.f.path)).to eq 'hi'
     end
   end
-  context "When crazytown_resource_with_error has a misspelled resource name" do
+  context "When resource_with_error has a misspelled resource name" do
     it "a recipe can run the resource and both sub-resources run" do
       expect do
         Cheffish::BasicChefClient.converge_block do
-          crazytown_resource_with_error do
+          resource_with_error do
             lo 100
           end
         end

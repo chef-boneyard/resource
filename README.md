@@ -1,13 +1,14 @@
-[![Stories in Ready](https://badge.waffle.io/jkeiser/crazytown.png?label=ready&title=Ready)](https://waffle.io/jkeiser/crazytown)[![Build Status](https://travis-ci.org/jkeiser/crazytown.svg?branch=master)](https://travis-ci.org/jkeiser/crazytown)[![Gitter chat](https://badges.gitter.im/jkeiser/crazytown.png)](https://gitter.im/jkeiser/crazytown)
+[![Stories in Ready](https://badge.waffle.io/jkeiser/resource.png?label=ready&title=Ready)](https://waffle.io/jkeiser/resource)[![Build Status](https://travis-ci.org/jkeiser/resource.svg?branch=master)](https://travis-ci.org/jkeiser/resource)[![Gitter chat](https://badges.gitter.im/jkeiser/resource.png)](https://gitter.im/jkeiser/resource)
 
-Crazytown
+ChefDSL
 =========
 
-Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  Crazytown aims to change that.
+Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  ChefDSL aims to change that.
 
-Crazytown is an attempt to make Chef Resources significantly easier and more fun to create, while being even more powerful.  It does this by:
+ChefDSL is an attempt to make Chef Resources significantly easier and more fun to create, while being even more powerful.  It does this by:
 
 - Vastly simplifying resource writing so you just make a "resource" and "recipe" in a single file.
+- Making good primitive resources easier to build with builtin test-and-set support.
 - Allowing users to *read* data from resources, making them significantly more useful.
 - Allowing users to easily customize resource definitions in-place, adding defaults and tweaks.
 
@@ -17,15 +18,15 @@ This is also unfinished in that there are more features to be added: chief among
 
 For the best overview, see the [Cookbook README](chef/cookbooks/README.md)
 
-For an in-depth comparison of Chef Resources and Crazytown Resources, see the [0.1 release notes](docs/0.1-release.md).
+For an in-depth comparison of Chef Resources and ChefDSL Resources, see the [0.1 release notes](docs/0.1-release.md).
 
 Getting Started
 ---------------
-To get started, add this to your cookbook's `metadata.rb` to get all the Crazytown features:
+To get started, add this to your cookbook's `metadata.rb` to get all the ChefDSL features:
 
 ```ruby
 # yourcookbook/metadata.rb
-depends "crazytown"
+depends "resource"
 ```
 
 A sample use:
@@ -72,4 +73,4 @@ What?
 
 I am looking for people to try this out and give feedback.  IT IS EXPERIMENTAL.  There are bugs (though I generally don't know what they are).  Things will change.  But I've done my best to produce things that won't change *much.*
 
-To give feedback, file issues in [github](https://github.com/jkeiser/crazytown/issues) or chat on [Gitter](https://gitter.im/jkeiser/crazytown).
+To give feedback, file issues in [github](https://github.com/jkeiser/resource/issues) or chat on [Gitter](https://gitter.im/jkeiser/resource).

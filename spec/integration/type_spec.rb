@@ -1,8 +1,8 @@
 require 'support/spec_support'
-require 'crazytown/resource/struct_resource_base'
-require 'crazytown/lazy_proc'
+require 'chef_dsl/resource/struct_resource_base'
+require 'chef_dsl/lazy_proc'
 
-describe Crazytown::Type do
+describe ChefDSL::Type do
   def self.with_property(type=NOT_PASSED, **args, &block)
     args[:nullable] = :validate if !args.has_key?(:nullable)
     with_struct do
@@ -13,7 +13,7 @@ describe Crazytown::Type do
   def self.with_struct(&block)
     before :each do
       Object.send(:remove_const, :MyStruct) if Object.const_defined?(:MyStruct)
-      eval "class ::MyStruct < Crazytown::Resource::StructResourceBase; end"
+      eval "class ::MyStruct < ChefDSL::Resource::StructResourceBase; end"
       ::MyStruct.class_eval(&block)
     end
   end
@@ -26,9 +26,9 @@ describe Crazytown::Type do
 
   let(:struct) { MyStruct.open }
 
-  describe Crazytown::Types::Boolean do
+  describe ChefDSL::Types::Boolean do
     context "With a Boolean property" do
-      with_property Crazytown::Types::Boolean
+      with_property ChefDSL::Types::Boolean
 
       it "can be set to true" do
         struct.prop = true
@@ -43,15 +43,15 @@ describe Crazytown::Type do
         expect(struct.prop).to be_nil
       end
       it "cannot be set to {}" do
-        expect { struct.prop = {} }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = {} }.to raise_error ChefDSL::ValidationError
       end
       it "cannot be set to 'true'" do
-        expect { struct.prop = 'true' }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = 'true' }.to raise_error ChefDSL::ValidationError
       end
     end
   end
 
-  describe Crazytown::Types::FloatType do
+  describe ChefDSL::Types::FloatType do
     context "With a Float property" do
       with_property Float
 
@@ -72,15 +72,15 @@ describe Crazytown::Type do
         expect(struct.prop).to be_nil
       end
       it "cannot be set to {}" do
-        expect { struct.prop = {} }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = {} }.to raise_error ChefDSL::ValidationError
       end
       it "cannot be set to 'blargh'" do
-        expect { struct.prop = 'true' }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = 'true' }.to raise_error ChefDSL::ValidationError
       end
     end
   end
 
-  describe Crazytown::Types::IntegerType do
+  describe ChefDSL::Types::IntegerType do
     context "With an Integer property" do
       with_property Integer
 
@@ -89,7 +89,7 @@ describe Crazytown::Type do
         expect(struct.prop).to eq 1
       end
       it "cannot be set to 1.0" do
-        expect { struct.prop = 1.0 }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = 1.0 }.to raise_error ChefDSL::ValidationError
       end
       it "can be set to '1'" do
         struct.prop = '1'
@@ -100,16 +100,16 @@ describe Crazytown::Type do
         expect(struct.prop).to be_nil
       end
       it "cannot be set to ''" do
-        expect { struct.prop = '' }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = '' }.to raise_error ChefDSL::ValidationError
       end
       it "cannot be set to '1 '" do
-        expect { struct.prop = '1 ' }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = '1 ' }.to raise_error ChefDSL::ValidationError
       end
       it "cannot be set to {}" do
-        expect { struct.prop = {} }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = {} }.to raise_error ChefDSL::ValidationError
       end
       it "cannot be set to 'blargh'" do
-        expect { struct.prop = 'blargh' }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = 'blargh' }.to raise_error ChefDSL::ValidationError
       end
     end
 
@@ -122,7 +122,7 @@ describe Crazytown::Type do
       end
 
       it "cannot be set to '8'" do
-        expect { struct.prop = '8' }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = '8' }.to raise_error ChefDSL::ValidationError
       end
     end
 
@@ -145,14 +145,14 @@ describe Crazytown::Type do
       end
 
       it "cannot be set to 'g'" do
-        expect { struct.prop = 'g' }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = 'g' }.to raise_error ChefDSL::ValidationError
       end
     end
   end
 
-  describe Crazytown::Types::Path do
+  describe ChefDSL::Types::Path do
     context "With a Path property" do
-      with_property Crazytown::Types::Path
+      with_property ChefDSL::Types::Path
 
       it "can be set to nil" do
         struct.prop = nil
@@ -197,17 +197,17 @@ describe Crazytown::Type do
     end
 
     context "With a Path property with default: '/a/b'" do
-      with_property Crazytown::Types::Path, default: '/a/b'
+      with_property ChefDSL::Types::Path, default: '/a/b'
       it "Defaults to /a/b" do
         expect(struct.prop).to eq '/a/b'
       end
     end
 
     context "Lazy" do
-      context "With a Path property with attr_default=c/d and default: Crazytown::LazyProc.new { attr_default }" do
+      context "With a Path property with attr_default=c/d and default: ChefDSL::LazyProc.new { attr_default }" do
         with_struct do
-          property :attr_default, Crazytown::Types::Path
-          property :prop, Crazytown::Types::Path, default: Crazytown::LazyProc.new { attr_default }
+          property :attr_default, ChefDSL::Types::Path
+          property :prop, ChefDSL::Types::Path, default: ChefDSL::LazyProc.new { attr_default }
         end
         before :each do
           struct.attr_default 'c/d'
@@ -217,10 +217,10 @@ describe Crazytown::Type do
         end
       end
 
-      context "With a Path property with rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }" do
+      context "With a Path property with rel=/a/b and relative_to: ChefDSL::LazyProc.new { rel }" do
         with_struct do
-          property :rel, Crazytown::Types::Path
-          property :prop, Crazytown::Types::Path, relative_to: Crazytown::LazyProc.new { rel }
+          property :rel, ChefDSL::Types::Path
+          property :prop, ChefDSL::Types::Path, relative_to: ChefDSL::LazyProc.new { rel }
         end
         before :each do
           struct.rel = '/a/b'
@@ -234,11 +234,11 @@ describe Crazytown::Type do
         end
       end
 
-      context "With a Path property attr_default=c/d, rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }, and default: Crazytown::LazyProc.new { attr_default }" do
+      context "With a Path property attr_default=c/d, rel=/a/b and relative_to: ChefDSL::LazyProc.new { rel }, and default: ChefDSL::LazyProc.new { attr_default }" do
         with_struct do
-          property :attr_default, Crazytown::Types::Path
-          property :rel, Crazytown::Types::Path
-          property :prop, Crazytown::Types::Path, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }
+          property :attr_default, ChefDSL::Types::Path
+          property :rel, ChefDSL::Types::Path
+          property :prop, ChefDSL::Types::Path, relative_to: ChefDSL::LazyProc.new { rel }, default: ChefDSL::LazyProc.new { attr_default }
         end
         before :each do
           struct.attr_default 'c/d'
@@ -255,7 +255,7 @@ describe Crazytown::Type do
     end
 
     context "With a Path property relative to /a/b" do
-      with_property Crazytown::Types::Path, relative_to: '/a/b'
+      with_property ChefDSL::Types::Path, relative_to: '/a/b'
 
       it "Defaults to nil" do
         expect(struct.prop).to be_nil
@@ -303,7 +303,7 @@ describe Crazytown::Type do
     end
 
     context "With a Path property relative to a/b" do
-      with_property Crazytown::Types::Path, relative_to: 'a/b'
+      with_property ChefDSL::Types::Path, relative_to: 'a/b'
 
       it "Defaults to nil" do
         expect(struct.prop).to be_nil
@@ -351,7 +351,7 @@ describe Crazytown::Type do
     end
 
     context "With a Path property relative to a/b/" do
-      with_property Crazytown::Types::Path, relative_to: 'a/b/'
+      with_property ChefDSL::Types::Path, relative_to: 'a/b/'
 
       it "Defaults to nil" do
         expect(struct.prop).to be_nil
@@ -399,7 +399,7 @@ describe Crazytown::Type do
     end
 
     context "With a Path property relative to a" do
-      with_property Crazytown::Types::Path, relative_to: 'a'
+      with_property ChefDSL::Types::Path, relative_to: 'a'
 
       it "Defaults to nil" do
         expect(struct.prop).to be_nil
@@ -447,7 +447,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Types::PathnameType do
+  describe ChefDSL::Types::PathnameType do
     context "With a Pathname property" do
       with_property Pathname
 
@@ -494,10 +494,10 @@ describe Crazytown::Type do
     end
 
     context "Lazy" do
-      context "With a Pathname property with attr_default=c/d and default: Crazytown::LazyProc.new { attr_default }" do
+      context "With a Pathname property with attr_default=c/d and default: ChefDSL::LazyProc.new { attr_default }" do
         with_struct do
           property :attr_default, Pathname
-          property :prop, Pathname, default: Crazytown::LazyProc.new { attr_default }
+          property :prop, Pathname, default: ChefDSL::LazyProc.new { attr_default }
         end
         before :each do
           struct.attr_default 'c/d'
@@ -507,10 +507,10 @@ describe Crazytown::Type do
         end
       end
 
-      context "With a Pathname property with rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }" do
+      context "With a Pathname property with rel=/a/b and relative_to: ChefDSL::LazyProc.new { rel }" do
         with_struct do
           property :rel, Pathname
-          property :prop, Pathname, relative_to: Crazytown::LazyProc.new { rel }
+          property :prop, Pathname, relative_to: ChefDSL::LazyProc.new { rel }
         end
         before :each do
           struct.rel = '/a/b'
@@ -524,11 +524,11 @@ describe Crazytown::Type do
         end
       end
 
-      context "With a Pathname property attr_default=c/d, rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }, and default: Crazytown::LazyProc.new { attr_default }" do
+      context "With a Pathname property attr_default=c/d, rel=/a/b and relative_to: ChefDSL::LazyProc.new { rel }, and default: ChefDSL::LazyProc.new { attr_default }" do
         with_struct do
           property :attr_default, Pathname
           property :rel, Pathname
-          property :prop, Pathname, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }
+          property :prop, Pathname, relative_to: ChefDSL::LazyProc.new { rel }, default: ChefDSL::LazyProc.new { attr_default }
         end
         before :each do
           struct.attr_default 'c/d'
@@ -737,7 +737,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Types::URIType do
+  describe ChefDSL::Types::URIType do
     context "With a URI property" do
       with_property URI
 
@@ -795,10 +795,10 @@ describe Crazytown::Type do
     end
 
     context "Lazy" do
-      context "With a URI property with attr_default=c/d and default: Crazytown::LazyProc.new { attr_default }" do
+      context "With a URI property with attr_default=c/d and default: ChefDSL::LazyProc.new { attr_default }" do
         with_struct do
           property :attr_default, URI, nullable: :validate
-          property :prop, URI, default: Crazytown::LazyProc.new { attr_default }, nullable: :validate
+          property :prop, URI, default: ChefDSL::LazyProc.new { attr_default }, nullable: :validate
         end
         before :each do
           struct.attr_default 'c/d'
@@ -808,10 +808,10 @@ describe Crazytown::Type do
         end
       end
 
-      context "With a URI property with rel=https://google.com and relative_to: Crazytown::LazyProc.new { rel }" do
+      context "With a URI property with rel=https://google.com and relative_to: ChefDSL::LazyProc.new { rel }" do
         with_struct do
           property :rel, URI, nullable: :validate
-          property :prop, URI, relative_to: Crazytown::LazyProc.new { rel }, nullable: :validate
+          property :prop, URI, relative_to: ChefDSL::LazyProc.new { rel }, nullable: :validate
         end
         before :each do
           struct.rel = 'https://google.com'
@@ -825,11 +825,11 @@ describe Crazytown::Type do
         end
       end
 
-      context "With a URI property attr_default=c/d, rel=/a/b and relative_to: Crazytown::LazyProc.new { rel }, and default: Crazytown::LazyProc.new { attr_default }" do
+      context "With a URI property attr_default=c/d, rel=/a/b and relative_to: ChefDSL::LazyProc.new { rel }, and default: ChefDSL::LazyProc.new { attr_default }" do
         with_struct do
           property :attr_default, URI, nullable: :validate
           property :rel, URI, nullable: :validate
-          property :prop, URI, relative_to: Crazytown::LazyProc.new { rel }, default: Crazytown::LazyProc.new { attr_default }, nullable: :validate
+          property :prop, URI, relative_to: ChefDSL::LazyProc.new { rel }, default: ChefDSL::LazyProc.new { attr_default }, nullable: :validate
         end
         before :each do
           struct.attr_default 'c/d'
@@ -1076,7 +1076,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Types::StringType do
+  describe ChefDSL::Types::StringType do
     context "With a String property" do
       with_property String, nullable: :validate
 
@@ -1099,7 +1099,7 @@ describe Crazytown::Type do
     end
   end
 
-  describe Crazytown::Types::SymbolType do
+  describe ChefDSL::Types::SymbolType do
     context "With a Symbol property" do
       with_property Symbol, nullable: :validate
 
@@ -1116,7 +1116,7 @@ describe Crazytown::Type do
         expect(struct.prop).to be_nil
       end
       it "Cannot be set to 1" do
-        expect { struct.prop = 1 }.to raise_error Crazytown::ValidationError
+        expect { struct.prop = 1 }.to raise_error ChefDSL::ValidationError
       end
     end
   end

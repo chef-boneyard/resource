@@ -3,7 +3,7 @@ Strong typing
 2. Coercion
 
 ```ruby
-class MyStruct < Crazytown::StructBase
+class MyStruct < ChefDSL::StructBase
   property :b, Struct do
     default { x: 1, y: 2 }
     propertys = {

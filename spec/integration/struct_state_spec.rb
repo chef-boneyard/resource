@@ -1,11 +1,11 @@
 require 'support/spec_support'
-require 'crazytown/resource/struct_resource_base'
+require 'chef_dsl/resource/struct_resource_base'
 
 describe "StructResource behavior in different states" do
   def self.with_struct(name, &block)
     before :each do
       Object.send(:remove_const, name) if Object.const_defined?(name, false)
-      eval "class ::#{name} < Crazytown::Resource::StructResourceBase; end"
+      eval "class ::#{name} < ChefDSL::Resource::StructResourceBase; end"
       Object.const_get(name).class_eval(&block)
     end
     after :each do
@@ -24,7 +24,7 @@ describe "StructResource behavior in different states" do
         property :identity_set_same_as_load_value,
                   identity: true,
                   default: "identity_set_same_as_default DEFAULT",
-                  load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "identity_set_same_as_load_value" }
+                  load_value: ChefDSL::LazyProc.new { @num_load_values = num_load_values + 1; "identity_set_same_as_load_value" }
         property :identity_set_same_as_load,
                   identity: true,
                   required: false,
@@ -35,7 +35,7 @@ describe "StructResource behavior in different states" do
         property :identity_load_value,
                   identity: true,
                   default: "identity_load_value DEFAULT",
-                  load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "identity_load_value" }
+                  load_value: ChefDSL::LazyProc.new { @num_load_values = num_load_values + 1; "identity_load_value" }
         property :identity_load,
                   identity: true,
                   default: "identity_load DEFAULT"
@@ -46,14 +46,14 @@ describe "StructResource behavior in different states" do
                   default: "normal_set_same_as_default"
         property :normal_set_same_as_load_value,
                   default: "normal_set_same_as_load_value DEFAULT",
-                  load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "normal_set_same_as_load_value" }
+                  load_value: ChefDSL::LazyProc.new { @num_load_values = num_load_values + 1; "normal_set_same_as_load_value" }
         property :normal_set_same_as_load,
                   default: "normal_set_same_as_load LOAD"
         property :normal_default,
                   default: "normal_default"
         property :normal_load_value,
                   default: "normal_load_value DEFAULT",
-                  load_value: Crazytown::LazyProc.new { @num_load_values = num_load_values + 1; "normal_load_value" }
+                  load_value: ChefDSL::LazyProc.new { @num_load_values = num_load_values + 1; "normal_load_value" }
         property :normal_load,
                   default: "normal_load DEFAULT"
 
@@ -178,9 +178,9 @@ describe "StructResource behavior in different states" do
         context "Only normal values can be set" do
           ALL_PROPERTIES.each do |name|
             if name.start_with?('identity_')
-              it "#{name} = 'hi' fails with Crazytown::PropertyDefinedError" do
-                expect { eval("r.#{name} = 'hi'") }.to raise_error Crazytown::PropertyDefinedError
-                expect { eval("r.#{name} 'hi'")}.to raise_error Crazytown::PropertyDefinedError
+              it "#{name} = 'hi' fails with ChefDSL::PropertyDefinedError" do
+                expect { eval("r.#{name} = 'hi'") }.to raise_error ChefDSL::PropertyDefinedError
+                expect { eval("r.#{name} 'hi'")}.to raise_error ChefDSL::PropertyDefinedError
               end
             else
               it "#{name} = 'hi' succeeds" do
@@ -221,9 +221,9 @@ describe "StructResource behavior in different states" do
 
         context "Values cannot be set" do
           ALL_PROPERTIES.each do |name|
-            it "#{name} = 'hi' fails with Crazytown::PropertyDefinedError" do
-              expect { eval("r.#{name} = 'hi'") }.to raise_error Crazytown::PropertyDefinedError
-              expect { eval("r.#{name} 'hi'")}.to raise_error Crazytown::PropertyDefinedError
+            it "#{name} = 'hi' fails with ChefDSL::PropertyDefinedError" do
+              expect { eval("r.#{name} = 'hi'") }.to raise_error ChefDSL::PropertyDefinedError
+              expect { eval("r.#{name} 'hi'")}.to raise_error ChefDSL::PropertyDefinedError
             end
           end
         end
@@ -274,9 +274,9 @@ describe "StructResource behavior in different states" do
 
         context "Values cannot be set" do
           ALL_PROPERTIES.each do |name|
-            it "#{name} = 'hi' fails with Crazytown::PropertyDefinedError" do
-              expect { eval("r.#{name} = 'hi'") }.to raise_error Crazytown::PropertyDefinedError
-              expect { eval("r.#{name} 'hi'")}.to raise_error Crazytown::PropertyDefinedError
+            it "#{name} = 'hi' fails with ChefDSL::PropertyDefinedError" do
+              expect { eval("r.#{name} = 'hi'") }.to raise_error ChefDSL::PropertyDefinedError
+              expect { eval("r.#{name} 'hi'")}.to raise_error ChefDSL::PropertyDefinedError
             end
           end
         end
@@ -325,19 +325,19 @@ describe "StructResource behavior in different states" do
                 expect_loads(expected_loads: 0, expected_load_values: 0)
               end
             else
-              it "#{name} fails with a Crazytown::ResourceStateError" do
-                expect { eval("r.#{name}") }.to raise_error Crazytown::ResourceStateError
+              it "#{name} fails with a ChefDSL::ResourceStateError" do
+                expect { eval("r.#{name}") }.to raise_error ChefDSL::ResourceStateError
               end
             end
           end
         end
 
-        it "to_h(:all) fails with a Crazytown::ResourceStateError" do
-          expect { r.to_h(:all) }.to raise_error(Crazytown::ResourceStateError)
+        it "to_h(:all) fails with a ChefDSL::ResourceStateError" do
+          expect { r.to_h(:all) }.to raise_error(ChefDSL::ResourceStateError)
         end
 
         it "to_h(:only_changed) fails with a a ResourceStateError" do
-          expect { r.to_h(:only_changed) }.to raise_error(Crazytown::ResourceStateError)
+          expect { r.to_h(:only_changed) }.to raise_error(ChefDSL::ResourceStateError)
         end
 
         it "to_h(:only_explicit) returns only explicitly opened values (no default or loaded values) and load is not called" do
@@ -482,8 +482,8 @@ describe "StructResource behavior in different states" do
 
           ALL_PROPERTIES.each do |name|
             if name.start_with?('identity_')
-              it "reset(:#{name}) fails with Crazytown::PropertyDefinedError" do
-                expect { r.reset(name.to_sym) }.to raise_error Crazytown::PropertyDefinedError
+              it "reset(:#{name}) fails with ChefDSL::PropertyDefinedError" do
+                expect { r.reset(name.to_sym) }.to raise_error ChefDSL::PropertyDefinedError
               end
             else
               it "reset(:#{name}) succeeds" do

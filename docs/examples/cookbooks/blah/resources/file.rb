@@ -1,5 +1,3 @@
-crazytown
-
 property :path, String, identity: true
 property :mode, Integer do
   def self.value_to_s(value)

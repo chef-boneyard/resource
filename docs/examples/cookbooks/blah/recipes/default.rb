@@ -23,7 +23,7 @@ end
 #
 #
 #
-# Crazytown.define :bjork, a: 'a', b: 'b' do
+# ChefDSL.define :bjork, a: 'a', b: 'b' do
 #   file '/Users/jkeiser/x.txt' do
 #     content a
 #   end

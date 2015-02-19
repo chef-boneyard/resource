@@ -1,2 +1,2 @@
 name "rubygems"
-depends "crazytown"
+depends "resource"

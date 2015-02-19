@@ -3,7 +3,7 @@ docs/examples/nodes
 docs/examples/clients
 chef/nodes
 chef/clients
-chef/cookbooks/crazytown/files/lib
+chef/cookbooks/resource/files/lib
 chef/.chef
 work
 pkg

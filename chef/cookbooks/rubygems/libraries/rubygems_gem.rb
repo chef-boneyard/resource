@@ -6,7 +6,7 @@ require 'set'
 
 
 
-Crazytown.resource :rubygems_gem do
+ChefDSL.resource :rubygems_gem do
   property :rubygems, :rubygems, identity: true
   property :gem_name, String, identity: true
   property :owners,   Set do

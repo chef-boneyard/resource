@@ -1,2 +1,2 @@
 name 'blah'
-depends 'crazytown'
+depends 'resource'
