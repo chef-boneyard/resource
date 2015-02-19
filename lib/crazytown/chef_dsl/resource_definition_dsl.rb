@@ -37,15 +37,7 @@ module Crazytown
       # end
       #
       def resource(name, base_resource_class=nil, class_name: nil, overwrite_resource: false, &override_block)
-        case base_resource_class
-        when Class
-          # resource_class is a-ok if it's already a Class
-        when nil
-          base_resource_class = Crazytown::ChefDSL::ChefResource
-        else
-          resource_class_name = CamelCase.from_snake_case(base_resource_class.to_s)
-          base_resource_class = eval("Chef::Resource::#{resource_class_name}")
-        end
+        base_resource_class = ResourceDefinitionDSL.base_resource_class_for(base_resource_class)
 
         name = name.to_sym
         class_name ||= CamelCase.from_snake_case(name)
@@ -76,20 +68,22 @@ module Crazytown
       # Crazytown.defaults :my_file, :file, mode: 0666, owner: 'jkeiser'
       #
       def defaults(name, old_name=name, **defaults)
-        resource(name, old_name, overwrite_resource: true) do
-          defaults.each do |name, value|
-            property name, default: value
+        base_resource_class = ResourceDefinitionDSL.base_resource_class_for(old_name)
+        if base_resource_class.is_a?(Crazytown::Resource)
+          resource(name, base_resource_class, overwrite_resource: true) do
+            defaults.each do |name, value|
+              property name, default: value
+            end
+          end
+        else
+          Chef::DSL::Recipe.send(:define_method, name) do |name, &block|
+            declare_resource(old_name, name, caller[0]) do
+              defaults.each do |name, value|
+                public_send(name, value)
+              end
+            end
           end
         end
-        # class_eval <<-EOM, __FILE__, __LINE__+1
-        #   def #{name}(*args, &block)
-        #     resource = super do
-        #       mode 0666
-        #       owner 'jkeiser'
-        #       instance_eval(&block)
-        #     end
-        #   end
-        # EOM
       end
 
       #
@@ -108,6 +102,21 @@ module Crazytown
             property name, default: value
           end
           recipe(&recipe_block)
+        end
+      end
+
+      private
+
+      def self.base_resource_class_for(base_resource_class)
+        case base_resource_class
+        when Class
+          # resource_class is a-ok if it's already a Class
+          base_resource_class
+        when nil
+          Crazytown::ChefDSL::ChefResource
+        else
+          resource_class_name = CamelCase.from_snake_case(base_resource_class.to_s)
+          eval("Chef::Resource::#{resource_class_name}")
         end
       end
     end
