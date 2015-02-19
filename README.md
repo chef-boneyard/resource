@@ -1,4 +1,4 @@
-[![Stories in Ready](https://badge.waffle.io/jkeiser/resource.png?label=ready&title=Ready)](https://waffle.io/jkeiser/resource)[![Build Status](https://travis-ci.org/jkeiser/resource.svg?branch=master)](https://travis-ci.org/jkeiser/resource)[![Gitter chat](https://badges.gitter.im/jkeiser/resource.png)](https://gitter.im/jkeiser/resource)
+[![Stories in Ready](https://badge.waffle.io/chef-cookbooks/resource.png?label=ready&title=Ready)](https://waffle.io/chef-cookbooks/resource)[![Build Status](https://travis-ci.org/chef-cookbooks/resource.svg?branch=master)](https://travis-ci.org/chef-cookbooks/resource)[![Gitter chat](https://badges.gitter.im/chef-cookbooks/resource.png)](https://gitter.im/chef-cookbooks/resource)
 
 The Resource Cookbook
 =====================
@@ -259,6 +259,6 @@ end
 Contributing
 ------------
 
-PRs are welcome at [github](https://github.com/jkeiser/resource)!
+PRs are welcome at [github](https://github.com/chef-cookbooks/resource)!
 
-To give feedback, file issues in [github](https://github.com/jkeiser/resource/issues) or chat on [Gitter](https://gitter.im/jkeiser/resource).
+To give feedback, file issues in [github](https://github.com/chef-cookbooks/resource/issues) or chat on [Gitter](https://gitter.im/chef-cookbooks/resource).
