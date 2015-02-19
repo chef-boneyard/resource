@@ -44,7 +44,7 @@ module Crazytown
           base_resource_class = Crazytown::ChefDSL::ChefResource
         else
           resource_class_name = CamelCase.from_snake_case(base_resource_class.to_s)
-          base_resource_class = eval("Chef::Resource::#{resource_class_name}", __FILE__, __LINE__)
+          base_resource_class = eval("Chef::Resource::#{resource_class_name}")
         end
 
         name = name.to_sym
@@ -73,10 +73,10 @@ module Crazytown
       end
 
       #
-      # Crazytown.defaults :file, mode: 0666, owner: 'jkeiser'
+      # Crazytown.defaults :my_file, :file, mode: 0666, owner: 'jkeiser'
       #
-      def defaults(name, **defaults)
-        resource(name, name, overwrite_resource: true) do
+      def defaults(name, old_name=name, **defaults)
+        resource(name, old_name, overwrite_resource: true) do
           defaults.each do |name, value|
             property name, default: value
           end

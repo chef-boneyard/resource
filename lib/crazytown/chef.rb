@@ -37,7 +37,7 @@ class Chef
     def self.new(cookbook_name, recipe_name, run_context)
       if run_context
         cookbook = run_context.cookbook_collection[cookbook_name]
-        if cookbook.metadata.dependencies.has_key?('crazytown')
+        if cookbook.metadata.dependencies.has_key?('crazytown') && !(self <= Crazytown::ChefDSL::ChefRecipe)
           return Crazytown::ChefDSL::ChefRecipe.new(cookbook_name, recipe_name, run_context)
         end
       end
