@@ -1,3 +1,3 @@
 source 'https://rubygems.org'
 gemspec
-gem 'chef', :path => '../chef'
+gem 'chef', path: '../chef'
