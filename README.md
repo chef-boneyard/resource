@@ -1,12 +1,19 @@
-[![Stories in Ready](https://badge.waffle.io/jkeiser/crazytown.png?label=ready&title=Ready)](https://waffle.io/jkeiser/crazytown)
+[![Stories in Ready](https://badge.waffle.io/jkeiser/crazytown.png?label=ready&title=Ready)](https://waffle.io/jkeiser/crazytown)[![Build Status](https://travis-ci.org/jkeiser/crazytown.svg?branch=master)](https://travis-ci.org/jkeiser/crazytown)[![Gitter chat](https://badges.gitter.im/jkeiser/crazytown.png)](https://gitter.im/jkeiser/crazytown)
 
 Crazytown
 =========
 
-Crazytown is an expanding vision of Chef core that aims to:
-- Make recipes and resources easy and fun to write through simplification and reduction of ceremony
-- Make resources reusable outside Chef
-- Clarify the Chef execution model and public interface
+Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  Crazytown aims to change that.
+
+Crazytown is an attempt to make Chef Resources significantly easier and more fun to create, while being even more powerful.  It does this by:
+
+- Vastly simplifying resource writing so you just make a "resource" and "recipe" in a single file.
+- Allowing users to *read* data from resources, making them significantly more useful.
+- Allowing users to easily customize resource definitions in-place, adding defaults and tweaks.
+
+I am looking for people to try this out and give feedback.  IT IS EXPERIMENTAL.  There are bugs (though I generally don't know what they are).  Things will change.  There is a lot of feedback to gather and that will affect what it does.  But this has been revised many, many times in an attempt to produce something close enough to right that I hope it won't change *much,* or in fundamental ways.
+
+This is also unfinished in that there are more features to be added: chief among them are nested properties (Hash, Array, Set and Struct), nested resources (github.organization.repository) and recipe semantics (immediate mode and parallel recipes).  0.1 is a stop along the way, but a very significant one that defines the basis for Resources.
 
 For the best overview, see the [Cookbook README](chef/cookbooks/README.md)
 
@@ -62,6 +69,7 @@ end
 
 What?
 -----
+
 I am looking for people to try this out and give feedback.  IT IS EXPERIMENTAL.  There are bugs (though I generally don't know what they are).  Things will change.  But I've done my best to produce things that won't change *much.*
 
-To give feedback, file issues here or chat on https://gitter.im/jkeiser/crazytown .
+To give feedback, file issues in [github](https://github.com/jkeiser/crazytown/issues) or chat on [Gitter](https://gitter.im/jkeiser/crazytown).

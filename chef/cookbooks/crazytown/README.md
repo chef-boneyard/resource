@@ -9,7 +9,11 @@ Crazytown is an attempt to make Chef Resources significantly easier and more fun
 - Allowing users to *read* data from resources, making them significantly more useful.
 - Allowing users to easily customize resource definitions in-place, adding defaults and tweaks.
 
-More information can be found at https://github.com/jkeiser/crazytown/blob/master/docs/0.1-release.md .
+I am looking for people to try this out and give feedback.  IT IS EXPERIMENTAL.  There are bugs (though I generally don't know what they are).  Things will change.  There is a lot of feedback to gather and that will affect what it does.  But this has been revised many, many times in an attempt to produce something close enough to right that I hope it won't change *much,* or in fundamental ways.
+
+This is also unfinished in that there are more features to be added: chief among them are nested properties (Hash, Array, Set and Struct), nested resources (github.organization.repository) and recipe semantics (immediate mode and parallel recipes).  0.1 is a stop along the way, but a very significant one that defines the basis for Resources.
+
+To give feedback, file issues in [github](https://github.com/jkeiser/crazytown/issues) or chat on [Gitter](https://gitter.im/jkeiser/crazytown).  More documentation can be found in the [Crazytown README](https://github.com/jkeiser/crazytown/blob/master/README.md)
 
 Getting Started
 ---------------
@@ -28,6 +32,11 @@ You will now have all Crazytown features available to your cookbook:
 - Recipes in your cookbook have `resource`, `define` and `defaults` available (which call the `Crazytown.` equivalent)
 
 NOTE: cookbooks that depend on your cookbook will *not* automatically be Crazytowned.  Only cookbooks that explicitly depend on crazytown will be transformed.
+
+Compatibility
+-------------
+
+Crazytown works with Chef 12.  It also does not change *anything* about existing cookbook behavior, and only affects cookbooks who have `depends "crazytown"` in their metadata.  The one exception is that resources you create with Crazytown are available to all cookbooks.
 
 Define: Dashing Off a Quick Resource
 ------------------------------------
