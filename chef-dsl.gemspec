@@ -1,9 +1,9 @@
 $:.unshift(File.dirname(__FILE__) + '/lib')
-project = 'chef_dsl'
-require "#{project}/version"
+project = File.basename(File.dirname(__FILE__))
+require "#{project.sub('-', '_')}/version"
 
 Gem::Specification.new do |s|
-  s.name = 'chef_dsl'
+  s.name = project
   s.version = ChefDSL::VERSION
   s.platform = Gem::Platform::RUBY
   s.summary = 'Create composable, idempotent, patchy APIs with disturbing ease'
