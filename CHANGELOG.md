@@ -1,6 +1,12 @@
 Resource Cookbook CHANGELOG
 ===========================
 
+0.2.1 (2/19/2015)
+-----------------
+
+- Rename ChefResource.resource -> Chef.resource
+- Get cookbook include working again
+
 0.2 (2/19/2015)
 ---------------
 
