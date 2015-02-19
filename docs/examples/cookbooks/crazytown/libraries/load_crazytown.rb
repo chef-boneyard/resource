@@ -1,1 +1,1 @@
-require 'chef_dsl/chef'
+require 'chef_resource/chef'

@@ -1,14 +1,14 @@
 require 'cheffish/basic_chef_client'
-require 'chef_dsl/chef'
+require 'chef_resource/chef'
 require 'tempfile'
 
 module Cheffish
   class BasicChefClient
-    prepend ChefDSL::ChefDSL::ChefRecipeDSLExtensions
+    prepend ChefResource::ChefDSL::ChefRecipeDSLExtensions
   end
 end
 
-ChefDSL.resource :simple_resource do
+ChefResource.resource :simple_resource do
   property :hi
   attr_reader :did_it
   recipe do
@@ -16,7 +16,7 @@ ChefDSL.resource :simple_resource do
   end
 end
 
-ChefDSL.resource :compound_resource do
+ChefResource.resource :compound_resource do
   property :lo
   attr_reader :did_it
   attr_reader :f
@@ -32,7 +32,7 @@ ChefDSL.resource :compound_resource do
   end
 end
 
-ChefDSL.resource :resource_with_error do
+ChefResource.resource :resource_with_error do
   property :lo
   recipe do
     blarghfile 'wow.txt' do
@@ -43,7 +43,7 @@ end
 
 
 describe 'Chef integration' do
-  context "When simple_resource is a ChefDSL resource" do
+  context "When simple_resource is a ChefResource resource" do
     it "a recipe can run the resource" do
       x = nil
       Cheffish::BasicChefClient.converge_block do

@@ -1,11 +1,11 @@
 require 'support/spec_support'
-require 'chef_dsl/resource/struct_resource_base'
+require 'chef_resource/resource/struct_resource_base'
 
-describe ChefDSL::Resource::StructResource do
+describe ChefResource::Resource::StructResource do
   def self.with_struct(name, &block)
     before :each do
       Object.send(:remove_const, name) if Object.const_defined?(name, false)
-      eval "class ::#{name} < ChefDSL::Resource::StructResourceBase; end"
+      eval "class ::#{name} < ChefResource::Resource::StructResourceBase; end"
       Object.const_get(name).class_eval(&block)
     end
     after :each do
@@ -14,7 +14,7 @@ describe ChefDSL::Resource::StructResource do
 
   describe :inheritance do
     context "When A < B, and A has x and B has y" do
-      class A < ChefDSL::Resource::StructResourceBase
+      class A < ChefResource::Resource::StructResourceBase
         property :x, identity: true do
           default { y*2 }
         end
@@ -325,7 +325,7 @@ describe ChefDSL::Resource::StructResource do
             expect(MyResource::X.run_count).to eq 0
           end
           it "MyResource.coerce(nil, {x: 11}) fails" do
-            expect { MyResource.coerce(nil, { x: 11 }).to_h(:all) }.to raise_error(ChefDSL::ValidationError)
+            expect { MyResource.coerce(nil, { x: 11 }).to_h(:all) }.to raise_error(ChefResource::ValidationError)
           end
           it "MyResource.coerce(nil, {}) never runs it" do
             expect(MyResource.coerce(nil, {}).to_h(:only_explicit)).to eq({})
@@ -355,7 +355,7 @@ describe ChefDSL::Resource::StructResource do
       context "When MyResource is a ResourceStruct with property :x, 15 and property :y { x*2 } (default block)" do
         with_struct(:MyResource) do
           property :x, default: 15
-          property :y, default: ChefDSL::LazyProc.new { x*2 }
+          property :y, default: ChefResource::LazyProc.new { x*2 }
         end
         it "x and y return the default if not set" do
           r = MyResource.open
@@ -455,7 +455,7 @@ describe ChefDSL::Resource::StructResource do
       with_struct(:MyResource) do
         property :x, identity: true
         property :y
-        property :z, load_value: ChefDSL::LazyProc.new { self.num_loads += 1; x*3 }
+        property :z, load_value: ChefResource::LazyProc.new { self.num_loads += 1; x*3 }
         property :num_loads, default: 0
         def load
           y x*2
@@ -509,11 +509,11 @@ describe ChefDSL::Resource::StructResource do
         end
 
         it "coerce(nil, s1: 'hi', n1: 'lo') fails" do
-          expect { MyResource.coerce(nil, s1: 'hi', n1: 'lo') }.to raise_error(ChefDSL::ValidationError)
+          expect { MyResource.coerce(nil, s1: 'hi', n1: 'lo') }.to raise_error(ChefResource::ValidationError)
         end
 
         it "coerce(nil, s1: 'hi', n1: 'lo') fails" do
-          expect { MyResource.coerce(nil, s1: 'hi', n1: 'lo') }.to raise_error(ChefDSL::ValidationError)
+          expect { MyResource.coerce(nil, s1: 'hi', n1: 'lo') }.to raise_error(ChefResource::ValidationError)
         end
       end
     end
@@ -529,22 +529,22 @@ describe ChefDSL::Resource::StructResource do
               "coerce(#{value})"
             end
           end
-          property :default_no_params, default: ChefDSL::LazyProc.new { "#{x} lazy_default" } do
+          property :default_no_params, default: ChefResource::LazyProc.new { "#{x} lazy_default" } do
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
-          property :default_instance_eval_symbol, default: ChefDSL::LazyProc.new(:should_instance_eval) { "#{x} lazy_default" } do
+          property :default_instance_eval_symbol, default: ChefResource::LazyProc.new(:should_instance_eval) { "#{x} lazy_default" } do
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
-          property :default_instance_eval_true, default: ChefDSL::LazyProc.new(should_instance_eval: true) { "#{x} lazy_default" } do
+          property :default_instance_eval_true, default: ChefResource::LazyProc.new(should_instance_eval: true) { "#{x} lazy_default" } do
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
           end
-          property :default_instance_eval_false, default: ChefDSL::LazyProc.new(should_instance_eval: false) { "#{x} lazy_default" } do
+          property :default_instance_eval_false, default: ChefResource::LazyProc.new(should_instance_eval: false) { "#{x} lazy_default" } do
             def self.coerce(parent, value)
               "coerce(#{value})"
             end
@@ -586,22 +586,22 @@ describe ChefDSL::Resource::StructResource do
 
         it "lazy on x does not do instance_eval but coerces" do
           r = MyResource.open
-          r.x ChefDSL::LazyProc.new { "#{z} set_lazy" }
+          r.x ChefResource::LazyProc.new { "#{z} set_lazy" }
           expect(r.x).to eq "coerce(outside.z set_lazy)"
         end
         it "lazy on x with :should_instance_eval does instance_eval and coerces" do
           r = MyResource.open
-          r.x ChefDSL::LazyProc.new(:should_instance_eval) { "#{z} set_lazy" }
+          r.x ChefResource::LazyProc.new(:should_instance_eval) { "#{z} set_lazy" }
           expect(r.x).to eq "coerce(instance.z set_lazy)"
         end
         it "lazy on x should_instance_eval: true does instance_eval and coerces" do
           r = MyResource.open
-          r.x ChefDSL::LazyProc.new(:should_instance_eval) { "#{z} set_lazy" }
+          r.x ChefResource::LazyProc.new(:should_instance_eval) { "#{z} set_lazy" }
           expect(r.x).to eq "coerce(instance.z set_lazy)"
         end
         it "lazy on x with should_instance_eval: false does instance_eval and coerces" do
           r = MyResource.open
-          r.x ChefDSL::LazyProc.new(should_instance_eval: false) { "#{z} set_lazy" }
+          r.x ChefResource::LazyProc.new(should_instance_eval: false) { "#{z} set_lazy" }
           expect(r.x).to eq "coerce(outside.z set_lazy)"
         end
 

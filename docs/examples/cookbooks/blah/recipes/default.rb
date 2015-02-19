@@ -23,7 +23,7 @@ end
 #
 #
 #
-# ChefDSL.define :bjork, a: 'a', b: 'b' do
+# ChefResource.define :bjork, a: 'a', b: 'b' do
 #   file '/Users/jkeiser/x.txt' do
 #     content a
 #   end

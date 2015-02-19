@@ -63,7 +63,7 @@ Future
       #
       # NEXT 4: struct hierarchy
       # RecipeDSL
-      # ChefDSL.global_dsl
+      # ChefResource.global_dsl
       #
       # NEXT 5: useful primitives
       # ruby_block

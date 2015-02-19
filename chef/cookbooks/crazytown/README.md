@@ -1,9 +1,9 @@
-ChefDSL
+ChefResource
 =========
 
-Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  ChefDSL aims to change that.
+Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  ChefResource aims to change that.
 
-ChefDSL is an attempt to make Chef Resources significantly easier and more fun to create, while being even more powerful.  It does this by:
+ChefResource is an attempt to make Chef Resources significantly easier and more fun to create, while being even more powerful.  It does this by:
 
 - Vastly simplifying resource writing so you just make a "resource" and "recipe" in a single file.
 - Making good primitive resources easier to build with builtin test-and-set support.
@@ -14,7 +14,7 @@ I am looking for people to try this out and give feedback.  IT IS EXPERIMENTAL. 
 
 This is also unfinished in that there are more features to be added: chief among them are nested properties (Hash, Array, Set and Struct), nested resources (github.organization.repository) and recipe semantics (immediate mode and parallel recipes).  0.1 is a stop along the way, but a very significant one that defines the basis for Resources.
 
-To give feedback, file issues in [github](https://github.com/jkeiser/resource/issues) or chat on [Gitter](https://gitter.im/jkeiser/resource).  More documentation can be found in the [ChefDSL README](https://github.com/jkeiser/resource/blob/master/README.md)
+To give feedback, file issues in [github](https://github.com/jkeiser/resource/issues) or chat on [Gitter](https://gitter.im/jkeiser/resource).  More documentation can be found in the [ChefResource README](https://github.com/jkeiser/resource/blob/master/README.md)
 
 Getting Started
 ---------------
@@ -24,20 +24,20 @@ To get started, upload the resource cookbook and add this to your `metadata.rb`:
 depends "resource"
 ```
 
-ChefDSL is now loaded in, and the following features are available to all:
-- `ChefDSL.resource`, `ChefDSL.define` and `ChefDSL.defaults`
-- All recipes can call ChefDSL resources
+ChefResource is now loaded in, and the following features are available to all:
+- `ChefResource.resource`, `ChefResource.define` and `ChefResource.defaults`
+- All recipes can call ChefResource resources
 
-You will now have all ChefDSL features available to your cookbook:
-- The `resources` directory now creates ChefDSL resources (via `ChefDSL.resource`).
-- Recipes in your cookbook have `resource`, `define` and `defaults` available (which call the `ChefDSL.` equivalent)
+You will now have all ChefResource features available to your cookbook:
+- The `resources` directory now creates ChefResource resources (via `ChefResource.resource`).
+- Recipes in your cookbook have `resource`, `define` and `defaults` available (which call the `ChefResource.` equivalent)
 
-NOTE: cookbooks that depend on your cookbook will *not* automatically be ChefDSLed.  Only cookbooks that explicitly depend on the resource cookbook will be transformed.
+NOTE: cookbooks that depend on your cookbook will *not* automatically be ChefResourceed.  Only cookbooks that explicitly depend on the resource cookbook will be transformed.
 
 Compatibility
 -------------
 
-ChefDSL works with Chef 12.  It also does not change *anything* about existing cookbook behavior, and only affects cookbooks who have `depends "resource"` in their metadata.  The one exception is that resources you create with ChefDSL are available to all cookbooks.
+ChefResource works with Chef 12.  It also does not change *anything* about existing cookbook behavior, and only affects cookbooks who have `depends "resource"` in their metadata.  The one exception is that resources you create with ChefResource are available to all cookbooks.
 
 Define: Dashing Off a Quick Resource
 ------------------------------------
@@ -119,7 +119,7 @@ Much more concise, much more readable, much easier to change!
 
 Creating a Simple Resource
 --------------------------
-If you want to really customize the properties of a resource, or want to do more interesting things, you can always create a `resources` file.  ChefDSL appropriates the LWRP `resources` directory, so you create a `resources/user_bundle.rb`:
+If you want to really customize the properties of a resource, or want to do more interesting things, you can always create a `resources` file.  ChefResource appropriates the LWRP `resources` directory, so you create a `resources/user_bundle.rb`:
 
 ```ruby
 # resources/user_bundle.rb
@@ -167,14 +167,14 @@ Some features here:
 - `relative_to: '/home'` is a modifier for `Path` saying "when the user says `home_dir 'jkeiser2'`, set `home_dir` to `/home/jkeiser2`."
 - `default { username }` is a *computed default*: if the user does not set `home_dir`, `home_dir` will be `/home/<username>`
 
-NOTE: you can define a resource *anywhere* by writing `ChefDSL.resource :name do ... end`, and writing `property` and `recipe` statements inside.  You can do this in `libraries`, `recipes` or even outside Chef.
+NOTE: you can define a resource *anywhere* by writing `ChefResource.resource :name do ... end`, and writing `property` and `recipe` statements inside.  You can do this in `libraries`, `recipes` or even outside Chef.
 
 Building Primitive Resources: Load and Converge
 -----------------------------------------------
 
 Up until now, we've been showing "compound" resources whose primary job is to wrap other resources like `file`, `package` and `service`.  This is enough for huge numbers of people, and the primitive resources handle the work of "test-and-set," showing the "(up to date)" if nothing needs to change, or the green text when a change occurs.
 
-Sometimes you need to build a real primitive resource, when `file` `package` and `service` aren't enough.  When this comes up, ChefDSL handles the work of test-and-set for you with the `load` and `converge` methods.
+Sometimes you need to build a real primitive resource, when `file` `package` and `service` aren't enough.  When this comes up, ChefResource handles the work of test-and-set for you with the `load` and `converge` methods.
 
 Consider a simple file resource:
 
@@ -230,7 +230,7 @@ file '/z.txt' do
 end
 ```
 
-ChefDSL gives you a quick way to redefine the defaults of a resource:
+ChefResource gives you a quick way to redefine the defaults of a resource:
 
 ```ruby
 defaults :my_file, :file, owner: 'jkeiser', group: 'users', mode: 0755

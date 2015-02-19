@@ -1,12 +1,12 @@
 unless Chef::Resource.const_defined?(:RubygemsUser)
 
 require_relative 'rubygems'
-require 'chef_dsl/chef_dsl/chef_resource'
+require 'chef_resource/chef_dsl/chef_resource'
 require 'net/http'
 require 'uri'
 require 'set'
 
-ChefDSL.resource :rubygems_user do
+ChefResource.resource :rubygems_user do
   property :rubygems,   :rubygems, identity: true
   property :username,   String,    identity: true, default: nil
   property :email,      String,    identity: true, default: nil

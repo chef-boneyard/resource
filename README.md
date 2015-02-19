@@ -1,11 +1,11 @@
 [![Stories in Ready](https://badge.waffle.io/jkeiser/resource.png?label=ready&title=Ready)](https://waffle.io/jkeiser/resource)[![Build Status](https://travis-ci.org/jkeiser/resource.svg?branch=master)](https://travis-ci.org/jkeiser/resource)[![Gitter chat](https://badges.gitter.im/jkeiser/resource.png)](https://gitter.im/jkeiser/resource)
 
-ChefDSL
+ChefResource
 =========
 
-Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  ChefDSL aims to change that.
+Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  ChefResource aims to change that.
 
-ChefDSL is an attempt to make Chef Resources significantly easier and more fun to create, while being even more powerful.  It does this by:
+ChefResource is an attempt to make Chef Resources significantly easier and more fun to create, while being even more powerful.  It does this by:
 
 - Vastly simplifying resource writing so you just make a "resource" and "recipe" in a single file.
 - Making good primitive resources easier to build with builtin test-and-set support.
@@ -18,11 +18,11 @@ This is also unfinished in that there are more features to be added: chief among
 
 For the best overview, see the [Cookbook README](chef/cookbooks/README.md)
 
-For an in-depth comparison of Chef Resources and ChefDSL Resources, see the [0.1 release notes](docs/0.1-release.md).
+For an in-depth comparison of Chef Resources and ChefResource Resources, see the [0.1 release notes](docs/0.1-release.md).
 
 Getting Started
 ---------------
-To get started, add this to your cookbook's `metadata.rb` to get all the ChefDSL features:
+To get started, add this to your cookbook's `metadata.rb` to get all the ChefResource features:
 
 ```ruby
 # yourcookbook/metadata.rb

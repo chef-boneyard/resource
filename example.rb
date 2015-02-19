@@ -1,18 +1,18 @@
-class Bar < ChefDSL::Struct
+class Bar < ChefResource::Struct
   property :x, Integer do
     def self.default
       20
     end
   end
 end
-class Foo < ChefDSL::Struct
+class Foo < ChefResource::Struct
   property :bar, Bar do
     def self.default
       {}
     end
   end
 end
-class X < ChefDSL::Struct
+class X < ChefResource::Struct
   property :foo, Foo do
     def self.default
       {}
