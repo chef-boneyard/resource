@@ -1,4 +1,5 @@
 [![Stories in Ready](https://badge.waffle.io/jkeiser/crazytown.png?label=ready&title=Ready)](https://waffle.io/jkeiser/crazytown)
+
 Crazytown
 =========
 
@@ -7,29 +8,60 @@ Crazytown is an expanding vision of Chef core that aims to:
 - Make resources reusable outside Chef
 - Clarify the Chef execution model and public interface
 
-Getting Crazytown
------------------
-To get crazytown, you must presently build and install it.  To do that:
+For the best overview, see the [Cookbook README](chef/cookbooks/README.md)
+
+For an in-depth comparison of Chef Resources and Crazytown Resources, see the [0.1 release notes](docs/0.1-release.md).
+
+Getting Started
+---------------
+To get started, add this to your cookbook's `metadata.rb` to get all the Crazytown features:
 
 ```ruby
-bundle install
-bundle exec rake build
-cp -R pkg/crazytown-0.1 cookbooks/crazytown
+# yourcookbook/metadata.rb
+depends "crazytown"
 ```
 
-Example
--------
-
-To use crazytown, include the crazytown cookbook in your cookbook (presently you can find the crazytown cookbook in the `pkg` directory after `bundle exec rake build`).
+A sample use:
 
 ```ruby
-# metadata.rb
-name 'mycookbook'
-depends 'crazytown'
+# resources/user_bundle.rb
+property :username, String, identity: true
+property :primary_group, String
+property :home_dir, Path, relative_to: '/home' do
+  default { username }
+end
+
+recipe do
+  user username do
+    group primary_group
+  end
+
+  directory home_dir do
+    owner username
+    group primary_group
+    mode 0700
+  end
+
+  file "#{home_dir}/.bashrc" do
+    content "sh /sys/global_bashrc"
+
+    owner username
+    group primary_group
+    mode 0700
+  end
+end
 ```
 
-Now, several changes have been made:
+Now you can do this in your recipe:
 
-- Files in `resources/` are now Crazytown resources
-- You can type `resource :name do ... end`, `defaults :name, ...` and `define :name, ....` in recipes to create resources.
-- You can type `Chef.resource`, `Chef.defaults` and `Chef.define` anywhere (including in `libraries`)
+```ruby
+mycookbook_user_bundle 'jkeiser' do
+  primary_group 'wheel'
+end
+```
+
+What?
+-----
+I am looking for people to try this out and give feedback.  IT IS EXPERIMENTAL.  There are bugs (though I generally don't know what they are).  Things will change.  But I've done my best to produce things that won't change *much.*
+
+To give feedback, file issues here or chat on https://gitter.im/jkeiser/crazytown .

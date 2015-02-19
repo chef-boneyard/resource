@@ -11,7 +11,7 @@ project_lib_path = project_root   + 'lib'
 
 RSpec::Core::RakeTask.new(:spec)
 
-task default: [:cookbook, :spec]
+task default: :spec
 
 task :cookbook do
   if !files_path.exist?
@@ -43,10 +43,10 @@ task :publish do
     system "cd #{chef_repo_path} && knife cookbook site share crazytown Other"
 
   ensure
-    # if linked || !lib_path.exist?
-    #   puts "Relinking #{lib_path} to #{project_lib_path} ..."
-    #   File.unlink(lib_path)
-    #   File.link(project_lib_path.to_s, lib_path.to_s)
-    # end
+    if linked || !lib_path.exist?
+      puts "Relinking #{lib_path} to #{project_lib_path} ..."
+      File.unlink(lib_path)
+      File.link(project_lib_path.to_s, lib_path.to_s)
+    end
   end
 end
