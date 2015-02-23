@@ -65,11 +65,6 @@
 EOM
 
 ::EMPLOYEES = ::EMPLOYEE_ADMINS + YAML.load(<<-EOM)
-- name: Grant Hudgens
-  rubygems_username: ghudgens
-  rubygems_email:    grant.hudgens@gmail.com
-  rubygems:
-  - knife-ec-backup
 - name: Jeremiah Snapp
   rubygems_username: snapp
   rubygems_email:    jeremiah.snapp@gmail.com

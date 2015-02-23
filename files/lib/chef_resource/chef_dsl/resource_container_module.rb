@@ -67,12 +67,12 @@ module ChefResource
               end
             end
           EOM
-        else
-          recipe_dsl_module.module_eval <<-EOM, __FILE__, __LINE__+1
-            def #{resource_name}(name, &block)
-              declare_resource(#{resource_name.inspect}, name, caller[0], &block)
-            end
-          EOM
+        # else
+        #   recipe_dsl_module.module_eval <<-EOM, __FILE__, __LINE__+1
+        #     def #{resource_name}(name, &block)
+        #       declare_resource(#{resource_name.inspect}, name, caller[0], &block)
+        #     end
+        #   EOM
         end
       end
     end

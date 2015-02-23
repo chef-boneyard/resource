@@ -1,4 +1,4 @@
-[![Stories in Ready](https://badge.waffle.io/chef-cookbooks/resource.png?label=ready&title=Ready)](https://waffle.io/chef-cookbooks/resource)[![Build Status](https://travis-ci.org/chef-cookbooks/resource.svg?branch=master)](https://travis-ci.org/chef-cookbooks/resource)[![Gitter chat](https://badges.gitter.im/chef-cookbooks/resource.png)](https://gitter.im/chef-cookbooks/resource)
+ [![Stories in Ready](https://badge.waffle.io/chef-cookbooks/resource.png?label=ready&title=Ready)](https://waffle.io/chef-cookbooks/resource)[![Build Status](https://travis-ci.org/chef-cookbooks/resource.svg?branch=master)](https://travis-ci.org/chef-cookbooks/resource)[![Gitter chat](https://badges.gitter.im/chef-cookbooks/resource.png)](https://gitter.im/chef-cookbooks/resource)
 
 The Resource Cookbook
 =====================
