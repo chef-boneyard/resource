@@ -73,10 +73,10 @@ module ChefResource
           end
 
           def print_header_line(line, style)
-            if parallel_header?
-              while
-              end
-            end
+            #if parallel_header?
+            #  while
+            #  end
+            #end
             if output.current_resource != parent
               parent.print_header
               parent.print_line("", output.style.updating)
