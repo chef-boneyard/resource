@@ -3,12 +3,9 @@ unless Chef::Resource.const_defined?(:RubygemsGem)
 require_relative 'rubygems'
 require 'set'
 
-
-
-
 Chef.resource :rubygems_gem do
-  property :rubygems, :rubygems, identity: true
-  property :gem_name, String, identity: true
+  property :rubygems, Chef::Resource::Rubygems, identity: true
+  property :gem_name, String,    identity: true
   property :owners,   Set do
     load_value do
       rubygems.api.get("api/v1/gems/#{gem_name}/owners.json", log).map do |owner|

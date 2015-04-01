@@ -1,5 +1,6 @@
 ::EMPLOYEE_ADMINS = YAML.load <<-EOM
 - name: Adam Jacob
+  opscode_alias: adamhjk
   rubygems_username: 43081
   rubygems_email:    adam@opscode.com
 - name: Adam Edwards
@@ -17,6 +18,10 @@
 - name: Fletcher Nichol
   rubygems_username: fnichol
   rubygems_email:    fnichol@nichol.ca
+- name: George Miranda
+  github_username:   gmiranda23
+  rubygems_username: gmiranda23
+  rubygems_email:    gmiranda@chef.io
 - name: Jay Mundrawala
   rubygems_username: jdmundrawala
   rubygems_email:    jdmundrawala@gmail.com
@@ -103,6 +108,11 @@ end
   rubygems_email:    jesse@techno-geeks.org
   rubygems:
   - knife-linode
+- name: Stuart Preston
+  rubygems_username: stuartpreston
+  rubygems_email:    stuart@pendrica.com
+  rubygems:
+  - chef-provisioning-azure
 - name: Seth Vargo
   rubygems_username: sethvargo
   rubygems_email:    sethvargo@gmail.com
