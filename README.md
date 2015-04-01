@@ -152,11 +152,11 @@ end
 
 ```ruby
 # recipes/default.rb
-test_user_bundle 'jkeiser' do
+user_bundle 'jkeiser' do
 end
-test_user_bundle 'fnichol' do
+user_bundle 'fnichol' do
 end
-test_user_bundle 'blargh' do
+user_bundle 'blargh' do
 end
 ```
 
