@@ -1,6 +1,11 @@
 Resource Cookbook CHANGELOG
 ===========================
 
+0.2.2 (4/1/2015)
+-----------------
+
+- Fix issue with uploading via berks (@damascus)
+
 0.2.1 (2/19/2015)
 -----------------
 
