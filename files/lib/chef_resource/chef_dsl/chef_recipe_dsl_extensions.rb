@@ -28,7 +28,7 @@ module ChefResource
         end
 
         # ChefResource resources!
-        resource = buildbuild_resource_v2(resource_class, *identity, created_at, &update_block)
+        resource = build_resource_v2(resource_class, *identity, created_at, &update_block)
         run_context.resource_collection.insert(resource,
           resource_type: resource_class.dsl_name,
           instance_name: resource.resource_identity_string)
@@ -50,10 +50,10 @@ module ChefResource
         end
 
         # ChefResource!
-        buildbuild_resource_v2(resource_class, *identity, created_at, &update_block)
+        build_resource_v2(resource_class, *identity, created_at, &update_block)
       end
 
-      def buildbuild_resource_v2(resource_class, *identity, created_at, &update_block)
+      def build_resource_v2(resource_class, *identity, created_at, &update_block)
         resource = resource_class.open(*identity)
         resource.run_context = run_context
         resource.cookbook_name = cookbook_name
