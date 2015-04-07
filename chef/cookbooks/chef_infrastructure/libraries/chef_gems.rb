@@ -16,6 +16,7 @@ module ChefGems
     cookbook-omnifetch
   )
   CHEF_PROVISIONING = %w(
+    cheffish
     chef-provisioning
     chef-provisioning-azure
     chef-provisioning-aws
