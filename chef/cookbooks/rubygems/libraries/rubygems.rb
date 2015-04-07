@@ -62,7 +62,7 @@ Chef.resource :rubygems do
   require_relative 'rubygems_user'
 
   def gem(name, &block)
-    rubygems_gem self, name
+    rubygems_gem self, name, &block
   end
 
   def user(*args, &block)
