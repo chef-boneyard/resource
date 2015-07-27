@@ -9,6 +9,9 @@
 - name: Bryan McLellan
   rubygems_username: btm
   rubygems_email:    btm@loftninjas.org
+- name: Claire McQuin
+  rubygems_username: mcquin
+  rubygems_email:    claire@chef.io
 - name: Daniel DeLeo
   rubygems_username: danielsdeleo
   rubygems_email:    danielsdeleo@mac.com
