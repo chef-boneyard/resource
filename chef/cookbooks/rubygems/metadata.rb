@@ -1,2 +1,0 @@
-name "rubygems"
-depends "resource"

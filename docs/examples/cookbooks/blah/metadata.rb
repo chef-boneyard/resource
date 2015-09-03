@@ -1,2 +1,0 @@
-name 'blah'
-depends 'resource'
