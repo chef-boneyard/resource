@@ -34,6 +34,9 @@
 - name: Joshua Timberman
   rubygems_username: jtimberman
   rubygems_email:    joshua@opscode.com
+- name: Kartik Subrama
+  rubygems_username: ksubramanian
+  rubygems_email:    ksubramanian@chef.io
 - name: Lamont Granquist
   rubygems_username: lamont-granquist
   rubygems_email:    lamont@scriptkiddie.org
@@ -43,6 +46,9 @@
 - name: Matt Ray
   rubygems_username: mattray
   rubygems_email:    matthewhray@gmail.com
+- name: Matt Wrock
+  rubygems_username: mwrockx
+  rubygems_email:    matt@mattwrock.com
 - name: Nathan Smith
   rubygems_username: nlsmith
   rubygems_email:    nlloyds@gmail.com
