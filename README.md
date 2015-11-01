@@ -4,6 +4,10 @@ The Resource Cookbook
 [![Build Status](https://travis-ci.org/chef-cookbooks/resource.svg?branch=master)](https://travis-ci.org/chef-cookbooks/resource)
 [![Cookbook Version](https://img.shields.io/cookbook/v/resource.svg)](https://supermarket.chef.io/cookbooks/resource)
 
+
+###DEPRECATED
+This cookbook has been deprecated in favor of the new [compat_resource](https://github.com/chef-cookbooks/compat_resource) cookbook.
+
 Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  The resource cookbook aims to change that.
 
 The resource cookbook is an attempt to make Chef Resources significantly easier and more fun to create, while being even more powerful.  It does this by:
