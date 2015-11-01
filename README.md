@@ -5,7 +5,7 @@ The Resource Cookbook
 [![Cookbook Version](https://img.shields.io/cookbook/v/resource.svg)](https://supermarket.chef.io/cookbooks/resource)
 
 
-###DEPRECATED
+###DEPRECATED!!!
 This cookbook has been deprecated in favor of the new [compat_resource](https://github.com/chef-cookbooks/compat_resource) cookbook.
 
 Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  The resource cookbook aims to change that.
