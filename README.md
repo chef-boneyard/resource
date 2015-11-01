@@ -1,7 +1,8 @@
-[![Stories in Ready](https://badge.waffle.io/chef-cookbooks/resource.png?label=ready&title=Ready)](https://waffle.io/chef-cookbooks/resource)[![Build Status](https://travis-ci.org/chef-cookbooks/resource.svg?branch=master)](https://travis-ci.org/chef-cookbooks/resource)[![Gitter chat](https://badges.gitter.im/chef-cookbooks/resource.png)](https://gitter.im/chef-cookbooks/resource)
-
 The Resource Cookbook
 =====================
+
+[![Build Status](https://travis-ci.org/chef-cookbooks/resource.svg?branch=master)](https://travis-ci.org/chef-cookbooks/resource)
+[![Cookbook Version](https://img.shields.io/cookbook/v/resource.svg)](https://supermarket.chef.io/cookbooks/resource)
 
 Chef Resources are incredibly important to creating good, useful, reusable cookbooks.  Yet people often don't create them because it's too hard.  The resource cookbook aims to change that.
 
@@ -255,10 +256,3 @@ resource :my_file, :file do
   end
 end
 ```
-
-Contributing
-------------
-
-PRs are welcome at [github](https://github.com/chef-cookbooks/resource)!
-
-To give feedback, file issues in [github](https://github.com/chef-cookbooks/resource/issues) or chat on [Gitter](https://gitter.im/chef-cookbooks/resource).
