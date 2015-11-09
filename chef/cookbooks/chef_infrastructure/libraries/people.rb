@@ -9,6 +9,9 @@
 - name: Bryan McLellan
   rubygems_username: btm
   rubygems_email:    btm@loftninjas.org
+- name: Chris Doherty
+  rubygems_username: randomcamel
+  rubygems_email:    code@randomcamel.net
 - name: Claire McQuin
   rubygems_username: mcquin
   rubygems_email:    claire@chef.io
