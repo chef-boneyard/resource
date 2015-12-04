@@ -39,7 +39,7 @@
   rubygems_email:    john@johnkeiser.com
 - name: Joshua Timberman
   rubygems_username: jtimberman
-  rubygems_email:    joshua@opscode.com
+  rubygems_email:    joshua@chef.io
 - name: Kartik Subrama
   rubygems_username: ksubramanian
   rubygems_email:    ksubramanian@chef.io
