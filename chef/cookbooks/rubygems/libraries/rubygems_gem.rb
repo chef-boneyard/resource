@@ -35,6 +35,7 @@ Chef.resource :rubygems_gem do
       #
       (new_emails - current_emails).each do |add_email|
         take_action "Add #{add_email} as owner of #{gem_name}" do
+          puts "Add #{add_email} as owner of #{gem_name}"
           rubygems.api.post("api/v1/gems/#{gem_name}/owners", log, email: add_email)
         end
       end

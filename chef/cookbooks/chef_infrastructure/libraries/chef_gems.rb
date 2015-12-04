@@ -53,10 +53,29 @@ module ChefGems
   )
   # We have not decided yet whether these get the same treatment.
   TEST_KITCHEN = %w(
-    test-kitchen
+    busser
+    busser-bash
+    busser-bats
+    busser-cucumber
+    busser-minitest
     busser-rspec
+    busser-serverspec
     guard-kitchen
+    kitchen-cloudstack
+    kitchen-digitalocean
+    kitchen-dsc
+    kitchen-ec2
+    kitchen-google
+    kitchen-hyperv
+    kitchen-joyent
     kitchen-libvirtlxc
+    kitchen-opennebula
+    kitchen-openstack
+    kitchen-pester
+    kitchen-rackspace
+    kitchen-vagrant
+    test-kitchen
+    winrm-transport
   )
   # Not doing anything with these yet, but they are on Adam's account and I
   # haven't identified their purpose
@@ -70,6 +89,19 @@ module ChefGems
     chef-datadog
     chef-server-slice
     omniauth-opscode
+  )
+
+  BERKSHELF = %w(
+    berkshelf
+    solve
+    ridley
+    varia_model
+    berkshelf-api
+    vagrant-berkshelf
+    berkshelf-api-client
+    semverse
+    berkshelf-bzr
+    berksflow
   )
 end
 

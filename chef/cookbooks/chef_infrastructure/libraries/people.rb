@@ -132,8 +132,15 @@ end
   rubygems_username: sethvargo
   rubygems_email:    sethvargo@gmail.com
   rubygems:
-  - test-kitchen
   - dep_selector
+  groups:
+  - berkshelf
+  - test-kitchen
+- name: Michael Ivey
+  rubygems_username: ivey
+  rubygems_email:    ivey@gweezlebur.com
+  groups:
+  - berkshelf
 EOM
 
 ::PEOPLE = ::EMPLOYEES + ::NON_EMPLOYEES
