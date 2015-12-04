@@ -58,6 +58,9 @@
 - name: Nathan Smith
   rubygems_username: nlsmith
   rubygems_email:    nlloyds@gmail.com
+- name: Salim Alam
+  rubygems_username: chefsalim
+  rubygems_email:    salam@chef.io
 - name: Serdar Sutay
   rubygems_username: sersut
   rubygems_email:    serdar@opscode.com
