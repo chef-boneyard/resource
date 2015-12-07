@@ -101,7 +101,6 @@ module ChefGems
     berkshelf-api-client
     semverse
     berkshelf-bzr
-    berksflow
   )
 end
 
@@ -110,4 +109,5 @@ end
                   ChefGems::CHEF_PROVISIONING +
                   ChefGems::KNIFE_PLUGINS +
                   ChefGems::CHEF_OTHER +
-                  ChefGems::CHEF_DEPRECATED
+                  ChefGems::CHEF_DEPRECATED +
+                  ChefGems::BERKSHELF
