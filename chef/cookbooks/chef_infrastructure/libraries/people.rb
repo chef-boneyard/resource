@@ -58,6 +58,12 @@
 - name: Nathan Smith
   rubygems_username: nlsmith
   rubygems_email:    nlloyds@gmail.com
+- name: Nell Shamrell
+  rubygems_username: nellshamrell
+  rubygems_email: nellshamrell@gmail.com
+- name: Robb Kidd
+  rubygems_username: robbkidd
+  rubygems_email: robb@thekidds.org
 - name: Salim Alam
   rubygems_username: chefsalim
   rubygems_email:    salam@chef.io
