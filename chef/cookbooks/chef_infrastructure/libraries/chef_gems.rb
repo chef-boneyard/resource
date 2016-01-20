@@ -34,6 +34,7 @@ module ChefGems
     knife-opc
     knife-openstack
     knife-rackspace
+    knife-supermarket
   )
   CHEF_DEPRECATED = %w(
     knife-essentials
