@@ -1,0 +1,94 @@
+chef:
+  chef:
+  chef-config:
+    github: chef/chef
+  chef-zero:
+  dep_selector:
+    github: chef/dep-selector
+  dep-selector-libgecode:
+  mixlib-authentication:
+  mixlib-cli:
+  mixlib-config:
+  mixlib-log:
+  mixlib-shellout:
+  ohai:
+
+chefdk:
+  chef-dk:
+  cookbook-omnifetch:
+
+chef-provisioning:
+  cheffish:
+  chef-provisioning:
+  chef-provisioning-aws:
+  chef-provisioning-azure:
+  chef-provisioning-vagrant:
+  chef-provisioning-docker:
+  chef-provisioning-fog:
+  chef-provisioning-lxc:
+  chef-provisioning-vagrant:
+
+knife:
+  knife-azure:
+  knife-ec2:
+  knife-google:
+  knife-hp:
+  knife-linode:
+  knife-opc:
+  knife-openstack:
+  knife-rackspace:
+  knife-supermarket:
+
+deprecated:
+  knife-essentials:
+    github: jkeiser/knife-essentials
+  chef-expander:
+  chef-server:
+  chef-server-api:
+    github: chef/chef-server
+  chef-server-webui:
+  chef-solr:
+
+misc:
+  appbundler:
+  omnibus:
+  wmi-lite:
+  knife-acl:
+  knife-ec-backup:
+
+test-kitchen:
+  busser:
+  busser-bash:
+  busser-bats:
+  busser-cucumber:
+  busser-minitest:
+  busser-rspec:
+  busser-serverspec:
+  guard-kitchen:
+  kitchen-cloudstack:
+  kitchen-digitalocean:
+  kitchen-dsc:
+  kitchen-ec2:
+  kitchen-google:
+  kitchen-hyperv:
+  kitchen-joyent:
+  kitchen-libvirtlxc:
+  kitchen-opennebula:
+  kitchen-openstack:
+  kitchen-pester:
+  kitchen-rackspace:
+  kitchen-vagrant:
+  test-kitchen:
+  winrm-transport:
+
+berkshelf:
+  berkshelf:
+  solve:
+  ridley:
+  varia_model:
+    github: reset/varia_model
+  berkshelf-api:
+  vagrant-berkshelf:
+  berkshelf-api-client:
+  semverse:
+  berkshelf-bzr:
