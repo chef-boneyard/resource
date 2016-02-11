@@ -109,6 +109,10 @@
   groups:            [chef-admins,chef-employees]
   rubygems_username: sdanna
   rubygems_email:    steve@opscode.com
+- name:              Thom May
+  groups:            [chef-admins,chef-employees]
+  rubygems_username: thommay
+  rubygems_email:    thom@may.lt
 - name:              Tyler Ball
   groups:            [chef-admins,chef-employees]
   rubygems_username: tyleraball
