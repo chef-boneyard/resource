@@ -35,11 +35,15 @@ knife:
   knife-google:
   knife-hp:
   knife-linode:
+  knife-maas:
   knife-opc:
   knife-openstack:
+  knife-oraclecloud:
   knife-rackspace:
   knife-reporting:
   knife-supermarket:
+  knife-vcair:
+  knife-vrealize:
 
 deprecated:
   knife-essentials:
@@ -60,6 +64,8 @@ misc:
   wmi-lite:
   knife-acl:
   knife-ec-backup:
+  vmware-vra:
+  oraclecloud:
 
 test-kitchen:
   busser:
@@ -80,9 +86,13 @@ test-kitchen:
   kitchen-libvirtlxc:
   kitchen-opennebula:
   kitchen-openstack:
+  kitchen-oraclecloud:
   kitchen-pester:
   kitchen-rackspace:
   kitchen-vagrant:
+  kitchen-vcair:
+  kitchen-vra:
+  kitchen-vro:
   test-kitchen:
   winrm-transport:
 
