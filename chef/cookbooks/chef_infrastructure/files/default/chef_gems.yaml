@@ -29,6 +29,7 @@ chef-provisioning:
   chef-provisioning-vagrant:
 
 knife:
+  knife-analytics:
   knife-azure:
   knife-ec2:
   knife-google:
@@ -37,6 +38,7 @@ knife:
   knife-opc:
   knife-openstack:
   knife-rackspace:
+  knife-reporting:
   knife-supermarket:
 
 deprecated:
@@ -51,6 +53,9 @@ deprecated:
 
 misc:
   appbundler:
+  chef-analytics:
+  chef-reporting:
+  omniauth-chef:
   omnibus:
   wmi-lite:
   knife-acl:
