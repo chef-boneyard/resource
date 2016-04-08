@@ -37,6 +37,10 @@
   github_username:   gmiranda23
   rubygems_username: gmiranda23
   rubygems_email:    gmiranda@chef.io
+- name:              James Casey
+  groups:            [chef-admins,chef-employees]
+  rubygems_username: jamesc_000
+  rubygems_email:    jamesc.000@gmail.com
 - name:              Jay Mundrawala
   groups:            [chef-admins,chef-employees]
   rubygems_username: jdmundrawala
