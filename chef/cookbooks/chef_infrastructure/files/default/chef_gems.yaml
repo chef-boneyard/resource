@@ -3,6 +3,8 @@ chef:
   chef-config:
     github: chef/chef
   chef-zero:
+  compat_resource:
+    github: chef-cookbooks/compat_resource
   dep_selector:
     github: chef/dep-selector
   dep-selector-libgecode:
@@ -37,6 +39,7 @@ knife:
   knife-linode:
   knife-opc:
   knife-openstack:
+  knife-push:
   knife-rackspace:
   knife-reporting:
   knife-supermarket:

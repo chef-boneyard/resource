@@ -1,7 +1,7 @@
 # Admin employees
 - name:              Adam Jacob
   groups:            [chef-admins,chef-employees]
-  opscode_alias: adamhjk
+  opscode_alias:     adamhjk
   rubygems_username: 43081
   rubygems_email:    adam@opscode.com
 - name:              Adam Edwards
@@ -84,11 +84,11 @@
 - name:              Nell Shamrell
   groups:            [chef-admins,chef-employees]
   rubygems_username: nellshamrell
-  rubygems_email: nellshamrell@gmail.com
+  rubygems_email:    nellshamrell@gmail.com
 - name:              Robb Kidd
   groups:            [chef-admins,chef-employees]
   rubygems_username: robbkidd
-  rubygems_email: robb@thekidds.org
+  rubygems_email:    robb@thekidds.org
 - name:              Salim Alam
   groups:            [chef-admins,chef-employees]
   rubygems_username: chefsalim
@@ -117,6 +117,10 @@
   groups:            [chef-admins,chef-employees]
   rubygems_username: thommay
   rubygems_email:    thom@may.lt
+- name:              Tim Smith
+  groups:            [chef-admins,chef-employees]
+  rubygems_username: tas50
+  rubygems_email:    tsmith84@gmail.com
 - name:              Tyler Ball
   groups:            [chef-admins,chef-employees]
   rubygems_username: tyleraball
@@ -125,6 +129,10 @@
   groups:            [chef-admins,chef-employees]
   rubygems_username: yzl
   rubygems_email:    yvonne.z.lam@gmail.com
+- name:              Sean O'Meara
+  groups:            [chef-admins,chef-employees]
+  rubygems_username: someara
+  rubygems_email:    someara@gmail.com
 
 # Non-admin employees
 - name:              Grant Hudgens
