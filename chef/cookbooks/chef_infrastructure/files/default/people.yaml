@@ -8,6 +8,10 @@
   groups:            [chef-admins,chef-employees]
   rubygems_username: adamedx
   rubygems_email:    adamedx@gmail.com
+- name:              Adam Leff
+  groups:            [chef-admins,chef-employees]
+  rubygems_username: adamleff
+  rubygems_email:    adam@leff.co
 - name:              Bryan McLellan
   groups:            [chef-admins,chef-employees]
   rubygems_username: btm
@@ -89,6 +93,10 @@
   groups:            [chef-admins,chef-employees]
   rubygems_username: robbkidd
   rubygems_email: robb@thekidds.org
+- name:              Ryan Cragun
+  groups:            [chef-admins,chef-employees]
+  rubygems_username: ryancragun
+  rubygems_email:    me@ryan.ec
 - name:              Salim Alam
   groups:            [chef-admins,chef-employees]
   rubygems_username: chefsalim
@@ -137,11 +145,6 @@
   rubygems_username: snapp
   rubygems_email:    jeremiah.snapp@gmail.com
   rubygems:          [knife-acl]
-- name:              Ryan Cragun
-  groups:            [chef-employees]
-  rubygems_username: ryancragun
-  rubygems_email:    me@ryan.ec
-  rubygems:          [knife-ec-backup]
 - name:              Sean Horn
   groups:            [chef-employees]
   rubygems_username: sean_horn
