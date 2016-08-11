@@ -1,23 +1,5 @@
-Resource Cookbook CHANGELOG
-===========================
+This cookbook and repo has been deprecated.
 
-0.2.2 (4/1/2015)
------------------
+Most of the work in this repo was incorporated into core chef in 12.5.x
 
-- Fix issue with uploading via berks (@damascus)
-
-0.2.1 (2/19/2015)
------------------
-
-- Rename ChefResource.resource -> Chef.resource
-- Get cookbook include working again
-
-0.2 (2/19/2015)
----------------
-
-- Initial publication
-- Single-file resources
-- depends "resource" is how you use it
-- Read/write resources with load/converge
-- define, defaults, resource keywords
-- strongly typed properties and coercion
+If you're looking for content that was in here, please peruse the git history.

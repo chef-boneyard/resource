@@ -1,8 +1,0 @@
-chef-admins:
-  description: Administrators
-chef-employees:
-  description: Employees of Chef
-berkshelf:
-  description: Maintainers of Berkshelf
-test-kitchen:
-  description: Maintainers of Test Kitchen
