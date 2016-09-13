@@ -91,17 +91,18 @@ test-kitchen:
 
 berkshelf:
   berkshelf:
-  solve:
-  ridley:
-  varia_model:
-    github: reset/varia_model
   berkshelf-api:
-  vagrant-berkshelf:
   berkshelf-api-client:
-  semverse:
   berkshelf-bzr:
   buff-config:
   buff-extensions:
   buff-ignore:
+  buff-platform:
   buff-ruby_engine:
   buff-shell_out:
+  ridley:
+  semverse:
+  solve:
+  vagrant-berkshelf:
+  varia_model:
+    github: reset/varia_model
