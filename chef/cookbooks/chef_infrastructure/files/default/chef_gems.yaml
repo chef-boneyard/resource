@@ -100,3 +100,8 @@ berkshelf:
   berkshelf-api-client:
   semverse:
   berkshelf-bzr:
+  buff-config:
+  buff-extensions:
+  buff-ignore:
+  buff-ruby_engine:
+  buff-shell_out:

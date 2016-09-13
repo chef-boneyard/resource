@@ -23,7 +23,7 @@ Chef.resource :rubygems_gem do
   end
 
   # Whether to purge owners
-  property :purge, Boolean
+  property :purge, Boolean, default: false
 
   recipe do
     converge :owners do
