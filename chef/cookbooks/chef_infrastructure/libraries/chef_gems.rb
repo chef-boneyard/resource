@@ -51,7 +51,7 @@ module ChefGems
     end
   end
 
-  def self.in_group(group)
-    all.select { |name, gem_info| gem_info["groups"].include?(group) }
+  def self.in_group(*groups)
+    all.select { |name, gem_info| groups.any? { |group| gem_info["groups"].include?(group) } }
   end
 end

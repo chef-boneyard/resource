@@ -9,7 +9,7 @@
   rubygems_username: adamedx
   rubygems_email:    adamedx@gmail.com
 - name:              Bryan McLellan
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: btm
   rubygems_email:    btm@loftninjas.org
 - name:              Chris Doherty
@@ -50,11 +50,11 @@
   rubygems_username: jjasghar
   rubygems_email:    jjasghar@gmail.com
 - name:              John Keiser
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: jkeiser
   rubygems_email:    john@johnkeiser.com
 - name:              Joshua Timberman
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: jtimberman
   rubygems_email:    joshua@chef.io
 - name:              Kartik Subrama
@@ -74,7 +74,7 @@
   rubygems_username: mattray
   rubygems_email:    matthewhray@gmail.com
 - name:              Matt Wrock
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: mwrockx
   rubygems_email:    matt@mattwrock.com
 - name:              Nathan Smith
@@ -98,7 +98,7 @@
   rubygems_username: sersut
   rubygems_email:    serdar@opscode.com
 - name:              Seth Chisamore
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: schisamo
   rubygems_email:    schisamo@chef.io
 - name:              Seth Falcon
@@ -106,23 +106,23 @@
   rubygems_username: sfalcon
   rubygems_email:    seth@opscode.com
 - name:              Seth Thomas
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: cheeseplus
   rubygems_email:    sthomas@chef.io
 - name:              Steven Danna
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: sdanna
   rubygems_email:    steve@opscode.com
 - name:              Thom May
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: thommay
   rubygems_email:    thom@may.lt
 - name:              Tim Smith
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: tas50
   rubygems_email:    tsmith84@gmail.com
 - name:              Tyler Ball
-  groups:            [chef-admins,chef-employees]
+  groups:            [chef-admins,chef-employees,test-kitchen]
   rubygems_username: tyleraball
   rubygems_email:    tyleraball@gmail.com
 - name:              Yvonne Lam
@@ -135,6 +135,10 @@
   rubygems_email:    someara@gmail.com
 
 # Non-admin employees
+- name:              Adam Leff
+  groups:            [chef-employees,test-kitchen]
+  rubygems_username: adamleff
+  rubygems_email:    adam@leff.co
 - name:              Grant Hudgens
   groups:            [chef-employees]
   rubygems_username: ghudgens
@@ -155,6 +159,10 @@
   rubygems_username: sean_horn
   rubygems_email:    sean_horn@opscode.com
   rubygems:          [knife-acl]
+- name:              Steven Murawski
+  groups:            [chef-employees,test-kitchen]
+  rubygems_username: smurawski
+  rubygems_email:    steven.murawski@gmail.com
 
 # Non-employees
 - name:              Jesse Adams
